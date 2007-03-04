@@ -105,6 +105,70 @@ struct avivo_output {
     struct avivo_output *next;
 };
 
+struct avivo_state
+{
+    int clock_1;
+    int clock_2;
+    int crtc1_h_total;
+    int crtc1_h_blank;
+    int crtc1_h_sync_wid;
+    int crtc1_h_sync_pol;
+    int crtc1_v_total;
+    int crtc1_v_blank;
+    int crtc1_v_sync_wid;
+    int crtc1_v_sync_pol;
+    int crtc1_cntl;
+    int crtc1_mode;
+    int crtc1_60c0_mystery;
+    int crtc1_scan_enable;
+    int crtc1_fb_format;
+    int crtc1_fb_location;
+    int crtc1_fb_end;
+    int crtc1_pitch;
+    int crtc1_x_length;
+    int crtc1_y_length;
+    int crtc1_fb_height;
+    int crtc1_expn_size;
+    int crtc1_expn_cntl;
+    int crtc2_h_total;
+    int crtc2_h_blank;
+    int crtc2_h_sync_wid;
+    int crtc2_h_sync_pol;
+    int crtc2_v_total;
+    int crtc2_v_blank;
+    int crtc2_v_sync_wid;
+    int crtc2_v_sync_pol;
+    int crtc2_cntl;
+    int crtc2_mode;
+    int crtc2_scan_enable;
+    int crtc2_fb_format;
+    int crtc2_fb_location;
+    int crtc2_fb_end;
+    int crtc2_pitch;
+    int crtc2_x_length;
+    int crtc2_y_length;
+    int dac1_cntl;
+    int dac1_mystery1;
+    int dac1_mystery2;
+    int tmds1_cntl;
+    int tmds1_mystery1;
+    int tmds1_mystery2;
+    int tmds1_clock_cntl;
+    int tmds1_mystery3;
+    int dac2_cntl;
+    int dac2_mystery1;
+    int dac2_mystery2;
+    int tmds2_cntl;
+    int tmds2_mystery1;
+    int tmds2_mystery2;
+    int tmds2_clock_cntl;
+    int tmds2_mystery3;
+    int cursor1_cntl;
+    int cursor1_location;
+    int cursor1_size;
+    int cursor1_position;
+};
+
 struct avivo_info
 {
     EntityInfoPtr entity;
@@ -129,6 +193,8 @@ struct avivo_info
     unsigned long ctrl_addr, fb_addr;
     int ctrl_size, fb_size;
     void *ctrl_base, *fb_base;
+
+    struct avivo_state saved_state;
 
     OptionInfoPtr options;
 };
