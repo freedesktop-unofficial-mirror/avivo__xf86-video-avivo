@@ -1,0 +1,45 @@
+VT switching:
+ - Completely broken.
+ - http://www.codon.org.uk/~mjg59/tmp/textmode.diff fixes.
+
+BIOS reading:
+ - None.
+
+TMDS:
+ - Both heads work.
+
+VGA:
+ - Both heads work.
+ - ... but can't be detected.
+
+PLLs:
+ - Needs to be worked out.  Works if fglrx/BIOS sets a mode with the same
+   clock first.
+
+I2C:
+ - Jerome has the registers for this: should be pretty easy to get going
+   and hook up to DDC.
+
+LVDS:
+ - http://www.codon.org.uk/~mjg59/tmp/avivo_lvds.diff makes it work for
+   the MacBook Pro.  Need to look harder at the TMDS mystery registers:
+   presumably preserving state will help, rather than cargo-culting.
+
+pciaccess:
+ - Completely untested.
+
+TV:
+ - Nothing yet.
+
+Mode validation:
+ - None.
+
+RandR 1.2:
+ - None.
+
+Acceleration:
+ - None.
+
+Register descriptions:
+ - http://nouveau.cvs.sourceforge.net/nouveau/doc/rules-ng/rules-ng-format.txt?revision=HEAD
+   describes the format Nouveau are probably going with.
