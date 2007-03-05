@@ -45,6 +45,7 @@
 #define AVIVO_DRIVER_NAME	"avivo"
 #define AVIVO_DRIVER_VERSION    1000
 
+#define PCI_CHIP_RV530_71C5     0x71C5
 #define PCI_CHIP_R580_724B      0x724B
 
 #define INREG(x) MMIO_IN32(avivo->ctrl_base, x)
@@ -53,6 +54,7 @@
 enum avivo_chip_type {
     CHIP_FAMILY_RN515,
     CHIP_FAMILY_R520,
+    CHIP_FAMILY_RV530,
     CHIP_FAMILY_R580,
     CHIP_FAMILY_LAST,
 };
