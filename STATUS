@@ -21,9 +21,8 @@ I2C:
    and hook up to DDC.
 
 LVDS:
- - http://www.codon.org.uk/~mjg59/tmp/avivo_lvds.diff makes it work for
-   the MacBook Pro.  Need to look harder at the TMDS mystery registers:
-   presumably preserving state will help, rather than cargo-culting.
+ - Works out of the box on MacBook Pro, since the BIOS sets everything up
+   for us.
 
 pciaccess:
  - Completely untested.
