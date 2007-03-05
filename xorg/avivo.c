@@ -1084,8 +1084,13 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
         else if (output->output_num == 2) {
             OUTREG(AVIVO_TMDS2_MYSTERY1, value1);
             OUTREG(AVIVO_TMDS2_MYSTERY2, value2);
-            OUTREG(AVIVO_TMDS2_MYSTERY3, (value3 | 0x20630000));
+            value3 |= 0x00630000;
+            value3 |= INREG(AVIVO_TMDS2_MYSTERY3) & (1 << 29);
+            OUTREG(AVIVO_TMDS2_MYSTERY3, value3);
             OUTREG(AVIVO_TMDS2_CLOCK_CNTL, value4);
+            /* This needs to be set on LVDS, and unset on TMDS.  Luckily, the
+             * BIOS appears to set it up for us, so just carry it over. */
+            value5 |= (INREG(AVIVO_TMDS2_CNTL) & (1 << 24));
             OUTREG(AVIVO_TMDS2_CNTL, value5);
         }
     }
