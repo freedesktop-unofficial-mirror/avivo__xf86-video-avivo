@@ -3247,7 +3247,7 @@
 /* This appears to control dithering? */
 #	define AVIVO_TMDS_MYSTERY1_EN		((1 << 8) | (1 << 12))
 #define AVIVO_TMDS1_MYSTERY2			0x78d8
-#	define AVIVO_TMDS_MYSTERY2_EN		(1 << 0)
+#	define AVIVO_TMDS_MYSTERY2_EN		((1 << 24) | (1 << 16) | (1 << 0))
 #define AVIVO_TMDS1_CLOCK_ENABLE		0x7900
 #define AVIVO_TMDS1_CLOCK_CNTL			0x7904
 /* I don't know any of the bits here, only that enabling (1 << 5)

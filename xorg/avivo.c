@@ -1,5 +1,6 @@
 /*
  * Copyright © 2007 Daniel Stone
+ * Copyright © 2007 Matthew Garrett
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +14,8 @@
  * A copy of the General Public License is included with the source
  * distribution of this driver, as COPYING.
  *
- * Author: Daniel Stone <daniel@fooishbar.org>
+ * Authors: Daniel Stone <daniel@fooishbar.org>
+ *          Matthew Garrett <mjg59@srcf.ucam.org>
  *
  * Portions based on the Radeon and VESA drivers.
  */
@@ -1035,7 +1037,7 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
         if (enable) {
             value1 = AVIVO_TMDS_MYSTERY1_EN;
             value2 = AVIVO_TMDS_MYSTERY2_EN;
-            value4 = 0x0000001f;
+            value4 = 0x00001f1f;
             if (output->output_num == 2)
                 value4 |= 0x00000020;
             value5 |= AVIVO_TMDS_EN;
@@ -1056,7 +1058,7 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
         else if (output->output_num == 2) {
             OUTREG(AVIVO_TMDS2_MYSTERY1, value1);
             OUTREG(AVIVO_TMDS2_MYSTERY2, value2);
-            OUTREG(AVIVO_TMDS2_MYSTERY3, value3 | 0x20000000);
+            OUTREG(AVIVO_TMDS2_MYSTERY3, (value3 | 0x20630000));
             OUTREG(AVIVO_TMDS2_CLOCK_CNTL, value4);
             OUTREG(AVIVO_TMDS2_CNTL, value5);
         }
