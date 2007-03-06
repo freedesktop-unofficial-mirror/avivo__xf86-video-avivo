@@ -1035,7 +1035,7 @@ avivo_enable_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
         OUTREG(AVIVO_CRTC1_SCAN_ENABLE, scan_enable);
         OUTREG(AVIVO_CRTC1_CNTL, cntl);
     }
-    else if (crtc->id == 1) {
+    else if (crtc->id == 2) {
         OUTREG(AVIVO_CRTC2_SCAN_ENABLE, scan_enable);
         OUTREG(AVIVO_CRTC2_CNTL, cntl);
     }
