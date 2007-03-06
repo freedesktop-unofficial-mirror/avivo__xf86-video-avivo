@@ -1,6 +1,5 @@
 VT switching:
- - Completely broken.
- - http://www.codon.org.uk/~mjg59/tmp/textmode.diff fixes.
+ - Works.  Still broken on exit for daniels, but switching itself is okay.
 
 BIOS reading:
  - None.
