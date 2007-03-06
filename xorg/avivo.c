@@ -985,6 +985,8 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
         xf86ShowUnusedOptions(screen_info->scrnIndex, screen_info->options);
 
     screen->SaveScreen = avivo_save_screen;
+    avivo->close_screen = screen->CloseScreen;
+    screen->CloseScreen = avivo_close_screen;
 
     return TRUE;
 }
@@ -994,15 +996,13 @@ avivo_enter_vt(int index, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
 
+    avivo_save_state(screen_info);
+
     if (!avivo_set_mode(screen_info, screen_info->currentMode))
 	return FALSE;
+
     avivo_restore_cursor(screen_info);
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
-
-    /* Crashes when we come back on resume. */
-#if 0
-    xf86EnableDisableFBAccess(index, 1);
-#endif
 
     return TRUE;
 }
@@ -1011,11 +1011,6 @@ static void
 avivo_leave_vt(int index, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
-
-    /* Crashes when we come back on resume. */
-#if 0
-    xf86EnableDisableFBAccess(index, 0);    
-#endif
 
     avivo_save_cursor(screen_info);
     avivo_restore_state(screen_info);
@@ -1241,6 +1236,19 @@ static void
 avivo_free_screen(int index, int flags)
 {
     avivo_free_info(xf86Screens[index]);
+}
+
+static Bool
+avivo_close_screen(int index, ScreenPtr screen)
+{
+    ScrnInfoPtr screen_info = xf86Screens[index];
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    Bool ret;
+
+    avivo_restore_state(screen_info);
+    
+    screen->CloseScreen = avivo->close_screen;
+    return screen->CloseScreen(index, screen);
 }
 
 static void

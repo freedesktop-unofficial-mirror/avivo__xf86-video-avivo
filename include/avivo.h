@@ -198,6 +198,8 @@ struct avivo_info
 
     struct avivo_state saved_state;
 
+    Bool (*close_screen)(int, ScreenPtr);
+
     OptionInfoPtr options;
 };
 
