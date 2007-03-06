@@ -130,6 +130,7 @@ struct avivo_state
     int crtc1_x_length;
     int crtc1_y_length;
     int crtc1_fb_height;
+    int crtc1_offset;
     int crtc1_expn_size;
     int crtc1_expn_cntl;
     int crtc2_h_total;

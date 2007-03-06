@@ -462,6 +462,7 @@ static struct {
     REGLIST(AVIVO_CRTC1_PITCH),
     REGLIST(AVIVO_CRTC1_X_LENGTH),
     REGLIST(AVIVO_CRTC1_Y_LENGTH),
+    REGLIST(AVIVO_CRTC1_OFFSET),
     REGLIST(AVIVO_CRTC1_EXPANSION_CNTL),
     REGLIST(AVIVO_CRTC1_EXPANSION_SOURCE),
     REGLIST(AVIVO_CRTC2_H_TOTAL),
@@ -777,6 +778,10 @@ void radeon_cmd_regs(const char *type)
         SHOW_REG_BITS(AVIVO_CRTC1_EXPANSION_SOURCE,
                       16, 31, "DECIMALHeight",
                       0, 15, "DECIMALWidth",
+                      0, 0, NULL);
+        SHOW_REG_BITS(AVIVO_CRTC1_OFFSET,
+                      16, 31, "DECIMALx",
+                      0, 15, "DECIMALy",
                       0, 0, NULL);
     }
     else {

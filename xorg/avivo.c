@@ -788,6 +788,7 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_X_LENGTH, state->crtc1_x_length);
     OUTREG(AVIVO_CRTC1_Y_LENGTH, state->crtc1_y_length);
     OUTREG(0x652c, state->crtc1_fb_height);
+    OUTREG(AVIVO_CRTC1_OFFSET, state->crtc1_offset);
     OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, state->crtc1_expn_size);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, state->crtc1_expn_cntl);
     OUTREG(AVIVO_CRTC2_H_TOTAL, state->crtc2_h_total);
@@ -873,6 +874,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_x_length = INREG(AVIVO_CRTC1_X_LENGTH);
     state->crtc1_y_length = INREG(AVIVO_CRTC1_Y_LENGTH);
     state->crtc1_fb_height = INREG(0x652c);
+    state->crtc1_offset = INREG(AVIVO_CRTC1_OFFSET);
     state->crtc1_expn_size = INREG(AVIVO_CRTC1_EXPANSION_SOURCE);
     state->crtc1_expn_cntl = INREG(AVIVO_CRTC1_EXPANSION_CNTL);
 
@@ -1228,8 +1230,7 @@ avivo_adjust_frame(int index, int x, int y, int flags)
 {
     struct avivo_info *avivo = avivo_get_info(xf86Screens[index]);
 
-    /* FIXME: Adjust frame. :) */
-    ;
+    OUTREG(AVIVO_CRTC1_OFFSET, (x << 16) | y);
 }
 
 static void
