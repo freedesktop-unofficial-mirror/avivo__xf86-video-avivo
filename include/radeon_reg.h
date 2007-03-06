@@ -3159,6 +3159,10 @@
 #	define MC1f				0x1f
 #define AVIVO_MC_DATA				0x0074
 
+/* Refclk appears to be 108MHz?  1080000 / mode clock = this.
+ * 0x403 and 0x404 are all related, but still a mystery. */
+#define AVIVO_PLL_DIVIDER			0x043c
+
 /* CRTC controls; these appear to influence the DAC's scanout. */
 #define AVIVO_CRTC1_H_TOTAL			0x6000
 #define AVIVO_CRTC1_H_BLANK			0x6004

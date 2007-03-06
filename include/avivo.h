@@ -76,6 +76,7 @@ struct avivo_crtc {
 
     int h_total, h_blank, h_sync_wid, h_sync_pol;
     int v_total, v_blank, v_sync_wid, v_sync_pol;
+    int clock;
 
     unsigned long fb_offset;
     int fb_format, fb_length;
@@ -170,6 +171,7 @@ struct avivo_state
     int cursor1_location;
     int cursor1_size;
     int cursor1_position;
+    int pll_divider;
 };
 
 struct avivo_info

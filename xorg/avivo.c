@@ -826,6 +826,8 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_TMDS2_CLOCK_CNTL, state->tmds2_clock_cntl);
     OUTREG(AVIVO_TMDS2_MYSTERY3, state->tmds2_mystery3);
 
+    OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
+
 #ifdef WITH_VGAHW
     vgaHWPtr hwp = VGAHWPTR(screen_info);
     vgaHWUnlock(hwp);
@@ -916,6 +918,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->tmds2_clock_cntl = INREG(AVIVO_TMDS2_CLOCK_CNTL);
     state->tmds2_mystery3 = INREG(AVIVO_TMDS2_MYSTERY3);
     
+    state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
 }
     
 static Bool
@@ -1138,6 +1141,8 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
             OUTREG(AVIVO_CRTC1_MODE, 0);
             OUTREG(0x60c0, 0);
 
+            OUTREG(AVIVO_PLL_DIVIDER, 1080000 / crtc->clock);
+
             OUTREG(0x652c, crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
                                                  crtc->fb_height);
@@ -1181,6 +1186,8 @@ avivo_setup_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
     crtc->v_blank = (mode->VTotal - mode->VSyncStart) << 16 |
                     (mode->VTotal - mode->VSyncStart + mode->VDisplay);
     crtc->v_sync_wid = (mode->VSyncEnd - mode->VSyncStart) << 16;
+
+    crtc->clock = mode->Clock;
 
     crtc->fb_width = mode->HDisplay;
     crtc->fb_height = mode->VDisplay;
