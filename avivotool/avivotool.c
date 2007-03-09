@@ -508,6 +508,8 @@ static struct {
     REGLIST(AVIVO_CURSOR1_LOCATION),
     REGLIST(AVIVO_CURSOR1_SIZE),
     REGLIST(AVIVO_PLL_DIVIDER),
+    REGLIST(AVIVO_PLL_INPUT),
+    REGLIST(AVIVO_PLL_FEEDBACK),
 };
 
 /* If you want to be _really_ sure, try something like 20, with a
@@ -698,6 +700,10 @@ void radeon_cmd_regs(const char *type)
         printf("Avivo engine:\n");
         SHOW_REG(AVIVO_ENGINE_STATUS);
         SHOW_REG(AVIVO_PLL_DIVIDER);
+        SHOW_REG_BITS(AVIVO_PLL_INPUT,
+                      16, 31, "Input?",
+                      0, 0, NULL);
+        SHOW_REG(AVIVO_PLL_FEEDBACK);
     }
 
     if (show_mc) {

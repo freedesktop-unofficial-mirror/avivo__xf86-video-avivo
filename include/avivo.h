@@ -172,6 +172,8 @@ struct avivo_state
     int cursor1_size;
     int cursor1_position;
     int pll_divider;
+    int pll_input;
+    int pll_feedback;
 };
 
 struct avivo_info

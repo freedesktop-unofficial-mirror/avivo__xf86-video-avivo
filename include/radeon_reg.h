@@ -3159,9 +3159,20 @@
 #	define MC1f				0x1f
 #define AVIVO_MC_DATA				0x0074
 
-/* Refclk appears to be 108MHz?  1080000 / mode clock = this.
- * 0x403 and 0x404 are all related, but still a mystery. */
+/* Refclk appears to be 108MHz?  1080000 / mode clock = this. */
 #define AVIVO_PLL_DIVIDER			0x043c
+
+/* Honestly, these names are just guesses, and hardcoded values.
+ * For any value programmed, (INPUT >> 16) / FEEDBACK must
+ * approximately equal 40.  But I don't have a clever formula
+ * to programatically determine this.
+ * This is used to scale the PLL's range, so the value ends up
+ * being in the middle of the PLL's effective range.  For now,
+ * we just hard-code the values for 135MHz. */
+#define AVIVO_PLL_INPUT				0x430
+#	define AVIVO_PLL_INPUT_VALUE		(0x0050 << 16)
+#define AVIVO_PLL_FEEDBACK			0x404
+#	define AVIVO_PLL_FEEDBACK_VALUE		(1 << 1)
 
 /* CRTC controls; these appear to influence the DAC's scanout. */
 #define AVIVO_CRTC1_H_TOTAL			0x6000

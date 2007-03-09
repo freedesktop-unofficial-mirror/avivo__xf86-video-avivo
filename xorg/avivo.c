@@ -827,6 +827,8 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_TMDS2_MYSTERY3, state->tmds2_mystery3);
 
     OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
+    OUTREG(AVIVO_PLL_INPUT, state->pll_input);
+    OUTREG(AVIVO_PLL_FEEDBACK, state->pll_feedback);
 
 #ifdef WITH_VGAHW
     vgaHWPtr hwp = VGAHWPTR(screen_info);
@@ -919,6 +921,8 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->tmds2_mystery3 = INREG(AVIVO_TMDS2_MYSTERY3);
     
     state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
+    state->pll_input = INREG(AVIVO_PLL_INPUT);
+    state->pll_feedback = INREG(AVIVO_PLL_FEEDBACK);
 }
     
 static Bool
@@ -1142,6 +1146,8 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
             OUTREG(0x60c0, 0);
 
             OUTREG(AVIVO_PLL_DIVIDER, 1080000 / crtc->clock);
+            OUTREG(AVIVO_PLL_INPUT, AVIVO_PLL_INPUT_VALUE);
+            OUTREG(AVIVO_PLL_FEEDBACK, AVIVO_PLL_FEEDBACK_VALUE);
 
             OUTREG(0x652c, crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
