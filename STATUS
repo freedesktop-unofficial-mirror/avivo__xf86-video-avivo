@@ -1,5 +1,8 @@
+Init:
+ - Not complete, still requires an fglrx run.
+
 VT switching:
- - Works.  Still broken on exit for daniels, but switching itself is okay.
+ - Works.
 
 BIOS reading:
  - None.
@@ -12,19 +15,19 @@ VGA:
  - ... but can't be detected.
 
 PLLs:
- - Needs to be worked out.  Works if fglrx/BIOS sets a mode with the same
-   clock first.
+ - Work.
 
 I2C:
  - Jerome has the registers for this: should be pretty easy to get going
    and hook up to DDC.
+ - (Not entirely.)
 
 LVDS:
  - Works out of the box on MacBook Pro, since the BIOS sets everything up
    for us.
 
 pciaccess:
- - Completely untested.
+ - Broken.
 
 TV:
  - Nothing yet.
