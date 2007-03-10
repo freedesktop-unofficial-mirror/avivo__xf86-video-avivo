@@ -3217,6 +3217,14 @@
 #define AVIVO_CRTC1_EXPANSION_SOURCE		0x6584
 #define AVIVO_CRTC1_EXPANSION_CNTL		0x6590
 #	define AVIVO_CRTC_EXPANSION_EN		(1 << 0)
+#define AVIVO_CRTC1_6594			0x6594
+#	define AVIVO_CRTC1_6594_VALUE		((1 << 8) | (1 << 0))
+#define AVIVO_CRTC1_65A4			0x65a4
+#	define AVIVO_CRTC1_65A4_VALUE		((1 << 16) | (1 << 0))
+#define AVIVO_CRTC1_65B0			0x65b0
+#	define AVIVO_CRTC1_65B0_VALUE		((1 << 17) | (1 << 16) | (1 << 8))
+#define AVIVO_CRTC1_65C0			0x65c0
+#	define AVIVO_CRTC1_65C0_VALUE		((1 << 17) | (1 << 16) | (1 << 8))
 
 #define AVIVO_CRTC2_H_TOTAL			0x6800
 #define AVIVO_CRTC2_H_BLANK			0x6804

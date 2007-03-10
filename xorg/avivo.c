@@ -721,7 +721,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     vgaHWGetIOBase(VGAHWPTR(screen_info));
 
 #endif
-    
 
     return TRUE;
 }
@@ -791,6 +790,10 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_OFFSET, state->crtc1_offset);
     OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, state->crtc1_expn_size);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, state->crtc1_expn_cntl);
+    OUTREG(AVIVO_CRTC1_6594, state->crtc1_6594);
+    OUTREG(AVIVO_CRTC1_65A4, state->crtc1_65a4);
+    OUTREG(AVIVO_CRTC1_65B0, state->crtc1_65b0);
+    OUTREG(AVIVO_CRTC1_65C0, state->crtc1_65c0);
     OUTREG(AVIVO_CRTC2_H_TOTAL, state->crtc2_h_total);
     OUTREG(AVIVO_CRTC2_H_BLANK, state->crtc2_h_blank);
     OUTREG(AVIVO_CRTC2_H_SYNC_WID, state->crtc2_h_sync_wid);
@@ -881,6 +884,10 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_offset = INREG(AVIVO_CRTC1_OFFSET);
     state->crtc1_expn_size = INREG(AVIVO_CRTC1_EXPANSION_SOURCE);
     state->crtc1_expn_cntl = INREG(AVIVO_CRTC1_EXPANSION_CNTL);
+    state->crtc1_6594 = INREG(AVIVO_CRTC1_6594);
+    state->crtc1_65a4 = INREG(AVIVO_CRTC1_65A4);
+    state->crtc1_65b0 = INREG(AVIVO_CRTC1_65B0);
+    state->crtc1_65c0 = INREG(AVIVO_CRTC1_65C0);
 
     state->crtc2_h_total = INREG(AVIVO_CRTC2_H_TOTAL);
     state->crtc2_h_blank = INREG(AVIVO_CRTC2_H_BLANK);
@@ -1153,6 +1160,10 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
             OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
                                                  crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, AVIVO_CRTC_EXPANSION_EN);
+            OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
+            OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
+            OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
+            OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
 
             OUTREG(AVIVO_CRTC1_X_LENGTH, crtc->fb_width);
             OUTREG(AVIVO_CRTC1_Y_LENGTH, crtc->fb_height);
