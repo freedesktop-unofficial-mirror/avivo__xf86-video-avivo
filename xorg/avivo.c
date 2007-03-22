@@ -642,15 +642,29 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     avivo->pci_info = xf86GetPciInfoForEntity(avivo->entity->index);
     avivo->pci_tag = pciTag(avivo->pci_info->bus, avivo->pci_info->device,
                             avivo->pci_info->func);
-    avivo->ctrl_addr = avivo->pci_info->memBase[2] & 0xffffff00;
-    avivo->ctrl_size = (1 << avivo->pci_info->size[2]);
-    avivo_map_ctrl_mem(screen_info);
 
-    avivo->fb_addr = avivo->pci_info->memBase[0] & 0xfe000000;
-    avivo->fb_size = INREG(RADEON_CONFIG_MEMSIZE);
-    screen_info->videoRam = avivo->fb_size / 1024;
-    avivo_map_fb_mem(screen_info);
+    /* Map MMIO space first, then the framebuffer. */
+    for (i = 0; i < 6; i++) {
+        if (avivo->pci_info->size[i] == 15 || avivo->pci_info->size[i] == 16) {
+            avivo->ctrl_addr = avivo->pci_info->memBase[i] & 0xffffff00;
+            avivo->ctrl_size = (1 << avivo->pci_info->size[i]);
+            avivo_map_ctrl_mem(screen_info);
+        }
+    }
+
+    for (i = 0; i < 6; i++) {
+        if (avivo->pci_info->size[i] >= 26) {
+            avivo->fb_addr = avivo->pci_info->memBase[i] & 0xfe000000;
+            avivo->fb_size = INREG(RADEON_CONFIG_MEMSIZE);
+            screen_info->videoRam = avivo->fb_size / 1024;
+            avivo_map_fb_mem(screen_info);
+        }
+    }
 #endif
+
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "Control memory at %p, fb at %p\n", avivo->ctrl_addr,
+               avivo->fb_addr);
 
     avivo_get_chipset(avivo);
 
@@ -1135,6 +1149,10 @@ static void
 avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
 {
     unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
+
+    /* This is needed for me when setting up with new fglrx, and it makes no
+     * sense whatsoever ... -daniels */
+    fb_location += 0x10000000;
 
     if (crtc->id == 1) {
         OUTREG(AVIVO_CRTC1_CNTL, 0);
