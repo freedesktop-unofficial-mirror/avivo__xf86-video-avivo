@@ -3338,9 +3338,9 @@
 /* Reading is done 4 bytes at a time: read the bottom 8 bits from
  * 7d44, four times in a row.
  * Writing is a little more complex.  First write DATA with
- * 0xnnnnnnAm, then 0xnnnnnnyy, where nnnnnn is some non-deterministic
- * magic number, m is some more or less non-deterministic magic number,
- * and yy is the byte you want to write. */
+ * 0xnnnnnnzz, then 0xnnnnnnyy, where nnnnnn is some non-deterministic
+ * magic number, zz is, I think, the slave address, and yy is the byte
+ * you want to write. */
 #define AVIVO_I2C_DATA				0x7d44
 #define AVIVO_I2C_CNTL				0x7d50
 #	define AVIVO_I2C_EN			(1 << 0)
