@@ -3323,4 +3323,26 @@
 #define AVIVO_CURSOR1_SIZE			0x6410
 #define AVIVO_CURSOR1_POSITION			0x6414
 
+#define AVIVO_I2C_STATUS			0x7d30
+#	define AVIVO_I2C_STATUS_READY		(1 << 0)
+#	define AVIVO_I2C_STATUS_CMD_WAIT	(1 << 3)
+#define AVIVO_I2C_STOP				0x7d34
+#define AVIVO_I2C_START				0x7d38
+#	define AVIVO_I2C_START1			0x107
+#	define AVIVO_I2C_START2			0x103
+#	define AVIVO_I2C_OUTPUT_SHIFT		16
+#	define AVIVO_I2C_START_READ		0xffff0000
+#define AVIVO_I2C_7D3C				0x7d3c
+#	define AVIVO_I2C_7D3C_WRITE		(~(3 << 8))
+#define AVIVO_I2C_7D40				0x7d40
+/* Reading is done 4 bytes at a time: read the bottom 8 bits from
+ * 7d44, four times in a row.
+ * Writing is a little more complex.  First write DATA with
+ * 0xnnnnnnAm, then 0xnnnnnnyy, where nnnnnn is some non-deterministic
+ * magic number, m is some more or less non-deterministic magic number,
+ * and yy is the byte you want to write. */
+#define AVIVO_I2C_DATA				0x7d44
+#define AVIVO_I2C_CNTL				0x7d50
+#	define AVIVO_I2C_EN			(1 << 0)
+
 #endif
