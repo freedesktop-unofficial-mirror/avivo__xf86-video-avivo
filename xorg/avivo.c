@@ -444,8 +444,12 @@ avivo_free_info(ScrnInfoPtr screen_info)
 static void
 avivo_wait_idle(struct avivo_info *avivo)
 {
-    /* FIXME: Deadlock if the card's unhappy ... */
-    while (INREG(0x6494) != 0x3fffffff);
+    int i = 1000;
+
+    while (--i && INREG(0x6494) != 0x3fffffff);
+
+    if (!i)
+        FatalError("Avivo: chip lockup!\n");
 }
 
 static void
