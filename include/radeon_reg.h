@@ -3325,6 +3325,9 @@
 
 #define AVIVO_I2C_STATUS			0x7d30
 #	define AVIVO_I2C_STATUS_READY		(1 << 0)
+/* If radeon_mm_i2c is to be believed, this is HALT, NACK, and maybe
+ * DONE? */
+#	define AVIVO_I2C_STATUS_CMD_RESET	0x7
 #	define AVIVO_I2C_STATUS_CMD_WAIT	(1 << 3)
 #define AVIVO_I2C_STOP				0x7d34
 #define AVIVO_I2C_START				0x7d38

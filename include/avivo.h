@@ -193,6 +193,8 @@ struct avivo_info
     PCITAG pci_tag;
 #endif
 
+    I2CBusPtr i2c;
+
     struct avivo_crtc *crtcs;
     struct avivo_output *outputs;
 

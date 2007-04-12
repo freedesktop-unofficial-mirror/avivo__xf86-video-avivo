@@ -452,6 +452,203 @@ avivo_wait_idle(struct avivo_info *avivo)
         FatalError("Avivo: chip lockup!\n");
 }
 
+/**
+ * Read num bytes into buf.
+ */
+static void
+avivo_i2c_read(struct avivo_info *avivo, uint8_t *buf, int num)
+{
+    int i;
+
+    for (i = 0; i < num; i++) {
+        *buf = INREG(AVIVO_I2C_DATA) & 0xff;
+        buf++;
+    }
+}
+
+/**
+ * Write num bytes from buf.
+ */
+static void
+avivo_i2c_write(struct avivo_info *avivo, uint8_t *buf, int num)
+{
+    int i;
+
+    for (i = 0; i < num; i++) {
+        OUTREG(AVIVO_I2C_DATA, *buf);
+        buf++;
+    }
+}
+
+/**
+ * Write the address out on the line, with allowances for extended
+ * 11-byte addresses.  According to the server's PutAddress function,
+ * we need to send a start, and follow up with a stop if the start
+ * succeeds, but the video BIOS doesn't seem to bother, so ...
+ */
+static int
+avivo_i2c_put_address(struct avivo_info *avivo, int addr, int write)
+{
+    uint8_t buf;
+
+    buf = addr & 0xff;
+    if (write)
+        buf &= ~1;
+    else
+        buf |= 1;
+
+    avivo_i2c_write(avivo, &buf, 1);
+
+    if ((addr & 0xf8) != 0xf0 && (addr & 0xfe) != 0)
+        buf = 0x00;
+    else
+        buf = (addr >> 8) & 0xff;
+    avivo_i2c_write(avivo, &buf, 1);
+
+    return 1;
+}
+
+static int
+avivo_i2c_wait_ready(struct avivo_info *avivo)
+{
+    int i, num_ready, tmp;
+
+    OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
+    for (i = 0, num_ready = 0; num_ready < 3; i++) {
+        tmp = INREG(AVIVO_I2C_STATUS);
+        ErrorF("loop %d: status is %x\n", i, tmp);
+        if (tmp == AVIVO_I2C_STATUS_READY || tmp == 0x2)
+            num_ready++;
+
+        /* Timeout. */
+        if (i == 10) {
+            ErrorF("timeout waiting for engine to go ready\n");
+            tmp = INREG(AVIVO_I2C_CNTL) & ~(AVIVO_I2C_EN);
+            OUTREG(AVIVO_I2C_CNTL, tmp);
+            return 0;
+        }
+
+        /* Fixme: is this hard-coded value correct? */
+        usleep(1000);
+    }
+}
+
+/**
+ * Start the I2C bus, and wait until it's safe to start sending data.
+ * For some reason, it looks like we have to read STATUS_READY three
+ * times, then write it back.  Obviously.
+ */
+static int
+avivo_i2c_start(struct avivo_info *avivo, int subsequent)
+{
+    volatile int num_ready, i, tmp;
+
+    tmp = INREG(AVIVO_I2C_CNTL) & AVIVO_I2C_EN;
+    if (!tmp) {
+        ErrorF("start: engine not enabled\n");
+        OUTREG(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
+        OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_RESET);
+    }
+
+    OUTREG(AVIVO_I2C_STOP, 1);
+    OUTREG(AVIVO_I2C_STOP, 0);
+
+    if (subsequent) {
+        OUTREG(AVIVO_I2C_START, AVIVO_I2C_START2);
+        tmp = INREG(AVIVO_I2C_STATUS);
+        OUTREG(AVIVO_I2C_STATUS, tmp);
+    }
+    else {
+        tmp = INREG(AVIVO_I2C_STATUS);
+        OUTREG(AVIVO_I2C_STATUS, tmp);
+        OUTREG(AVIVO_I2C_START, AVIVO_I2C_START1);
+    }
+
+    tmp = INREG(AVIVO_I2C_7D3C) & AVIVO_I2C_7D3C_WRITE;
+    OUTREG(AVIVO_I2C_7D3C, tmp);
+    tmp = INREG(AVIVO_I2C_7D40);
+    OUTREG(AVIVO_I2C_7D40, tmp);
+
+    return 1;
+}
+
+static void
+avivo_i2c_stop(struct avivo_info *avivo)
+{
+    OUTREG(AVIVO_I2C_STOP, 1);
+    OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_RESET);
+}
+
+static Bool
+avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
+                    I2CByte *read_buf, int num_read)
+{
+    ScrnInfoPtr screen_info = xf86Screens[i2c->pI2CBus->scrnIndex];
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    int started = 0;
+
+    if (num_write) {
+        if (avivo_i2c_start(avivo, started)) {
+            if (avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1)) {
+                avivo_i2c_wait_ready(avivo);
+                avivo_i2c_write(avivo, write_buf, num_write);
+            }
+            started = 1;
+        }
+    }
+
+    if (num_read) {
+        if (avivo_i2c_start(avivo, started)) {
+            if (avivo_i2c_put_address(avivo, i2c->SlaveAddr, 0)) {
+                avivo_i2c_wait_ready(avivo);
+                avivo_i2c_read(avivo, read_buf, num_read);
+            }
+            started = 1;
+        }
+    }
+
+    if (started)
+        avivo_i2c_stop(avivo);
+}
+
+static void
+avivo_ddc(ScrnInfoPtr screen_info)
+{
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    xf86MonPtr monitor;
+    int tmp;
+
+    monitor = xf86DoEDID_DDC2(screen_info->scrnIndex, avivo->i2c);
+    if (monitor)
+        xf86PrintEDID(monitor);
+    else
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "EDID not found over DDC\n");
+}
+
+static void
+avivo_i2c_init(ScrnInfoPtr screen_info)
+{
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+
+    avivo->i2c = xf86CreateI2CBusRec();
+    if (!avivo->i2c) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't create I2C bus\n");
+        return;
+    }
+
+    avivo->i2c->BusName = "DDC";
+    avivo->i2c->scrnIndex = screen_info->scrnIndex;
+    avivo->i2c->I2CWriteRead = avivo_i2c_write_read;
+
+    if (!xf86I2CBusInit(avivo->i2c)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't initialise I2C bus\n");
+        return;
+    }
+}
+
 static void
 avivo_cursor_show(ScrnInfoPtr screen_info)
 {
@@ -1011,6 +1208,9 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     avivo->cursor_offset = screen_info->virtualX * screen_info->virtualY * 4;
     avivo_cursor_init(screen);
 
+    avivo_i2c_init(screen_info);
+    avivo_ddc(screen_info);
+
     if (!miCreateDefColormap(screen))
         return FALSE;
 
@@ -1153,10 +1353,6 @@ static void
 avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
 {
     unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
-
-    /* This is needed for me when setting up with new fglrx, and it makes no
-     * sense whatsoever ... -daniels */
-    fb_location += 0x10000000;
 
     if (crtc->id == 1) {
         OUTREG(AVIVO_CRTC1_CNTL, 0);
