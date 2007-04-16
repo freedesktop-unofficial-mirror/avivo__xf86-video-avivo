@@ -38,6 +38,7 @@
 #include "micmap.h"
 #include "cursorstr.h"
 #include "xf86Cursor.h"
+#include "xf86str.h"
 
 #ifdef WITH_VGAHW
 #include "vgaHW.h"
@@ -643,7 +644,7 @@ avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
     avivo_i2c_stop(avivo);
 }
 
-static void
+static xf86MonPtr
 avivo_ddc(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
@@ -651,11 +652,7 @@ avivo_ddc(ScrnInfoPtr screen_info)
     int tmp;
 
     monitor = xf86DoEDID_DDC2(screen_info->scrnIndex, avivo->i2c);
-    if (monitor)
-        xf86PrintEDID(monitor);
-    else
-        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-                   "EDID not found over DDC\n");
+    return monitor;
 }
 
 static void
@@ -857,6 +854,8 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 {
     struct avivo_info *avivo;
     DisplayModePtr mode;
+    ClockRangePtr clock_ranges;
+    xf86MonPtr monitor;
     char *mod = NULL;
     int i;
     Gamma gzeros = { 0.0, 0.0, 0.0 };
@@ -922,29 +921,30 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 
     xf86SetGamma(screen_info, gzeros);
 
-    /* This is somewhat of a hack. */
-    screen_info->modePool = xf86CVTMode(1280, 1024, 60, FALSE, FALSE);
-    if (!screen_info->modePool)
-        FatalError("Couldn't get 1280x1024 mode: what a gwarn?\n");
-    screen_info->modePool->status = MODE_OK;
-    screen_info->modePool->prev = NULL;
+    avivo_i2c_init(screen_info);
 
-    screen_info->modePool->next = xf86CVTMode(1024, 768, 60, FALSE, FALSE);
-    if (!screen_info->modePool->next)
-        FatalError("Couldn't get 1024x768 mode: what a gwarn?\n");
-    screen_info->modePool->next->status = MODE_OK;
-    screen_info->modePool->next->prev = screen_info->modePool;
-    screen_info->modePool->next->next = screen_info->modePool;
+    screen_info->monitor = screen_info->confScreen->monitor;
+    monitor = avivo_ddc(screen_info);
+    if (monitor)
+        xf86SetDDCproperties(screen_info, xf86PrintEDID(monitor));
+    else
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO, "EDID not found over DDC\n");
 
-    screen_info->modes = screen_info->modePool;
-    /* xf86PruneDriverModes(screen_info); */
+    clock_ranges = xcalloc(sizeof(ClockRange), 1);
+    clock_ranges->minClock = 12000;
+    clock_ranges->maxClock = 165000;
+    clock_ranges->clockIndex = -1;
+    clock_ranges->interlaceAllowed = FALSE;
+    clock_ranges->doubleScanAllowed = FALSE;
+    screen_info->progClock = TRUE;
 
-    screen_info->currentMode = screen_info->modes;
-    screen_info->display->virtualX = screen_info->modes->HDisplay;
-    screen_info->display->virtualY = screen_info->modes->VDisplay;
-    screen_info->virtualX = screen_info->display->virtualX;
-    screen_info->virtualY = screen_info->display->virtualY;
-    screen_info->displayWidth = screen_info->virtualX;
+    xf86ValidateModes(screen_info, screen_info->monitor->Modes,
+                      screen_info->display->modes, clock_ranges, 0, 320, 2048,
+                      16 * screen_info->bitsPerPixel, 200, 2047,
+                      screen_info->display->virtualX,
+                      screen_info->display->virtualY,
+                      screen_info->videoRam, LOOKUP_BEST_REFRESH);
+    xf86PruneDriverModes(screen_info);
 
     /* Set display resolution */
     xf86SetDpi(screen_info, 100, 100);
@@ -953,6 +953,8 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No modes available\n");
         return FALSE;
     }
+
+    screen_info->currentMode = screen_info->modes;
 
     /* options */
     xf86CollectOptions(screen_info, NULL);
@@ -1255,9 +1257,6 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     /* FIXME enormous hack ... */
     avivo->cursor_offset = screen_info->virtualX * screen_info->virtualY * 4;
     avivo_cursor_init(screen);
-
-    avivo_i2c_init(screen_info);
-    avivo_ddc(screen_info);
 
     if (!miCreateDefColormap(screen))
         return FALSE;
