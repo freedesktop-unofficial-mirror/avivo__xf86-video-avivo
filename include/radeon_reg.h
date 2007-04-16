@@ -31,6 +31,9 @@
  *   Kevin E. Martin <martin@xfree86.org>
  *   Rickard E. Faith <faith@valinux.com>
  *   Alan Hourihane <alanh@fairlite.demon.co.uk>
+ *   Daniel Stone <daniel@fooishbar.org>
+ *   Matthew Garrett <mjg59@srcf.ucam.org>
+ *   Jerome Glisse <glisse@freedesktop.org>
  *
  * References:
  *
@@ -3219,13 +3222,25 @@
 #	define AVIVO_CRTC_EXPANSION_EN		(1 << 0)
 #define AVIVO_CRTC1_6594			0x6594
 #	define AVIVO_CRTC1_6594_VALUE		((1 << 8) | (1 << 0))
+#define AVIVO_CRTC1_659C			0x659C
+#	define AVIVO_CRTC1_659C_VALUE		((1 << 1))
 #define AVIVO_CRTC1_65A4			0x65a4
 #	define AVIVO_CRTC1_65A4_VALUE		((1 << 16) | (1 << 0))
+#define AVIVO_CRTC1_65A8			0x65a8
+#	define AVIVO_CRTC1_65A8_VALUE		((1 << 16) | (1 << 14))
+#define AVIVO_CRTC1_65AC			0x65ac
+#	define AVIVO_CRTC1_65AC_VALUE		((1 << 15) | (1 << 14) | (1 << 13))
 #define AVIVO_CRTC1_65B0			0x65b0
 #	define AVIVO_CRTC1_65B0_VALUE		((1 << 17) | (1 << 16) | (1 << 8))
+#define AVIVO_CRTC1_65B8			0x65b8
+#	define AVIVO_CRTC1_65B8_VALUE		((1 << 16))
+#define AVIVO_CRTC1_65BC			0x65bc
+#	define AVIVO_CRTC1_65BC_VALUE		((1 << 16))
 #define AVIVO_CRTC1_65C0			0x65c0
 #	define AVIVO_CRTC1_65C0_VALUE		((1 << 17) | (1 << 16) | (1 << 8))
-
+#define AVIVO_CRTC1_65C8			0x65c8
+#	define AVIVO_CRTC1_65C8_VALUE		((1 << 16))
+ 
 #define AVIVO_CRTC2_H_TOTAL			0x6800
 #define AVIVO_CRTC2_H_BLANK			0x6804
 #define AVIVO_CRTC2_H_SYNC_WID			0x6808

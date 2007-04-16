@@ -1,6 +1,7 @@
 /*
  * Copyright © 2007 Daniel Stone
  * Copyright © 2007 Matthew Garrett
+ * Copyright © 2007 Jerome Glisse
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +17,7 @@
  *
  * Authors: Daniel Stone <daniel@fooishbar.org>
  *          Matthew Garrett <mjg59@srcf.ucam.org>
+ *          Jerome Glisse <glisse@freedesktop.org>
  *
  * Portions based on the Radeon and VESA drivers.
  */
@@ -84,6 +86,10 @@ static const struct pci_id_match avivo_device_match[] = {
 	PCI_VENDOR_ATI, 0x724b, PCI_MATCH_ANY, PCI_MATCH_ANY,
 	0x00030000, 0x00ffffff, 0
     },
+    {
+	PCI_VENDOR_ATI, 0x7142, PCI_MATCH_ANY, PCI_MATCH_ANY,
+	0x00030000, 0x00ffffff, 0      
+    },
 
     { 0, 0, 0 },
 };
@@ -92,6 +98,7 @@ static const struct pci_id_match avivo_device_match[] = {
 /* Supported chipsets.  I'm really, really glad that these are
  * separate, and the nomenclature is beyond reproach. */
 static SymTabRec avivo_chips[] = {
+    { PCI_CHIP_RV515_7142, "RV515 (Radeon X1300)" },
     { PCI_CHIP_RV530_71C5, "RV530 (Radeon X1600)" },
     { PCI_CHIP_R580_724B,  "R580 (Radeon X1900 GT)" },
     { -1,                  NULL }
@@ -100,6 +107,7 @@ static SymTabRec avivo_chips[] = {
 static PciChipsets avivo_pci_chips[] = {
   { PCI_CHIP_RV530_71C5, PCI_CHIP_RV530_71C5, RES_SHARED_VGA },
   { PCI_CHIP_R580_724B,  PCI_CHIP_R580_724B,  RES_SHARED_VGA },
+  { PCI_CHIP_RV515_7142, PCI_CHIP_RV515_7142, RES_SHARED_VGA },
   { -1,                  -1,                  RES_UNDEFINED }
 };
 
@@ -829,6 +837,10 @@ avivo_get_chipset(struct avivo_info *avivo)
         avivo->chipset = CHIP_FAMILY_R580;    
         break;
 
+    case PCI_CHIP_RV515_7142:
+        avivo->chipset = CHIP_FAMILY_RV515;    
+        break;
+
     default:
         FatalError("Unknown chipset for %x!\n", avivo->pci_info->device);
         break;
@@ -1029,9 +1041,15 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, state->crtc1_expn_size);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, state->crtc1_expn_cntl);
     OUTREG(AVIVO_CRTC1_6594, state->crtc1_6594);
+    OUTREG(AVIVO_CRTC1_659C, state->crtc1_659c);
     OUTREG(AVIVO_CRTC1_65A4, state->crtc1_65a4);
+    OUTREG(AVIVO_CRTC1_65A8, state->crtc1_65a8);
+    OUTREG(AVIVO_CRTC1_65AC, state->crtc1_65ac);
     OUTREG(AVIVO_CRTC1_65B0, state->crtc1_65b0);
+    OUTREG(AVIVO_CRTC1_65B8, state->crtc1_65b8);
+    OUTREG(AVIVO_CRTC1_65BC, state->crtc1_65bc);
     OUTREG(AVIVO_CRTC1_65C0, state->crtc1_65c0);
+    OUTREG(AVIVO_CRTC1_65C8, state->crtc1_65c8);
     OUTREG(AVIVO_CRTC2_H_TOTAL, state->crtc2_h_total);
     OUTREG(AVIVO_CRTC2_H_BLANK, state->crtc2_h_blank);
     OUTREG(AVIVO_CRTC2_H_SYNC_WID, state->crtc2_h_sync_wid);
@@ -1123,9 +1141,15 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_expn_size = INREG(AVIVO_CRTC1_EXPANSION_SOURCE);
     state->crtc1_expn_cntl = INREG(AVIVO_CRTC1_EXPANSION_CNTL);
     state->crtc1_6594 = INREG(AVIVO_CRTC1_6594);
+    state->crtc1_659c = INREG(AVIVO_CRTC1_659C);
     state->crtc1_65a4 = INREG(AVIVO_CRTC1_65A4);
+    state->crtc1_65a8 = INREG(AVIVO_CRTC1_65A8);
+    state->crtc1_65ac = INREG(AVIVO_CRTC1_65AC);
     state->crtc1_65b0 = INREG(AVIVO_CRTC1_65B0);
+    state->crtc1_65b8 = INREG(AVIVO_CRTC1_65B8);
+    state->crtc1_65bc = INREG(AVIVO_CRTC1_65BC);
     state->crtc1_65c0 = INREG(AVIVO_CRTC1_65C0);
+    state->crtc1_65c8 = INREG(AVIVO_CRTC1_65C8);
 
     state->crtc2_h_total = INREG(AVIVO_CRTC2_H_TOTAL);
     state->crtc2_h_blank = INREG(AVIVO_CRTC2_H_BLANK);
@@ -1401,10 +1425,25 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
             OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
                                                  crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, AVIVO_CRTC_EXPANSION_EN);
-            OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
-            OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
-            OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
-            OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
+
+	    if (avivo->chipset == CHIP_FAMILY_RV515) {
+		    OUTREG(AVIVO_CRTC1_659C, AVIVO_CRTC1_659C_VALUE);
+		    OUTREG(AVIVO_CRTC1_65A8, AVIVO_CRTC1_65A8_VALUE);
+		    OUTREG(AVIVO_CRTC1_65AC, AVIVO_CRTC1_65AC_VALUE);
+		    OUTREG(AVIVO_CRTC1_65B8, AVIVO_CRTC1_65B8_VALUE);
+		    OUTREG(AVIVO_CRTC1_65BC, AVIVO_CRTC1_65BC_VALUE);
+		    OUTREG(AVIVO_CRTC1_65C8, AVIVO_CRTC1_65C8_VALUE);
+
+		    OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
+		    OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
+		    OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
+		    OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
+	    } else {
+		    OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
+		    OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
+		    OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
+		    OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
+	    }
 
             OUTREG(AVIVO_CRTC1_X_LENGTH, crtc->fb_width);
             OUTREG(AVIVO_CRTC1_Y_LENGTH, crtc->fb_height);

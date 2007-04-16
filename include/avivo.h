@@ -14,6 +14,8 @@
  * distribution of this driver, as COPYING.
  *
  * Author: Daniel Stone <daniel@fooishbar.org>
+ *         Matthew Garrett <mjg59@srcf.ucam.org>
+ *         Jerome Glisse <glisse@freedesktop.org>
  */
 
 #ifndef _AVIVO_H_
@@ -45,6 +47,7 @@
 #define AVIVO_DRIVER_NAME	"avivo"
 #define AVIVO_DRIVER_VERSION    1000
 
+#define PCI_CHIP_RV515_7142     0x7142
 #define PCI_CHIP_RV530_71C5     0x71C5
 #define PCI_CHIP_R580_724B      0x724B
 
@@ -52,7 +55,7 @@
 #define OUTREG(x, y) MMIO_OUT32(avivo->ctrl_base, x, y)
 
 enum avivo_chip_type {
-    CHIP_FAMILY_RN515,
+    CHIP_FAMILY_RV515,
     CHIP_FAMILY_R520,
     CHIP_FAMILY_RV530,
     CHIP_FAMILY_R580,
@@ -135,9 +138,15 @@ struct avivo_state
     int crtc1_expn_size;
     int crtc1_expn_cntl;
     int crtc1_6594;
+    int crtc1_659c;
     int crtc1_65a4;
+    int crtc1_65a8;
+    int crtc1_65ac;
     int crtc1_65b0;
+    int crtc1_65b8;
+    int crtc1_65bc;
     int crtc1_65c0;
+    int crtc1_65c8;
     int crtc2_h_total;
     int crtc2_h_blank;
     int crtc2_h_sync_wid;
