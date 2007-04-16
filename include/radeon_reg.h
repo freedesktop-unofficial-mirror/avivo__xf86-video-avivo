@@ -3162,20 +3162,29 @@
 #	define MC1f				0x1f
 #define AVIVO_MC_DATA				0x0074
 
-/* Refclk appears to be 108MHz?  1080000 / mode clock = this. */
-#define AVIVO_PLL_DIVIDER			0x043c
 
-/* Honestly, these names are just guesses, and hardcoded values.
- * For any value programmed, (INPUT >> 16) / FEEDBACK must
- * approximately equal 40.  But I don't have a clever formula
- * to programatically determine this.
- * This is used to scale the PLL's range, so the value ends up
- * being in the middle of the PLL's effective range.  For now,
- * we just hard-code the values for 135MHz. */
-#define AVIVO_PLL_INPUT				0x430
-#	define AVIVO_PLL_INPUT_VALUE		(0x0050 << 16)
-#define AVIVO_PLL_FEEDBACK			0x404
-#	define AVIVO_PLL_FEEDBACK_VALUE		(1 << 1)
+/*
+ * We believe reference clock is 108Mhz, the formula we derived
+ * seems so far to work for card we have:
+ * (vclk is video mode clock)
+ * vclk = (1080 * AVIVO_PLL_POST_MUL) /
+ *        (AVIVO_PLL_DIVIDER * AVIVO_PLL_POST_DIV * 40)
+ *             
+ * So computation for register:
+ *      PLL_DIVIDER = 1080 / (vclk)
+ *      PLL_POST_MUL = 2
+ *      PLL_POST_DIV = (40 * vclk * PLL_DIVIDER * PLL_POST_MUL) / 1080
+ * AVIVO_PLL_POST_MUL must be inferior to 255
+ * Then you repeat this until you come to the nearest value:
+ *      increment PLL_POST_MUL recompute PLL_POST_DIV
+ *      if new video mode clock value is better keep on otherwise last
+ *      previously found value should be the better.
+ */
+#define AVIVO_PLL_POST_DIV			0x404
+#define AVIVO_PLL_POST_MUL			0x430
+#	define AVIVO_PLL_POST_MUL_SHIFT		16
+/* Refclk appears to be 108MHz  1080000 / mode clock = this. */
+#define AVIVO_PLL_DIVIDER			0x043c
 
 /* CRTC controls; these appear to influence the DAC's scanout. */
 #define AVIVO_CRTC1_H_TOTAL			0x6000

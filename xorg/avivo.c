@@ -1087,8 +1087,8 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_TMDS2_MYSTERY3, state->tmds2_mystery3);
 
     OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
-    OUTREG(AVIVO_PLL_INPUT, state->pll_input);
-    OUTREG(AVIVO_PLL_FEEDBACK, state->pll_feedback);
+    OUTREG(AVIVO_PLL_POST_MUL, state->pll_post_mul);
+    OUTREG(AVIVO_PLL_POST_DIV, state->pll_post_div);
 
 #ifdef WITH_VGAHW
     vgaHWPtr hwp = VGAHWPTR(screen_info);
@@ -1191,8 +1191,8 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->tmds2_mystery3 = INREG(AVIVO_TMDS2_MYSTERY3);
     
     state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
-    state->pll_input = INREG(AVIVO_PLL_INPUT);
-    state->pll_feedback = INREG(AVIVO_PLL_FEEDBACK);
+    state->pll_post_div = INREG(AVIVO_PLL_POST_DIV);
+    state->pll_post_mul = INREG(AVIVO_PLL_POST_MUL);
 }
     
 static Bool
@@ -1398,6 +1398,36 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
 }
 
 static void
+avivo_set_pll(struct avivo_info *avivo, struct avivo_crtc *crtc)
+{
+    int div, pdiv, pmul;
+    int n_pdiv, n_pmul;
+    int clock;
+    int diff, n_diff;
+
+    div = 1080000 / crtc->clock;
+    pdiv = 2;
+    pmul = floor(((40.0 * crtc->clock * pdiv * div) / 1080000.0) + 0.5);
+    clock = (pmul * 108000) / (40 * pdiv * div);
+    diff = fabsl(clock - crtc->clock);
+    while (1) {
+        n_pdiv = pdiv + 1;
+        n_pmul = floor(((40.0 * crtc->clock * n_pdiv * div) / 1080000.0) + 0.5);
+        clock = (n_pmul * 108000) / (40 * n_pdiv * div);
+        n_diff = fabsl(clock - crtc->clock);
+        if (n_diff >= diff)
+            break;
+        pdiv = n_pdiv;
+        pmul = n_pmul;
+    }
+    ErrorF("pll: div %d, pmul 0x%X(%d), pdiv %d\n",
+           div, pmul, pmul, pdiv);
+    OUTREG(AVIVO_PLL_DIVIDER, div);
+    OUTREG(AVIVO_PLL_POST_DIV, pdiv);
+    OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
+}
+
+static void
 avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
 {
     unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
@@ -1418,9 +1448,7 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
             OUTREG(AVIVO_CRTC1_MODE, 0);
             OUTREG(0x60c0, 0);
 
-            OUTREG(AVIVO_PLL_DIVIDER, 1080000 / crtc->clock);
-            OUTREG(AVIVO_PLL_INPUT, AVIVO_PLL_INPUT_VALUE);
-            OUTREG(AVIVO_PLL_FEEDBACK, AVIVO_PLL_FEEDBACK_VALUE);
+            avivo_set_pll(avivo, crtc);
 
             OUTREG(0x652c, crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
