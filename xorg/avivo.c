@@ -1400,7 +1400,7 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
 static void
 avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
 {
-    unsigned long fb_location = crtc->fb_offset + avivo->fb_addr + 0x10000000;
+    unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
 
     if (crtc->id == 1) {
         OUTREG(AVIVO_CRTC1_CNTL, 0);
