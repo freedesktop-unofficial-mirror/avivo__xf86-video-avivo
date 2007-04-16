@@ -60,7 +60,7 @@ static Bool avivo_pci_probe(DriverPtr driver, int entity_num,
 #endif
 static Bool avivo_preinit(ScrnInfoPtr screen_info, int flags);
 static Bool avivo_screen_init(int index, ScreenPtr screen, int argc,
-			      char **argv);
+                              char **argv);
 static Bool avivo_enter_vt(int index, int flags);
 static void avivo_leave_vt(int index, int flags);
 static Bool avivo_close_screen(int index, ScreenPtr screen);
@@ -79,16 +79,16 @@ static void avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags);
 #ifdef PCIACCESS
 static const struct pci_id_match avivo_device_match[] = {
     {
-	PCI_VENDOR_ATI, 0x71c5, PCI_MATCH_ANY, PCI_MATCH_ANY,
-	0x00030000, 0x00ffffff, 0
+        PCI_VENDOR_ATI, 0x71c5, PCI_MATCH_ANY, PCI_MATCH_ANY,
+        0x00030000, 0x00ffffff, 0
     },
     {
-	PCI_VENDOR_ATI, 0x724b, PCI_MATCH_ANY, PCI_MATCH_ANY,
-	0x00030000, 0x00ffffff, 0
+        PCI_VENDOR_ATI, 0x724b, PCI_MATCH_ANY, PCI_MATCH_ANY,
+        0x00030000, 0x00ffffff, 0
     },
     {
-	PCI_VENDOR_ATI, 0x7142, PCI_MATCH_ANY, PCI_MATCH_ANY,
-	0x00030000, 0x00ffffff, 0      
+        PCI_VENDOR_ATI, 0x7142, PCI_MATCH_ANY, PCI_MATCH_ANY,
+        0x00030000, 0x00ffffff, 0      
     },
 
     { 0, 0, 0 },
@@ -248,7 +248,7 @@ avivo_map_ctrl_mem(ScrnInfoPtr screen_info)
     int i;
 
     if (avivo->ctrl_base)
-	return 1;
+        return 1;
 
 #ifdef PCIACCESS
     return 0;
@@ -325,13 +325,13 @@ avivo_setup(pointer module, pointer options, int *err_major, int *err_minor)
     static Bool inited = FALSE;
 
     if (!inited) {
-	inited = TRUE;
-	xf86AddDriver(&avivo_driver, module, 1);
-	return (pointer) TRUE;
+        inited = TRUE;
+        xf86AddDriver(&avivo_driver, module, 1);
+        return (pointer) TRUE;
     }
 
     if (err_major)
-	*err_major = LDR_ONCEONLY;
+        *err_major = LDR_ONCEONLY;
 
     return NULL;
 }
@@ -378,11 +378,11 @@ avivo_pci_probe(DriverPtr drv, int entity_num, struct pci_device *dev,
     struct avivo_info *avivo;
     
     pScrn = xf86ConfigPciEntity(NULL, 0, entity_num, NULL, 
-				NULL, NULL, NULL, NULL, NULL);
+                                NULL, NULL, NULL, NULL, NULL);
     if (pScrn) {
-	avivo = avivo_get_info(screen_info);
+        avivo = avivo_get_info(screen_info);
         fill_in_screen(screen_info);
-	avivo->pci_info = dev;
+        avivo->pci_info = dev;
     }
     
     return !!screen_info;
@@ -407,7 +407,7 @@ avivo_old_probe(DriverPtr drv, int flags)
      */
     num_sections = xf86MatchDevice("avivo", &sections);
     if (num_sections <= 0)
-	return FALSE;
+        return FALSE;
 
 #ifndef PCIACCESS
     used_sections = xf86MatchPciInstances(AVIVO_NAME, PCI_VENDOR_ATI,
@@ -508,7 +508,7 @@ avivo_i2c_put_address(struct avivo_info *avivo, int addr, int write)
     avivo_i2c_write(avivo, &buf, 1);
     if ((addr & 0xf8) == 0xf0 || (addr & 0xfe) == 0) {
         buf = (addr >> 8) & 0xff;
-	avivo_i2c_write(avivo, &buf, 1);
+        avivo_i2c_write(avivo, &buf, 1);
     }
 }
 
@@ -516,9 +516,9 @@ static void
 avivo_i2c_stop(struct avivo_info *avivo)
 {
     OUTREG(AVIVO_I2C_STATUS,
-	   AVIVO_I2C_STATUS_DONE
-	   | AVIVO_I2C_STATUS_NACK
-	   | AVIVO_I2C_STATUS_HALT);
+           (AVIVO_I2C_STATUS_DONE |
+            AVIVO_I2C_STATUS_NACK |
+            AVIVO_I2C_STATUS_HALT));
     OUTREG(AVIVO_I2C_STOP, 1);
     OUTREG(AVIVO_I2C_STOP, 0);
 }
@@ -533,14 +533,15 @@ avivo_i2c_wait_ready(struct avivo_info *avivo)
         tmp = INREG(AVIVO_I2C_STATUS);
         if (tmp == AVIVO_I2C_STATUS_DONE) {
             num_ready++;
-	} else if (tmp != AVIVO_I2C_STATUS_CMD_WAIT) {
-                /* FIXME: We probably need to abort in this case; is i2c_stop
-                 *        enough, or do we need NACK/ABORT? */
-		xf86DrvMsg(0, X_ERROR, "I2C bus error\n");
-		avivo_i2c_stop(avivo);
-		OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
-		return 0;
-	}
+        }
+        else if (tmp != AVIVO_I2C_STATUS_CMD_WAIT) {
+            /* FIXME: We probably need to abort in this case; is i2c_stop
+             *        enough, or do we need NACK/ABORT? */
+            xf86DrvMsg(0, X_ERROR, "I2C bus error\n");
+            avivo_i2c_stop(avivo);
+            OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
+            return 0;
+        }
 
         /* Timeout 50ms like on radeon. */
         if (i == 50) {
@@ -570,9 +571,9 @@ avivo_i2c_start(struct avivo_info *avivo)
     if (!tmp) {
         OUTREG(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
         OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_OUTPUT2);
-	tmp = INREG(AVIVO_I2C_7D3C) & (~0xff);
-	OUTREG(AVIVO_I2C_7D3C, tmp | 1);
-	avivo_i2c_stop(avivo);
+        tmp = INREG(AVIVO_I2C_7D3C) & (~0xff);
+        OUTREG(AVIVO_I2C_7D3C, tmp | 1);
+        avivo_i2c_stop(avivo);
     }
     tmp = INREG(AVIVO_I2C_START_CNTL);
     OUTREG(AVIVO_I2C_START_CNTL, tmp | AVIVO_I2C_START);
@@ -588,55 +589,55 @@ avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
     int tmp, size, chunk_size = 12;
     
     for (i = 0; i < num_write; i+= chunk_size) {
-	if ((num_write - i) >= chunk_size)
-	    size = chunk_size;
-	else
-	    size = num_write % chunk_size;
+        if ((num_write - i) >= chunk_size)
+            size = chunk_size;
+        else
+            size = num_write % chunk_size;
         avivo_i2c_start(avivo);
-	tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-	tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
-	OUTREG(AVIVO_I2C_7D3C, tmp);
-	tmp = INREG(AVIVO_I2C_7D40);
-	OUTREG(AVIVO_I2C_7D40, tmp);
-	avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
-	avivo_i2c_write(avivo, &write_buf[i], size);
-	OUTREG(AVIVO_I2C_START_CNTL,
-	       AVIVO_I2C_START
-	       | AVIVO_I2C_STATUS_DONE
-	       | AVIVO_I2C_STATUS_NACK);
-	avivo_i2c_wait_ready(avivo);
+        tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+        tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
+        OUTREG(AVIVO_I2C_7D3C, tmp);
+        tmp = INREG(AVIVO_I2C_7D40);
+        OUTREG(AVIVO_I2C_7D40, tmp);
+        avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
+        avivo_i2c_write(avivo, &write_buf[i], size);
+        OUTREG(AVIVO_I2C_START_CNTL,
+               (AVIVO_I2C_START |
+                AVIVO_I2C_STATUS_DONE |
+                AVIVO_I2C_STATUS_NACK));
+        avivo_i2c_wait_ready(avivo);
     }
 
     for (i = 0; i < num_read; i+= chunk_size) {
-	if ((num_read - i) >= chunk_size)
-	    size = chunk_size;
-	else
-	    size = num_read % chunk_size;
+        if ((num_read - i) >= chunk_size)
+            size = chunk_size;
+        else
+            size = num_read % chunk_size;
         avivo_i2c_start(avivo);
-	tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-	tmp |= 1 << AVIVO_I2C_7D3C_SIZE_SHIFT;
-	OUTREG(AVIVO_I2C_7D3C, tmp);
-	tmp = INREG(AVIVO_I2C_7D40);
-	OUTREG(AVIVO_I2C_7D40, tmp);
-	avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
-	avivo_i2c_write(avivo, &i, 1);
-	OUTREG(AVIVO_I2C_START_CNTL,
-	       AVIVO_I2C_START
-	       | AVIVO_I2C_STATUS_DONE
-	       | AVIVO_I2C_STATUS_NACK);
-	avivo_i2c_wait_ready(avivo);
+        tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+        tmp |= 1 << AVIVO_I2C_7D3C_SIZE_SHIFT;
+        OUTREG(AVIVO_I2C_7D3C, tmp);
+        tmp = INREG(AVIVO_I2C_7D40);
+        OUTREG(AVIVO_I2C_7D40, tmp);
+        avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
+        avivo_i2c_write(avivo, &i, 1);
+        OUTREG(AVIVO_I2C_START_CNTL,
+               (AVIVO_I2C_START |
+                AVIVO_I2C_STATUS_DONE |
+                AVIVO_I2C_STATUS_NACK));
+        avivo_i2c_wait_ready(avivo);
 
-	avivo_i2c_put_address(avivo, i2c->SlaveAddr, 0);
-	tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-	tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
-	OUTREG(AVIVO_I2C_7D3C, tmp);
-	OUTREG(AVIVO_I2C_START_CNTL,
-	       AVIVO_I2C_START
-	       | AVIVO_I2C_STATUS_DONE
-	       | AVIVO_I2C_STATUS_NACK
-	       | AVIVO_I2C_STATUS_HALT);
-	avivo_i2c_wait_ready(avivo);
-	avivo_i2c_read(avivo, &read_buf[i], size);
+        avivo_i2c_put_address(avivo, i2c->SlaveAddr, 0);
+        tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+        tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
+        OUTREG(AVIVO_I2C_7D3C, tmp);
+        OUTREG(AVIVO_I2C_START_CNTL,
+               (AVIVO_I2C_START |
+                AVIVO_I2C_STATUS_DONE |
+                AVIVO_I2C_STATUS_NACK |
+                AVIVO_I2C_STATUS_HALT));
+        avivo_i2c_wait_ready(avivo);
+        avivo_i2c_read(avivo, &read_buf[i], size);
     }
 
     avivo_i2c_stop(avivo);
@@ -862,7 +863,7 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     rgb rzeros = { 0, 0, 0 };
 
     if (flags & PROBE_DETECT)
-	return FALSE;
+        return FALSE;
 
     if (!xf86LoadSubModule(screen_info, "fb"))
         FatalError("Couldn't load fb\n");
@@ -908,16 +909,16 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     screen_info->monitor = screen_info->confScreen->monitor;
 
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
-	return FALSE;
+        return FALSE;
     xf86PrintDepthBpp(screen_info);
 
     /* color weight */
     if (!xf86SetWeight(screen_info, rzeros, rzeros))
-	return FALSE;
+        return FALSE;
 
     /* visual init */
     if (!xf86SetDefaultVisual(screen_info, -1))
-	return FALSE;
+        return FALSE;
 
     xf86SetGamma(screen_info, gzeros);
 
@@ -949,8 +950,8 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     xf86SetDpi(screen_info, 100, 100);
 
     if (screen_info->modes == NULL) {
-	xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No modes available\n");
-	return FALSE;
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No modes available\n");
+        return FALSE;
     }
 
     /* options */
@@ -1206,7 +1207,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
 
     /* set first video mode */
     if (!avivo_set_mode(screen_info, screen_info->currentMode))
-	return FALSE;
+        return FALSE;
 
     /* set the viewport */
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
@@ -1215,14 +1216,14 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     miClearVisualTypes();
 
     if (!xf86SetDefaultVisual(screen_info, -1))
-	return FALSE;
+        return FALSE;
 
     if (!miSetVisualTypes(screen_info->depth, TrueColorMask,
                           screen_info->rgbBits, TrueColor))
         return FALSE;
 
     if (!miSetPixmapDepths())
-	return FALSE;
+        return FALSE;
 
     if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
                       screen_info->virtualX, screen_info->virtualY,
@@ -1280,7 +1281,7 @@ avivo_enter_vt(int index, int flags)
     avivo_save_state(screen_info);
 
     if (!avivo_set_mode(screen_info, screen_info->currentMode))
-	return FALSE;
+        return FALSE;
 
     avivo_restore_cursor(screen_info);
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
@@ -1399,7 +1400,7 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
 static void
 avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
 {
-    unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
+    unsigned long fb_location = crtc->fb_offset + avivo->fb_addr + 0x10000000;
 
     if (crtc->id == 1) {
         OUTREG(AVIVO_CRTC1_CNTL, 0);
@@ -1426,24 +1427,16 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
                                                  crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, AVIVO_CRTC_EXPANSION_EN);
 
-	    if (avivo->chipset == CHIP_FAMILY_RV515) {
-		    OUTREG(AVIVO_CRTC1_659C, AVIVO_CRTC1_659C_VALUE);
-		    OUTREG(AVIVO_CRTC1_65A8, AVIVO_CRTC1_65A8_VALUE);
-		    OUTREG(AVIVO_CRTC1_65AC, AVIVO_CRTC1_65AC_VALUE);
-		    OUTREG(AVIVO_CRTC1_65B8, AVIVO_CRTC1_65B8_VALUE);
-		    OUTREG(AVIVO_CRTC1_65BC, AVIVO_CRTC1_65BC_VALUE);
-		    OUTREG(AVIVO_CRTC1_65C8, AVIVO_CRTC1_65C8_VALUE);
-
-		    OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
-		    OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
-		    OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
-		    OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
-	    } else {
-		    OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
-		    OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
-		    OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
-		    OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
-	    }
+            OUTREG(AVIVO_CRTC1_659C, AVIVO_CRTC1_659C_VALUE);
+            OUTREG(AVIVO_CRTC1_65A8, AVIVO_CRTC1_65A8_VALUE);
+            OUTREG(AVIVO_CRTC1_65AC, AVIVO_CRTC1_65AC_VALUE);
+            OUTREG(AVIVO_CRTC1_65B8, AVIVO_CRTC1_65B8_VALUE);
+            OUTREG(AVIVO_CRTC1_65BC, AVIVO_CRTC1_65BC_VALUE);
+            OUTREG(AVIVO_CRTC1_65C8, AVIVO_CRTC1_65C8_VALUE);
+            OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
+            OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
+            OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
+            OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
 
             OUTREG(AVIVO_CRTC1_X_LENGTH, crtc->fb_width);
             OUTREG(AVIVO_CRTC1_Y_LENGTH, crtc->fb_height);
@@ -1565,7 +1558,7 @@ avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
     int enable = (mode == DPMSModeOn);
 
     if (!screen_info->vtSema)
-	return;
+        return;
 
     while (output) {
         avivo_enable_output(avivo, output, enable);
