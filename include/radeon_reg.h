@@ -3324,19 +3324,21 @@
 #define AVIVO_CURSOR1_POSITION			0x6414
 
 #define AVIVO_I2C_STATUS			0x7d30
-#	define AVIVO_I2C_STATUS_READY		(1 << 0)
+#	define AVIVO_I2C_STATUS_DONE		(1 << 0)
+#	define AVIVO_I2C_STATUS_NACK		(1 << 1)
+#	define AVIVO_I2C_STATUS_HALT		(1 << 2)
 /* If radeon_mm_i2c is to be believed, this is HALT, NACK, and maybe
  * DONE? */
 #	define AVIVO_I2C_STATUS_CMD_RESET	0x7
 #	define AVIVO_I2C_STATUS_CMD_WAIT	(1 << 3)
 #define AVIVO_I2C_STOP				0x7d34
-#define AVIVO_I2C_START				0x7d38
-#	define AVIVO_I2C_START1			0x107
-#	define AVIVO_I2C_START2			0x103
-#	define AVIVO_I2C_OUTPUT_SHIFT		16
-#	define AVIVO_I2C_START_READ		0xffff0000
+#define AVIVO_I2C_START_CNTL			0x7d38
+#	define AVIVO_I2C_START			(1 << 8)
+#	define AVIVO_I2C_OUTPUT1		(0 << 16)
+#	define AVIVO_I2C_OUTPUT2		(1 << 16)
 #define AVIVO_I2C_7D3C				0x7d3c
-#	define AVIVO_I2C_7D3C_WRITE		(~(3 << 8))
+#	define AVIVO_I2C_7D3C_SIZE_SHIFT	8
+#	define AVIVO_I2C_7D3C_SIZE_MASK		(0xf << 8)
 #define AVIVO_I2C_7D40				0x7d40
 /* Reading is done 4 bytes at a time: read the bottom 8 bits from
  * 7d44, four times in a row.

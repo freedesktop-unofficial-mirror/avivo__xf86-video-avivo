@@ -152,6 +152,157 @@ static void usage(void)
 #define GET_REG(r) radeon_get(r, #r)
 #define SET_REG(r, v) radeon_set(r, #r, v)
 
+void _i2c_set(unsigned long offset, unsigned int value)
+{
+	if (debug)
+		printf("OUTREG(0x%08X, 0x%08X);\n", offset, value);
+	SET_REG(offset, value);
+}
+
+unsigned int _i2c_get(unsigned long offset)
+{
+	unsigned int value;
+
+	value = GET_REG(offset);
+	if (debug)
+		printf("tmp = INREG(0x%08X);\t/* should get 0x%08X */\n",
+		       offset, value);
+	return value;
+}
+
+void _i2c_stop(void)
+{
+	_i2c_set(AVIVO_I2C_STATUS,
+		 AVIVO_I2C_STATUS_DONE | AVIVO_I2C_STATUS_NACK | AVIVO_I2C_STATUS_HALT);
+	usleep(1000);
+	_i2c_set(AVIVO_I2C_STOP, 1);
+	usleep(1000);
+	_i2c_set(AVIVO_I2C_STOP, 0);
+	usleep(1000);
+	_i2c_set(AVIVO_I2C_START_CNTL, 0);
+}
+
+void _i2c_wait(void)
+{
+	int i, num_ready;
+	unsigned int tmp;
+
+	_i2c_set(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
+	for (i = 0, num_ready = 0; num_ready < 3; i++) {
+		tmp = _i2c_get(AVIVO_I2C_STATUS);
+		if (tmp == AVIVO_I2C_STATUS_DONE) {
+			num_ready++;
+		} else if (tmp != AVIVO_I2C_STATUS_CMD_WAIT) {
+			_i2c_stop();
+		}
+		/* Timeout. */
+		if (i == 10) {
+			fprintf(stderr, "i2c timeout\n");
+			exit(1);
+		}
+		usleep(1000);
+	}
+	_i2c_set(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_DONE);	
+}
+
+void _i2c_start(void)
+{
+	unsigned int tmp;
+	
+	tmp = _i2c_get(AVIVO_I2C_CNTL);
+	if (tmp != 1) {
+		_i2c_set(AVIVO_I2C_START_CNTL, 0x00010100);
+		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~0xff) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+		_i2c_set(AVIVO_I2C_7D3C, tmp | 1);
+		_i2c_set(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
+		_i2c_stop();
+	}
+	tmp = _i2c_get(AVIVO_I2C_START_CNTL);
+	_i2c_set(AVIVO_I2C_START_CNTL, tmp | AVIVO_I2C_START);
+}
+
+static void
+_i2c_read(unsigned char *buf, int num)
+{
+    int i;
+
+    for (i = 0; i < num; i++) {
+        *buf = _i2c_get(AVIVO_I2C_DATA) & 0xff;
+        buf++;
+	usleep(1000);
+    }
+}
+
+static void
+_i2c_write(unsigned char *buf, int num)
+{
+    int i;
+
+    for (i = 0; i < num; i++) {
+        _i2c_set(AVIVO_I2C_DATA, *buf);
+        buf++;
+	usleep(1000);
+    }
+}
+
+
+void _i2c_write_read(unsigned char *write_buf, int num_write,
+		     unsigned char *read_buf, int num_read)
+{
+	unsigned int tmp;
+
+	if (num_write) {
+		_i2c_start();
+		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+		tmp |= num_write << AVIVO_I2C_7D3C_SIZE_SHIFT; 
+		_i2c_set(AVIVO_I2C_7D3C, tmp);
+		tmp = _i2c_get(AVIVO_I2C_7D40);
+		_i2c_set(AVIVO_I2C_7D40, tmp);
+
+		_i2c_set(AVIVO_I2C_DATA, 0xA0);
+
+		_i2c_write(write_buf, num_write);
+		tmp = _i2c_get(AVIVO_I2C_START_CNTL);
+		_i2c_set(AVIVO_I2C_START_CNTL,
+			 AVIVO_I2C_START
+			 | AVIVO_I2C_STATUS_DONE
+			 | AVIVO_I2C_STATUS_NACK);
+		_i2c_wait();
+	}
+
+	if (num_read) {
+		_i2c_set(AVIVO_I2C_DATA, 0xA0 | 1);
+		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+		tmp |= num_read << AVIVO_I2C_7D3C_SIZE_SHIFT; 
+		_i2c_set(AVIVO_I2C_7D3C, tmp);
+		_i2c_set(AVIVO_I2C_START_CNTL,
+			 AVIVO_I2C_START
+			 | AVIVO_I2C_STATUS_DONE
+			 | AVIVO_I2C_STATUS_NACK
+			 | AVIVO_I2C_STATUS_HALT);
+		_i2c_wait();
+		_i2c_read(read_buf, num_read);
+		_i2c_stop();
+	}	
+}
+
+void radeon_i2c(void)
+{
+	int i, j;
+	unsigned char wbuf[64];
+	unsigned char rbuf[64];
+	unsigned int rsize = 15;
+
+	for (i = 0; i < 1; i++) {
+		wbuf[0] = i * 4;
+		_i2c_write_read(wbuf, 1, rbuf, rsize);
+		for (j = 0; j < rsize; j++) {
+			printf("%02X", rbuf[j]);
+		}
+	}
+	printf("\n");
+}
+
 void radeon_output_set(char *output, char *status)
 {
     int on = (strncmp(status, "en", 2) == 0);
@@ -1505,6 +1656,10 @@ int main(int argc, char *argv[])
     if (argc == 2) {
         if (strcmp(argv[1], "regs") == 0) {
             radeon_cmd_regs("default");
+            return 0;
+        }
+        if (strcmp(argv[1], "i2c") == 0) {
+            radeon_i2c();
             return 0;
         }
     }
