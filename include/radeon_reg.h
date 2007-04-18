@@ -3358,8 +3358,8 @@
 #define AVIVO_I2C_STOP				0x7d34
 #define AVIVO_I2C_START_CNTL			0x7d38
 #	define AVIVO_I2C_START			(1 << 8)
-#	define AVIVO_I2C_OUTPUT1		(0 << 16)
-#	define AVIVO_I2C_OUTPUT2		(1 << 16)
+#	define AVIVO_I2C_CONNECTOR1		(0 << 16)
+#	define AVIVO_I2C_CONNECTOR2		(1 << 16)
 #define AVIVO_I2C_7D3C				0x7d3c
 #	define AVIVO_I2C_7D3C_SIZE_SHIFT	8
 #	define AVIVO_I2C_7D3C_SIZE_MASK		(0xf << 8)

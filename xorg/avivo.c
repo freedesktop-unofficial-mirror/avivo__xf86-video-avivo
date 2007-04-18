@@ -167,20 +167,15 @@ static XF86ModuleVersionInfo avivo_version = {
  */
 _X_EXPORT XF86ModuleData avivoModuleData = { &avivo_version, avivo_setup, NULL };
 
-static struct avivo_info *
-avivo_get_info(ScrnInfoPtr screen_info)
+static int
+avivo_info_probe(struct avivo_info *avivo)
 {
-    struct avivo_info *avivo;
     struct avivo_crtc *crtc;
     struct avivo_output *output;
 
-    if (!screen_info->driverPrivate)
-        screen_info->driverPrivate = xcalloc(sizeof(struct avivo_info), 1);
-
-    avivo = screen_info->driverPrivate;
     if (!avivo)
-        FatalError("Couldn't allocate driver structure\n");
-    
+        FatalError("No driver structure provided for probing\n");
+
     if (!avivo->crtcs) {
         avivo->crtcs = xcalloc(sizeof(struct avivo_crtc), 2);
         if (!avivo->crtcs)
@@ -196,7 +191,7 @@ avivo_get_info(ScrnInfoPtr screen_info)
         crtc->id = 2;
         crtc->next = NULL;
     }
-    
+
     if (!avivo->outputs) {
         avivo->outputs = xcalloc(sizeof(struct avivo_output), 4);
         if (!avivo->outputs)
@@ -238,6 +233,19 @@ avivo_get_info(ScrnInfoPtr screen_info)
         output->status = Off;
         output->next = NULL;
     }
+}
+
+static struct avivo_info *
+avivo_get_info(ScrnInfoPtr screen_info)
+{
+    struct avivo_info *avivo;
+
+    if (!screen_info->driverPrivate)
+        screen_info->driverPrivate = xcalloc(sizeof(struct avivo_info), 1);
+
+    avivo = screen_info->driverPrivate;
+    if (!avivo)
+        FatalError("Couldn't allocate driver structure\n");    
 
     return avivo;
 }
@@ -571,7 +579,7 @@ avivo_i2c_start(struct avivo_info *avivo)
     tmp = INREG(AVIVO_I2C_CNTL) & AVIVO_I2C_EN;
     if (!tmp) {
         OUTREG(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
-        OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_OUTPUT2);
+        OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_CONNECTOR2);
         tmp = INREG(AVIVO_I2C_7D3C) & (~0xff);
         OUTREG(AVIVO_I2C_7D3C, tmp | 1);
         avivo_i2c_stop(avivo);
@@ -906,6 +914,9 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 
     screen_info->chipset = "avivo";
     screen_info->monitor = screen_info->confScreen->monitor;
+
+    /* probe BIOS information */
+    avivo_info_probe(avivo);
 
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
