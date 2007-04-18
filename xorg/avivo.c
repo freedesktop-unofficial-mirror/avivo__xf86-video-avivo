@@ -239,77 +239,7 @@ avivo_info_probe(struct avivo_info *avivo)
         output->next = NULL;
     }
 }
-#if 0
-static int
-avivo_info_probe(struct avivo_info *avivo)
-{
-    struct avivo_crtc *crtc;
-    struct avivo_output_driver *output_driver;
-    struct avivo_output *output;
 
-    if (!avivo)
-        FatalError("No driver structure provided for probing\n");
-
-    if (!avivo->crtcs) {
-        avivo->crtcs = xcalloc(sizeof(struct avivo_crtc), 2);
-        if (!avivo->crtcs)
-            FatalError("Couldn't allocate outputs\n");
-
-        crtc = avivo->crtcs;
-        crtc->avivo = avivo;
-        crtc->id = 1;
-        crtc->next = crtc + 1;
-
-        crtc = crtc->next;
-        crtc->avivo = avivo;
-        crtc->id = 2;
-        crtc->next = NULL;
-    }
-
-    if (!avivo->outputs) {
-        avivo->outputs = xcalloc(sizeof(struct avivo_output), 4);
-        if (!avivo->outputs)
-            FatalError("Couldn't allocate outputs\n");
-
-        output = avivo->outputs;
-        output->avivo = avivo;
-        output->type = TMDS;
-        output->output_num = 1;
-        output->crtc = avivo->crtcs;
-        output->id = 1;
-
-        output->status = Off;
-        output->next = output + 1;
-
-        output = output->next;
-        output->type = TMDS;
-        output->avivo = avivo;
-        output->output_num = 2;
-        output->crtc = avivo->crtcs;
-        output->id = 2;
-        output->status = Off;
-        output->next = output + 1;
-
-        output = output->next;
-        output->type = VGA;
-        output->avivo = avivo;
-        output->output_num = 1;
-        output->crtc = avivo->crtcs;
-        output->id = 3;
-        output->status = Off;
-        output->next = output + 1;
-
-        output = output->next;
-        output->type = VGA;
-        output->avivo = avivo;
-        output->output_num = 2;
-        output->crtc = avivo->crtcs;
-        output->id = 4;
-        output->status = Off;
-        output->next = NULL;
-    }
-}
-#endif
 static struct avivo_info *
 avivo_get_info(ScrnInfoPtr screen_info)
 {

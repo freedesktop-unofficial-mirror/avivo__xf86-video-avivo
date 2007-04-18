@@ -101,9 +101,8 @@ enum avivo_output_status {
  * @type:    driver type VGA, TMDS, LVDS, TV
  * @next:    next output driver
  *
- * Each physical output can be drived by several different output
- * (VGA, TMDS, ...), we record here information on each of this
- * output driver.
+ * Each physical output can be drived by several differents outputs
+ * (DAC, TMDS, ...), we record here information on this ouput.
  */
 struct avivo_output_driver {
     /* type TMDS + output_num 2 == TMDS2.
@@ -122,7 +121,8 @@ struct avivo_output_driver {
  * @status:     output status
  * @next:       next output
  *
- * Physical output status and current driver is recorded here.
+ * Physical output (VGA, DVI, SVideo, ...) status and associated
+ * output driver (DAC, TMDS, ...) recorded here.
  */
 struct avivo_output {
     struct avivo_info *avivo;
