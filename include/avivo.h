@@ -94,6 +94,48 @@ enum avivo_output_status {
     Off,
 };
 
+/**
+ * struct avivo_output_driver - output driver structure (VGA, TMDS, ...)
+ * @enabled: is output enabled
+ * @id:      output driver id
+ * @type:    driver type VGA, TMDS, LVDS, TV
+ * @next:    next output driver
+ *
+ * Each physical output can be drived by several different output
+ * (VGA, TMDS, ...), we record here information on each of this
+ * output driver.
+ */
+struct avivo_output_driver {
+    /* type TMDS + output_num 2 == TMDS2.
+     * type DAC + output_num 1 == DAC1. */
+    int enabled;
+    int id;
+    enum avivo_output_type type;
+    struct avivo_output_driver *next;
+};
+
+/**
+ * struct avivo_output - output structure
+ * @connected:  is output connected
+ * @output_num: output number
+ * @drivers:    output drivers list
+ * @status:     output status
+ * @next:       next output
+ *
+ * Physical output status and current driver is recorded here.
+ */
+struct avivo_output {
+    struct avivo_info *avivo;
+    struct avivo_crtc *crtc;
+
+    int connected;
+    int output_num;
+    struct avivo_output_driver *drivers;
+    enum avivo_output_status status;
+    struct avivo_output *next;
+};
+
+#if 0
 struct avivo_output {
     struct avivo_info *avivo;
     struct avivo_crtc *crtc;
@@ -110,6 +152,7 @@ struct avivo_output {
 
     struct avivo_output *next;
 };
+#endif
 
 struct avivo_state
 {

@@ -171,6 +171,80 @@ static int
 avivo_info_probe(struct avivo_info *avivo)
 {
     struct avivo_crtc *crtc;
+    struct avivo_output_driver *output_driver;
+    struct avivo_output *output;
+
+    if (!avivo)
+        FatalError("No driver structure provided for probing\n");
+
+    if (!avivo->crtcs) {
+        avivo->crtcs = xcalloc(sizeof(struct avivo_crtc), 2);
+        if (!avivo->crtcs)
+            FatalError("Couldn't allocate outputs\n");
+
+        crtc = avivo->crtcs;
+        crtc->avivo = avivo;
+        crtc->id = 1;
+        crtc->next = crtc + 1;
+
+        crtc = crtc->next;
+        crtc->avivo = avivo;
+        crtc->id = 2;
+        crtc->next = NULL;
+    }
+
+    if (!avivo->outputs) {
+        avivo->outputs = xcalloc(sizeof(struct avivo_output), 2);
+        if (!avivo->outputs)
+            FatalError("Couldn't allocate outputs\n");
+
+        output = avivo->outputs;
+        output->drivers = xcalloc(sizeof(struct avivo_output_driver), 2);
+        if (!output->drivers)
+            FatalError("Couldn't allocate outputs\n");
+        output_driver = output->drivers;
+        output_driver->id = 1;
+        output_driver->enabled = 0;
+        output_driver->type = TMDS;
+        output_driver->next = output_driver + 1;
+        output_driver = output_driver->next;
+        output_driver->id = 3;
+        output_driver->enabled = 0;
+        output_driver->type = VGA;
+        output_driver->next = NULL;
+        output->avivo = avivo;
+        output->output_num = 1;
+        output->crtc = avivo->crtcs;
+        output->status = Off;
+        output->next = output + 1;
+
+        output = output->next;
+        output->drivers = xcalloc(sizeof(struct avivo_output_driver), 2);
+        if (!output->drivers)
+            FatalError("Couldn't allocate outputs\n");
+        output_driver = output->drivers;
+        output_driver->id = 2;
+        output_driver->enabled = 0;
+        output_driver->type = TMDS;
+        output_driver->next = output_driver + 1;
+        output_driver = output_driver->next;
+        output_driver->id = 4;
+        output_driver->enabled = 0;
+        output_driver->type = VGA;
+        output_driver->next = NULL;
+        output->avivo = avivo;
+        output->output_num = 2;
+        output->crtc = avivo->crtcs;
+        output->status = Off;
+        output->next = NULL;
+    }
+}
+#if 0
+static int
+avivo_info_probe(struct avivo_info *avivo)
+{
+    struct avivo_crtc *crtc;
+    struct avivo_output_driver *output_driver;
     struct avivo_output *output;
 
     if (!avivo)
@@ -203,6 +277,7 @@ avivo_info_probe(struct avivo_info *avivo)
         output->output_num = 1;
         output->crtc = avivo->crtcs;
         output->id = 1;
+
         output->status = Off;
         output->next = output + 1;
 
@@ -234,7 +309,7 @@ avivo_info_probe(struct avivo_info *avivo)
         output->next = NULL;
     }
 }
-
+#endif
 static struct avivo_info *
 avivo_get_info(ScrnInfoPtr screen_info)
 {
@@ -1336,14 +1411,17 @@ avivo_enable_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
 }
 
 static void
-avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
+avivo_enable_output(struct avivo_info *avivo,
+                    struct avivo_output *output,
+                    struct avivo_output_driver *output_driver,
                     int enable)
 {
     int value1, value2, value3, value4, value5;
 
     avivo_wait_idle(avivo);
+    output_driver->enabled = enable;
 
-    if (output->type == TMDS) {
+    if (output_driver->type == TMDS) {
         value3 = 0x10000011;
         value5 = 0x00001010;
 
@@ -1382,7 +1460,7 @@ avivo_enable_output(struct avivo_info *avivo, struct avivo_output *output,
             OUTREG(AVIVO_TMDS2_CNTL, value5);
         }
     }
-    else if (output->type == VGA) {
+    else if (output_driver->type == VGA) {
         if (enable) {
             value1 = 0;
             value2 = 0;
@@ -1534,6 +1612,7 @@ avivo_switch_mode(int index, DisplayModePtr mode, int flags)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     struct avivo_crtc *crtc = avivo->crtcs;
     struct avivo_output *output = avivo->outputs;
+    struct avivo_output *output_driver;
     Bool ret;
 
     /* FIXME: First CRTC hardcoded ... */
@@ -1541,7 +1620,11 @@ avivo_switch_mode(int index, DisplayModePtr mode, int flags)
 
     while (output) {
         /* FIXME: CRTC <-> Output association. */
-        avivo_enable_output(avivo, output, 1);
+        output_driver = output->drivers;
+        while (output_driver) {
+            avivo_enable_output(avivo, output, output_driver, 1);
+            output_driver = output_driver->next;
+        }
         output = output->next;
     }
 
@@ -1593,13 +1676,18 @@ avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     struct avivo_crtc *crtc = avivo->crtcs;
     struct avivo_output *output = avivo->outputs;
+    struct avivo_output_driver *output_driver;
     int enable = (mode == DPMSModeOn);
 
     if (!screen_info->vtSema)
         return;
 
     while (output) {
-        avivo_enable_output(avivo, output, enable);
+        output_driver = output->drivers;
+        while (output_driver) {
+            avivo_enable_output(avivo, output, output_driver, enable);
+            output_driver = output_driver->next;
+        }
         output = output->next;
     }
 
