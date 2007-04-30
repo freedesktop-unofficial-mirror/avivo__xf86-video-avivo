@@ -35,6 +35,7 @@
 #include "radeon_reg.h"
 
 int debug;
+int debug_i2c;
 int skip;
 
 /* Static: unchanged over the sample period.
@@ -154,7 +155,7 @@ static void usage(void)
 
 void _i2c_set(unsigned long offset, unsigned int value)
 {
-	if (debug)
+	if (debug_i2c)
 		printf("OUTREG(0x%08X, 0x%08X);\n", offset, value);
 	SET_REG(offset, value);
 }
@@ -164,7 +165,7 @@ unsigned int _i2c_get(unsigned long offset)
 	unsigned int value;
 
 	value = GET_REG(offset);
-	if (debug)
+	if (debug_i2c)
 		printf("tmp = INREG(0x%08X);\t/* should get 0x%08X */\n",
 		       offset, value);
 	return value;
@@ -205,17 +206,17 @@ void _i2c_wait(void)
 	_i2c_set(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_DONE);	
 }
 
-void _i2c_start(void)
+void _i2c_start(unsigned int connector)
 {
 	unsigned int tmp;
 	
 	tmp = _i2c_get(AVIVO_I2C_CNTL);
 	if (tmp != 1) {
-		_i2c_set(AVIVO_I2C_START_CNTL, 0x00010100);
-		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~0xff) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-		_i2c_set(AVIVO_I2C_7D3C, tmp | 1);
 		_i2c_set(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
 		_i2c_stop();
+		_i2c_set(AVIVO_I2C_START_CNTL, (AVIVO_I2C_START | connector));
+		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~0xff) & (~AVIVO_I2C_7D3C_SIZE_MASK);
+		_i2c_set(AVIVO_I2C_7D3C, tmp | 1);
 	}
 	tmp = _i2c_get(AVIVO_I2C_START_CNTL);
 	_i2c_set(AVIVO_I2C_START_CNTL, tmp | AVIVO_I2C_START);
@@ -247,12 +248,13 @@ _i2c_write(unsigned char *buf, int num)
 
 
 void _i2c_write_read(unsigned char *write_buf, int num_write,
-		     unsigned char *read_buf, int num_read)
+                     unsigned char *read_buf, int num_read,
+                     unsigned int connector)
 {
 	unsigned int tmp;
 
 	if (num_write) {
-		_i2c_start();
+		_i2c_start(connector);
 		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
 		tmp |= num_write << AVIVO_I2C_7D3C_SIZE_SHIFT; 
 		_i2c_set(AVIVO_I2C_7D3C, tmp);
@@ -262,11 +264,11 @@ void _i2c_write_read(unsigned char *write_buf, int num_write,
 		_i2c_set(AVIVO_I2C_DATA, 0xA0);
 
 		_i2c_write(write_buf, num_write);
-		tmp = _i2c_get(AVIVO_I2C_START_CNTL);
+		tmp = _i2c_get(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
 		_i2c_set(AVIVO_I2C_START_CNTL,
-			 AVIVO_I2C_START
-			 | AVIVO_I2C_STATUS_DONE
-			 | AVIVO_I2C_STATUS_NACK);
+                 tmp
+                 | AVIVO_I2C_STATUS_DONE
+                 | AVIVO_I2C_STATUS_NACK);
 		_i2c_wait();
 	}
 
@@ -275,11 +277,12 @@ void _i2c_write_read(unsigned char *write_buf, int num_write,
 		tmp = _i2c_get(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
 		tmp |= num_read << AVIVO_I2C_7D3C_SIZE_SHIFT; 
 		_i2c_set(AVIVO_I2C_7D3C, tmp);
+		tmp = _i2c_get(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
 		_i2c_set(AVIVO_I2C_START_CNTL,
-			 AVIVO_I2C_START
-			 | AVIVO_I2C_STATUS_DONE
-			 | AVIVO_I2C_STATUS_NACK
-			 | AVIVO_I2C_STATUS_HALT);
+                 tmp
+                 | AVIVO_I2C_STATUS_DONE
+                 | AVIVO_I2C_STATUS_NACK
+                 | AVIVO_I2C_STATUS_HALT);
 		_i2c_wait();
 		_i2c_read(read_buf, num_read);
 		_i2c_stop();
@@ -295,12 +298,16 @@ void radeon_i2c(void)
 
 	for (i = 0; i < 1; i++) {
 		wbuf[0] = i * 4;
-		_i2c_write_read(wbuf, 1, rbuf, rsize);
+		_i2c_write_read(wbuf, 1, rbuf, rsize, AVIVO_I2C_CONNECTOR2);
 		for (j = 0; j < rsize; j++) {
 			printf("%02X", rbuf[j]);
 		}
 	}
 	printf("\n");
+}
+
+void radeon_i2c_monitor(void)
+{
 }
 
 void radeon_output_set(char *output, char *status)
@@ -1660,6 +1667,10 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[1], "i2c") == 0) {
             radeon_i2c();
+            return 0;
+        }
+        if (strcmp(argv[1], "i2c-monitor") == 0) {
+            radeon_i2c_monitor();
             return 0;
         }
     }
