@@ -3202,6 +3202,7 @@
 #	define AVIVO_CRTC_EN						(1 << 0)
 #define AVIVO_CRTC1_MODE					0x6084
 #       define AVIVO_CRTC_MODE_TEXT				(1 << 8)
+#define AVIVO_CRTC1_60c0_MYSTERY			0x60c0
 
 /* These all appear to control the scanout from the framebuffer.
  * Flicking SCAN_ENABLE low results in a black screen -- aside from
@@ -3228,6 +3229,7 @@
 #define AVIVO_CRTC1_X_LENGTH				0x6134
 #define AVIVO_CRTC1_Y_LENGTH				0x6138
 
+#define AVIVO_CRTC1_FB_HEIGHT			   	0x652c
 #define AVIVO_CRTC1_OFFSET					0x6580
 #define AVIVO_CRTC1_EXPANSION_SOURCE		0x6584
 #define AVIVO_CRTC1_EXPANSION_CNTL			0x6590
@@ -3271,8 +3273,21 @@
 #define AVIVO_CRTC2_PITCH					0x6920
 #define AVIVO_CRTC2_X_LENGTH				0x6934
 #define AVIVO_CRTC2_Y_LENGTH				0x6938
-#define AVIVO_CRTC2_EXPANSION_SOURCE		0x6D84
-#define AVIVO_CRTC2_EXPANSION_CNTL			0x6D90
+
+#define AVIVO_CRTC2_FB_HEIGHT			   	0x6d2c
+#define AVIVO_CRTC2_OFFSET					0x6d80
+#define AVIVO_CRTC2_EXPANSION_SOURCE		0x6d84
+#define AVIVO_CRTC2_EXPANSION_CNTL			0x6d90
+#define AVIVO_CRTC2_6594					0x6d94
+#define AVIVO_CRTC2_659C					0x6d9C
+#define AVIVO_CRTC2_65A4					0x6da4
+#define AVIVO_CRTC2_65A8					0x6da8
+#define AVIVO_CRTC2_65AC					0x6dac
+#define AVIVO_CRTC2_65B0					0x6db0
+#define AVIVO_CRTC2_65B8					0x6db8
+#define AVIVO_CRTC2_65BC					0x6dbc
+#define AVIVO_CRTC2_65C0					0x6dc0
+#define AVIVO_CRTC2_65C8					0x6dc8
 
 #define AVIVO_DAC1_CNTL						0x7800
 #define AVIVO_DAC1_CRTC_SOURCE				0x7804

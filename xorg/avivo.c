@@ -990,7 +990,7 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_V_SYNC_POL, state->crtc1_v_sync_pol);
     OUTREG(AVIVO_CRTC1_CNTL, state->crtc1_cntl);
     OUTREG(AVIVO_CRTC1_MODE, state->crtc1_mode);
-    OUTREG(0x60c0, state->crtc1_60c0_mystery);
+    OUTREG(AVIVO_CRTC1_60c0_MYSTERY, state->crtc1_60c0_mystery);
     OUTREG(AVIVO_CRTC1_SCAN_ENABLE, state->crtc1_scan_enable);
     OUTREG(AVIVO_CRTC1_FB_FORMAT, state->crtc1_fb_format);
     OUTREG(AVIVO_CRTC1_FB_LOCATION, state->crtc1_fb_location);
@@ -998,7 +998,7 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_PITCH, state->crtc1_pitch);
     OUTREG(AVIVO_CRTC1_X_LENGTH, state->crtc1_x_length);
     OUTREG(AVIVO_CRTC1_Y_LENGTH, state->crtc1_y_length);
-    OUTREG(0x652c, state->crtc1_fb_height);
+    OUTREG(AVIVO_CRTC1_FB_HEIGHT, state->crtc1_fb_height);
     OUTREG(AVIVO_CRTC1_OFFSET, state->crtc1_offset);
     OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, state->crtc1_expn_size);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, state->crtc1_expn_cntl);
@@ -1092,7 +1092,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_v_sync_pol = INREG(AVIVO_CRTC1_V_SYNC_POL);
     state->crtc1_cntl = INREG(AVIVO_CRTC1_CNTL);
     state->crtc1_mode = INREG(AVIVO_CRTC1_MODE);
-    state->crtc1_60c0_mystery = INREG(0x60C0);
+    state->crtc1_60c0_mystery = INREG(AVIVO_CRTC1_60c0_MYSTERY);
     state->crtc1_scan_enable = INREG(AVIVO_CRTC1_SCAN_ENABLE);
     state->crtc1_fb_format = INREG(AVIVO_CRTC1_FB_FORMAT);
     state->crtc1_fb_location = INREG(AVIVO_CRTC1_FB_LOCATION);
@@ -1100,7 +1100,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_pitch = INREG(AVIVO_CRTC1_PITCH);
     state->crtc1_x_length = INREG(AVIVO_CRTC1_X_LENGTH);
     state->crtc1_y_length = INREG(AVIVO_CRTC1_Y_LENGTH);
-    state->crtc1_fb_height = INREG(0x652c);
+    state->crtc1_fb_height = INREG(AVIVO_CRTC1_FB_HEIGHT);
     state->crtc1_offset = INREG(AVIVO_CRTC1_OFFSET);
     state->crtc1_expn_size = INREG(AVIVO_CRTC1_EXPANSION_SOURCE);
     state->crtc1_expn_cntl = INREG(AVIVO_CRTC1_EXPANSION_CNTL);
@@ -1410,11 +1410,11 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
             OUTREG(AVIVO_CRTC1_FB_FORMAT, crtc->fb_format);
             OUTREG(AVIVO_CRTC1_FB_END, fb_location + crtc->fb_length);
             OUTREG(AVIVO_CRTC1_MODE, 0);
-            OUTREG(0x60c0, 0);
+            OUTREG(AVIVO_CRTC1_60c0_MYSTERY, 0);
 
             avivo_set_pll(avivo, crtc);
 
-            OUTREG(0x652c, crtc->fb_height);
+            OUTREG(AVIVO_CRTC1_FB_HEIGHT, crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
                                                  crtc->fb_height);
             OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, AVIVO_CRTC_EXPANSION_EN);
