@@ -969,6 +969,7 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_PLL_CNTL, state->pll_cntl);
     OUTREG(AVIVO_PLL_POST_DIV, state->pll_post_div);
     OUTREG(AVIVO_PLL_POST_MUL, state->pll_post_mul);
+    OUTREG(AVIVO_PLL_DIVIDER_CNTL, state->pll_divider_cntl);
     OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
     OUTREG(AVIVO_PLL_MYSTERY1, state->pll_mystery1);
     OUTREG(AVIVO_PLL_MYSTERY2, state->pll_mystery2);
@@ -1070,6 +1071,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->pll_cntl = INREG(AVIVO_PLL_CNTL);
     state->pll_post_div = INREG(AVIVO_PLL_POST_DIV);
     state->pll_post_mul = INREG(AVIVO_PLL_POST_MUL);
+    state->pll_divider_cntl = INREG(AVIVO_PLL_DIVIDER_CNTL);
     state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
     state->pll_mystery1 = INREG(AVIVO_PLL_MYSTERY1);
     state->pll_mystery2 = INREG(AVIVO_PLL_MYSTERY2);
@@ -1379,6 +1381,7 @@ avivo_set_pll(struct avivo_info *avivo, struct avivo_crtc *crtc)
     OUTREG(AVIVO_PLL_MYSTERY1, AVIVO_PLL_MYSTERY1_VAL);
     OUTREG(AVIVO_PLL_MYSTERY2, AVIVO_PLL_MYSTERY2_VAL);
     OUTREG(AVIVO_PLL_DIVIDER, div);
+    OUTREG(AVIVO_PLL_DIVIDER_CNTL, AVIVO_PLL_EN);
     OUTREG(AVIVO_PLL_POST_DIV, pdiv);
     OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
     OUTREG(AVIVO_PLL_CNTL, AVIVO_PLL_EN);
