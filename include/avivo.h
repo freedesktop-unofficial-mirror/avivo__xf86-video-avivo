@@ -143,6 +143,12 @@ struct avivo_state
 {
     int clock_1;
     int clock_2;
+    int pll_cntl;
+    int pll_post_div;
+    int pll_post_mul;
+    int pll_divider;
+    int pll_mystery1;
+    int pll_mystery2;
     int crtc1_h_total;
     int crtc1_h_blank;
     int crtc1_h_sync_wid;
@@ -212,9 +218,6 @@ struct avivo_state
     int cursor1_location;
     int cursor1_size;
     int cursor1_position;
-    int pll_divider;
-    int pll_post_mul;
-    int pll_post_div;
 };
 
 struct avivo_info

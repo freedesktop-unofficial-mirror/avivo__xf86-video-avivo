@@ -3180,11 +3180,18 @@
  *      if new video mode clock value is better keep on otherwise last
  *      previously found value should be the better.
  */
-#define AVIVO_PLL_POST_DIV					0x404
-#define AVIVO_PLL_POST_MUL					0x430
+#define AVIVO_PLL_CNTL						0x0400
+#	define AVIVO_PLL_EN						(1 << 0)
+#define AVIVO_PLL_POST_DIV					0x0404
+#define AVIVO_PLL_POST_MUL					0x0430
 #	define AVIVO_PLL_POST_MUL_SHIFT				16
 /* Refclk appears to be 108MHz  1080000 / mode clock = this. */
+#define AVIVO_PLL_DIVIDER_CNTL				0x0438
 #define AVIVO_PLL_DIVIDER					0x043c
+#define AVIVO_PLL_MYSTERY1					0x0450
+#	define AVIVO_PLL_MYSTERY1_VAL				0x00310000
+#define AVIVO_PLL_MYSTERY2					0x04CC
+#	define AVIVO_PLL_MYSTERY2_VAL				0x0C000100
 
 /* CRTC controls; these appear to influence the DAC's scanout. */
 #define AVIVO_CRTC1_H_TOTAL					0x6000

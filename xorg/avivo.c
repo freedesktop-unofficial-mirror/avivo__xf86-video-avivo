@@ -965,6 +965,14 @@ avivo_restore_state(ScrnInfoPtr screen_info)
 
     OUTREG(0x330, state->clock_1);
     OUTREG(0x338, state->clock_2);
+
+    OUTREG(AVIVO_PLL_CNTL, state->pll_cntl);
+    OUTREG(AVIVO_PLL_POST_DIV, state->pll_post_div);
+    OUTREG(AVIVO_PLL_POST_MUL, state->pll_post_mul);
+    OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
+    OUTREG(AVIVO_PLL_MYSTERY1, state->pll_mystery1);
+    OUTREG(AVIVO_PLL_MYSTERY2, state->pll_mystery2);
+
     OUTREG(AVIVO_CRTC1_H_TOTAL, state->crtc1_h_total);
     OUTREG(AVIVO_CRTC1_H_BLANK, state->crtc1_h_blank);
     OUTREG(AVIVO_CRTC1_H_SYNC_WID, state->crtc1_h_sync_wid);
@@ -1031,11 +1039,6 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_TMDS2_MYSTERY2, state->tmds2_mystery2);
     OUTREG(AVIVO_TMDS2_CLOCK_CNTL, state->tmds2_clock_cntl);
     OUTREG(AVIVO_TMDS2_MYSTERY3, state->tmds2_mystery3);
-
-    OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
-    OUTREG(AVIVO_PLL_POST_MUL, state->pll_post_mul);
-    OUTREG(AVIVO_PLL_POST_DIV, state->pll_post_div);
-
 #ifdef WITH_VGAHW
     vgaHWPtr hwp = VGAHWPTR(screen_info);
     vgaHWUnlock(hwp);
@@ -1064,8 +1067,14 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->clock_1 = INREG(0x330);
     state->clock_2 = INREG(0x338);
 
-    state->crtc1_h_total = INREG(AVIVO_CRTC1_H_TOTAL);
+    state->pll_cntl = INREG(AVIVO_PLL_CNTL);
+    state->pll_post_div = INREG(AVIVO_PLL_POST_DIV);
+    state->pll_post_mul = INREG(AVIVO_PLL_POST_MUL);
+    state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
+    state->pll_mystery1 = INREG(AVIVO_PLL_MYSTERY1);
+    state->pll_mystery2 = INREG(AVIVO_PLL_MYSTERY2);
 
+    state->crtc1_h_total = INREG(AVIVO_CRTC1_H_TOTAL);
     state->crtc1_h_blank = INREG(AVIVO_CRTC1_H_BLANK);
     state->crtc1_h_sync_wid = INREG(AVIVO_CRTC1_H_SYNC_WID);
     state->crtc1_h_sync_pol = INREG(AVIVO_CRTC1_H_SYNC_POL);
@@ -1135,10 +1144,6 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->tmds2_mystery2 = INREG(AVIVO_TMDS2_MYSTERY2);
     state->tmds2_clock_cntl = INREG(AVIVO_TMDS2_CLOCK_CNTL);
     state->tmds2_mystery3 = INREG(AVIVO_TMDS2_MYSTERY3);
-    
-    state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
-    state->pll_post_div = INREG(AVIVO_PLL_POST_DIV);
-    state->pll_post_mul = INREG(AVIVO_PLL_POST_MUL);
 }
     
 static Bool
@@ -1369,9 +1374,14 @@ avivo_set_pll(struct avivo_info *avivo, struct avivo_crtc *crtc)
     }
     ErrorF("pll: div %d, pmul 0x%X(%d), pdiv %d\n",
            div, pmul, pmul, pdiv);
+
+    OUTREG(AVIVO_PLL_CNTL, 0);
+    OUTREG(AVIVO_PLL_MYSTERY1, AVIVO_PLL_MYSTERY1_VAL);
+    OUTREG(AVIVO_PLL_MYSTERY2, AVIVO_PLL_MYSTERY2_VAL);
     OUTREG(AVIVO_PLL_DIVIDER, div);
     OUTREG(AVIVO_PLL_POST_DIV, pdiv);
     OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
+    OUTREG(AVIVO_PLL_CNTL, AVIVO_PLL_EN);
 }
 
 static void
