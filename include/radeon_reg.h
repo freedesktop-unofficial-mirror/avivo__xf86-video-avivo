@@ -3125,42 +3125,42 @@
  */
 
 /* Core engine. */
-#define AVIVO_ENGINE_STATUS			0x0014
+#define AVIVO_ENGINE_STATUS					0x0014
 
 /* Memory mapping. */
-#define AVIVO_MC_INDEX				0x0070
-#	define MC01				0x01
-#	define MC02				0x02
-#	define MC03				0x03
-#	define MC04				0x04
-#	define MC05				0x05
-#	define MC06				0x06
-#	define MC07				0x07
-#	define MC08				0x08
-#	define MC09				0x09
-#	define MC0a				0x0a
-#	define MC0b				0x0b
-#	define MC0c				0x0c
-#	define MC0d				0x0d
-#	define MC0e				0x0e
-#	define MC0f				0x0f
-#	define MC10				0x10
-#	define MC11				0x11
-#	define MC12				0x12
-#	define MC13				0x13
-#	define MC14				0x14
-#	define MC15				0x15
-#	define MC16				0x16
-#	define MC17				0x17
-#	define MC18				0x18
-#	define MC19				0x19
-#	define MC1a				0x1a
-#	define MC1b				0x1b
-#	define MC1c				0x1c
-#	define MC1d				0x1d
-#	define MC1e				0x1e
-#	define MC1f				0x1f
-#define AVIVO_MC_DATA				0x0074
+#define AVIVO_MC_INDEX						0x0070
+#	define MC01									0x01
+#	define MC02									0x02
+#	define MC03									0x03
+#	define MC04									0x04
+#	define MC05									0x05
+#	define MC06									0x06
+#	define MC07									0x07
+#	define MC08									0x08
+#	define MC09									0x09
+#	define MC0a									0x0a
+#	define MC0b									0x0b
+#	define MC0c									0x0c
+#	define MC0d									0x0d
+#	define MC0e									0x0e
+#	define MC0f									0x0f
+#	define MC10									0x10
+#	define MC11									0x11
+#	define MC12									0x12
+#	define MC13									0x13
+#	define MC14									0x14
+#	define MC15									0x15
+#	define MC16									0x16
+#	define MC17									0x17
+#	define MC18									0x18
+#	define MC19									0x19
+#	define MC1a									0x1a
+#	define MC1b									0x1b
+#	define MC1c									0x1c
+#	define MC1d									0x1d
+#	define MC1e									0x1e
+#	define MC1f									0x1f
+#define AVIVO_MC_DATA						0x0074
 
 
 /*
@@ -3180,25 +3180,25 @@
  *      if new video mode clock value is better keep on otherwise last
  *      previously found value should be the better.
  */
-#define AVIVO_PLL_POST_DIV			0x404
-#define AVIVO_PLL_POST_MUL			0x430
-#	define AVIVO_PLL_POST_MUL_SHIFT		16
+#define AVIVO_PLL_POST_DIV					0x404
+#define AVIVO_PLL_POST_MUL					0x430
+#	define AVIVO_PLL_POST_MUL_SHIFT				16
 /* Refclk appears to be 108MHz  1080000 / mode clock = this. */
-#define AVIVO_PLL_DIVIDER			0x043c
+#define AVIVO_PLL_DIVIDER					0x043c
 
 /* CRTC controls; these appear to influence the DAC's scanout. */
-#define AVIVO_CRTC1_H_TOTAL			0x6000
-#define AVIVO_CRTC1_H_BLANK			0x6004
-#define AVIVO_CRTC1_H_SYNC_WID			0x6008
-#define AVIVO_CRTC1_H_SYNC_POL			0x600c
-#define AVIVO_CRTC1_V_TOTAL			0x6020
-#define AVIVO_CRTC1_V_BLANK			0x6024
-#define AVIVO_CRTC1_V_SYNC_WID			0x6028
-#define AVIVO_CRTC1_V_SYNC_POL			0x602c
-#define AVIVO_CRTC1_CNTL			0x6080
-#	define AVIVO_CRTC_EN			(1 << 0)
-#define AVIVO_CRTC1_MODE			0x6084
-#       define AVIVO_CRTC_MODE_TEXT		(1 << 8)
+#define AVIVO_CRTC1_H_TOTAL					0x6000
+#define AVIVO_CRTC1_H_BLANK					0x6004
+#define AVIVO_CRTC1_H_SYNC_WID				0x6008
+#define AVIVO_CRTC1_H_SYNC_POL				0x600c
+#define AVIVO_CRTC1_V_TOTAL					0x6020
+#define AVIVO_CRTC1_V_BLANK					0x6024
+#define AVIVO_CRTC1_V_SYNC_WID					0x6028
+#define AVIVO_CRTC1_V_SYNC_POL					0x602c
+#define AVIVO_CRTC1_CNTL					0x6080
+#	define AVIVO_CRTC_EN						(1 << 0)
+#define AVIVO_CRTC1_MODE					0x6084
+#       define AVIVO_CRTC_MODE_TEXT				(1 << 8)
 
 /* These all appear to control the scanout from the framebuffer.
  * Flicking SCAN_ENABLE low results in a black screen -- aside from
@@ -3214,165 +3214,172 @@
  * FB_LOCATION + (xres * yres * 2).  FB_END doesn't appear to actually
  * function as an upper bound.
  */
-#define AVIVO_CRTC1_SCAN_ENABLE			0x6100
-#	define AVIVO_CRTC_SCAN_EN		(1 << 0)
-#define AVIVO_CRTC1_FB_FORMAT			0x6104
-#	define AVIVO_CRTC_FORMAT_ARGB32		(1 << 1)
-#define AVIVO_CRTC1_FB_LOCATION			0x6110
-#define AVIVO_CRTC1_FB_END			0x6118
+#define AVIVO_CRTC1_SCAN_ENABLE				0x6100
+#	define AVIVO_CRTC_SCAN_EN					(1 << 0)
+#define AVIVO_CRTC1_FB_FORMAT				0x6104
+#	define AVIVO_CRTC_FORMAT_ARGB32				(1 << 1)
+#define AVIVO_CRTC1_FB_LOCATION				0x6110
+#define AVIVO_CRTC1_FB_END					0x6118
 /* This is in pixels, not bytes.  Obviously. */
-#define AVIVO_CRTC1_PITCH			0x6120
-#define AVIVO_CRTC1_X_LENGTH			0x6134
-#define AVIVO_CRTC1_Y_LENGTH			0x6138
+#define AVIVO_CRTC1_PITCH					0x6120
+#define AVIVO_CRTC1_X_LENGTH				0x6134
+#define AVIVO_CRTC1_Y_LENGTH				0x6138
 
-#define AVIVO_CRTC1_OFFSET			0x6580
+#define AVIVO_CRTC1_OFFSET					0x6580
 #define AVIVO_CRTC1_EXPANSION_SOURCE		0x6584
-#define AVIVO_CRTC1_EXPANSION_CNTL		0x6590
-#	define AVIVO_CRTC_EXPANSION_EN		(1 << 0)
-#define AVIVO_CRTC1_6594			0x6594
-#	define AVIVO_CRTC1_6594_VALUE		((1 << 8) | (1 << 0))
-#define AVIVO_CRTC1_659C			0x659C
-#	define AVIVO_CRTC1_659C_VALUE		((1 << 1))
-#define AVIVO_CRTC1_65A4			0x65a4
-#	define AVIVO_CRTC1_65A4_VALUE		((1 << 16) | (1 << 0))
-#define AVIVO_CRTC1_65A8			0x65a8
-#	define AVIVO_CRTC1_65A8_VALUE		((1 << 16) | (1 << 14))
-#define AVIVO_CRTC1_65AC			0x65ac
-#	define AVIVO_CRTC1_65AC_VALUE		((1 << 15) | (1 << 14) | (1 << 13))
-#define AVIVO_CRTC1_65B0			0x65b0
-#	define AVIVO_CRTC1_65B0_VALUE		((1 << 17) | (1 << 16) | (1 << 8))
-#define AVIVO_CRTC1_65B8			0x65b8
-#	define AVIVO_CRTC1_65B8_VALUE		((1 << 16))
-#define AVIVO_CRTC1_65BC			0x65bc
-#	define AVIVO_CRTC1_65BC_VALUE		((1 << 16))
-#define AVIVO_CRTC1_65C0			0x65c0
-#	define AVIVO_CRTC1_65C0_VALUE		((1 << 17) | (1 << 16) | (1 << 8))
-#define AVIVO_CRTC1_65C8			0x65c8
-#	define AVIVO_CRTC1_65C8_VALUE		((1 << 16))
+#define AVIVO_CRTC1_EXPANSION_CNTL			0x6590
+#	define AVIVO_CRTC_EXPANSION_EN				(1 << 0)
+#define AVIVO_CRTC1_6594					0x6594
+#	define AVIVO_CRTC1_6594_VALUE				((1 << 8) | (1 << 0))
+#define AVIVO_CRTC1_659C					0x659C
+#	define AVIVO_CRTC1_659C_VALUE				((1 << 1))
+#define AVIVO_CRTC1_65A4					0x65a4
+#	define AVIVO_CRTC1_65A4_VALUE				((1 << 16) | (1 << 0))
+#define AVIVO_CRTC1_65A8					0x65a8
+#	define AVIVO_CRTC1_65A8_VALUE				((1 << 16) | (1 << 14))
+#define AVIVO_CRTC1_65AC					0x65ac
+#	define AVIVO_CRTC1_65AC_VALUE				((1 << 15) | (1 << 14) | (1 << 13))
+#define AVIVO_CRTC1_65B0					0x65b0
+#	define AVIVO_CRTC1_65B0_VALUE				((1 << 17) | (1 << 16) | (1 << 8))
+#define AVIVO_CRTC1_65B8					0x65b8
+#	define AVIVO_CRTC1_65B8_VALUE				((1 << 16))
+#define AVIVO_CRTC1_65BC					0x65bc
+#	define AVIVO_CRTC1_65BC_VALUE				((1 << 16))
+#define AVIVO_CRTC1_65C0					0x65c0
+#	define AVIVO_CRTC1_65C0_VALUE				((1 << 17) | (1 << 16) | (1 << 8))
+#define AVIVO_CRTC1_65C8					0x65c8
+#	define AVIVO_CRTC1_65C8_VALUE				((1 << 16))
  
-#define AVIVO_CRTC2_H_TOTAL			0x6800
-#define AVIVO_CRTC2_H_BLANK			0x6804
-#define AVIVO_CRTC2_H_SYNC_WID			0x6808
-#define AVIVO_CRTC2_H_SYNC_POL			0x680c
-#define AVIVO_CRTC2_V_TOTAL			0x6820
-#define AVIVO_CRTC2_V_BLANK			0x6824
-#define AVIVO_CRTC2_V_SYNC_WID			0x6828
-#define AVIVO_CRTC2_V_SYNC_POL			0x682c
-#define AVIVO_CRTC2_CNTL			0x6880
-#define AVIVO_CRTC2_MODE			0x6884
+#define AVIVO_CRTC2_H_TOTAL					0x6800
+#define AVIVO_CRTC2_H_BLANK					0x6804
+#define AVIVO_CRTC2_H_SYNC_WID				0x6808
+#define AVIVO_CRTC2_H_SYNC_POL				0x680c
+#define AVIVO_CRTC2_V_TOTAL					0x6820
+#define AVIVO_CRTC2_V_BLANK					0x6824
+#define AVIVO_CRTC2_V_SYNC_WID				0x6828
+#define AVIVO_CRTC2_V_SYNC_POL				0x682c
+#define AVIVO_CRTC2_CNTL					0x6880
+#define AVIVO_CRTC2_MODE					0x6884
 
-#define AVIVO_CRTC2_SCAN_ENABLE			0x6900
-#define AVIVO_CRTC2_FB_FORMAT			0x6904
-#define AVIVO_CRTC2_FB_LOCATION			0x6910
-#define AVIVO_CRTC2_FB_END			0x6918
-#define AVIVO_CRTC2_PITCH			0x6920
-#define AVIVO_CRTC2_X_LENGTH			0x6934
-#define AVIVO_CRTC2_Y_LENGTH			0x6938
+#define AVIVO_CRTC2_SCAN_ENABLE				0x6900
+#define AVIVO_CRTC2_FB_FORMAT				0x6904
+#define AVIVO_CRTC2_FB_LOCATION				0x6910
+#define AVIVO_CRTC2_FB_END					0x6918
+#define AVIVO_CRTC2_PITCH					0x6920
+#define AVIVO_CRTC2_X_LENGTH				0x6934
+#define AVIVO_CRTC2_Y_LENGTH				0x6938
+#define AVIVO_CRTC2_EXPANSION_SOURCE		0x6D84
+#define AVIVO_CRTC2_EXPANSION_CNTL			0x6D90
 
-#define AVIVO_DAC1_CNTL				0x7800
-#	define AVIVO_DAC_EN			(1 << 0)
-#define AVIVO_DAC1_MYSTERY1			0x783c
-#	define AVIVO_DAC_MYSTERY1_DIS		((1 << 0) | (1 << 8) | (1 << 9) | (1 << 10))
-#define AVIVO_DAC1_MYSTERY2			0x7850
-#	define AVIVO_DAC_MYSTERY2_DIS		((1 << 0) | (1 << 8) | (1 << 16) | (1 << 24))
+#define AVIVO_DAC1_CNTL						0x7800
+#define AVIVO_DAC1_CRTC_SOURCE				0x7804
+#	define AVIVO_DAC_EN							(1 << 0)
+#define AVIVO_DAC1_MYSTERY1					0x783c
+#	define AVIVO_DAC_MYSTERY1_DIS				((1 << 0) | (1 << 8) | (1 << 9) | (1 << 10))
+#define AVIVO_DAC1_MYSTERY2					0x7850
+#	define AVIVO_DAC_MYSTERY2_DIS				((1 << 0) | (1 << 8) | (1 << 16) | (1 << 24))
 
-#define AVIVO_DAC2_CNTL				0x7a00
-#define AVIVO_DAC2_MYSTERY1			0x7a3c
-#define AVIVO_DAC2_MYSTERY2			0x7a50
+#define AVIVO_DAC2_CNTL						0x7a00
+#define AVIVO_DAC2_CRTC_SOURCE				0x7a04
+#define AVIVO_DAC2_MYSTERY1					0x7a3c
+#define AVIVO_DAC2_MYSTERY2					0x7a50
 
 /* Frustratingly, at least on my R580, the DAC and TMDS orders
  * appear inversed: 7800 and 7a80 enable/disable the same physical
  * connector; ditto 7a00 and 7880.  O brave new world!
  */
-#define AVIVO_TMDS1_CNTL			0x7880
+#define AVIVO_TMDS1_CNTL					0x7880
+#define AVIVO_TMDS1_CRTC_SOURCE				0x7884
 /* (1 << 4), (1 << 8), and (1 << 12) are all set by fglrx, but
  * clearing them seems to have no effect.  Clearing _EN kills the feed
  * instantly. */
-#	define AVIVO_TMDS_EN			((1 << 0) | (1 << 8))
+#	define AVIVO_TMDS_EN						((1 << 0) | (1 << 8))
 /* 78a8 appears to be some kind of (reasonably tolerant) clock?
  * 78d0 definitely hits the transmitter, definitely clock. */
-#define AVIVO_TMDS1_MYSTERY1			0x7894
+#define AVIVO_TMDS1_MYSTERY1				0x7894
 /* This appears to control dithering? */
-#	define AVIVO_TMDS_MYSTERY1_EN		((1 << 8) | (1 << 12))
-#define AVIVO_TMDS1_MYSTERY2			0x78d8
-#	define AVIVO_TMDS_MYSTERY2_EN		((1 << 24) | (1 << 16) | (1 << 0))
-#define AVIVO_TMDS1_CLOCK_ENABLE		0x7900
-#define AVIVO_TMDS1_CLOCK_CNTL			0x7904
+#	define AVIVO_TMDS_MYSTERY1_EN				((1 << 8) | (1 << 12))
+#define AVIVO_TMDS1_MYSTERY2				0x78d8
+#	define AVIVO_TMDS_MYSTERY2_EN				((1 << 24) | (1 << 16) | (1 << 0))
+#define AVIVO_TMDS1_CLOCK_ENABLE			0x7900
+#define AVIVO_TMDS1_CLOCK_CNTL				0x7904
 /* I don't know any of the bits here, only that enabling (1 << 5)
  * without (1 << 4) makes things go utterly mental ... seems to be
  * the transmitter clock again. */
 /* 790c is a clock?
  * 7910 appears to be some kind of control field, again.  (1 << 25)
  * must be enabled to get a signal on my monitor. */
-#define AVIVO_TMDS1_MYSTERY3			0x7910
-#	define AVIVO_TMDS_MYSTERY3_24		(1 << 24)
-#	define AVIVO_TMDS_MYSTERY3_25		(1 << 25)
-#	define AVIVO_TMDS_MYSTERY3_4		(1 << 4)
-#	define AVIVO_TMDS_MYSTERY3_3		(1 << 3)
-#	define AVIVO_TMDS_MYSTERY3_2		(1 << 2)
-#	define AVIVO_TMDS_MYSTERY3_1		(1 << 1)
+#define AVIVO_TMDS1_MYSTERY3				0x7910
+#	define AVIVO_TMDS_MYSTERY3_24				(1 << 24)
+#	define AVIVO_TMDS_MYSTERY3_25				(1 << 25)
+#	define AVIVO_TMDS_MYSTERY3_4				(1 << 4)
+#	define AVIVO_TMDS_MYSTERY3_3				(1 << 3)
+#	define AVIVO_TMDS_MYSTERY3_2				(1 << 2)
+#	define AVIVO_TMDS_MYSTERY3_1				(1 << 1)
 
-#define AVIVO_TMDS2_CNTL			0x7a80
-#define AVIVO_TMDS2_MYSTERY1			0x7a94
-#define AVIVO_TMDS2_MYSTERY2			0x7ad8
-#define AVIVO_TMDS2_CLOCK_ENABLE		0x7b00
-#define AVIVO_TMDS2_CLOCK_CNTL			0x7b04
-#define AVIVO_TMDS2_MYSTERY3			0x7b10
+#define AVIVO_TMDS2_CNTL					0x7a80
+#define AVIVO_TMDS2_CRTC_SOURCE				0x7a84
+#define AVIVO_TMDS2_MYSTERY1				0x7a94
+#define AVIVO_TMDS2_MYSTERY2				0x7ad8
+#define AVIVO_TMDS2_CLOCK_ENABLE			0x7b00
+#define AVIVO_TMDS2_CLOCK_CNTL				0x7b04
+#define AVIVO_TMDS2_MYSTERY3				0x7b10
 
-#define AVIVO_LVDS_CNTL				0x7af0
-#	define AVIVO_LVDS_EN			((1 << 0) | (1 << 4))
-#define AVIVO_LVDS_BACKLIGHT_CNTL		0x7af8
-#	define AVIVO_LVDS_BACKLIGHT_CNTL_EN	(1 << 0)
-#	define AVIVO_LVDS_BACKLIGHT_LEVEL_MASK	0x0000ff00
-#	define AVIVO_LVDS_BACKLIGHT_LEVEL_SHIFT	8
+#define AVIVO_LVDS_CNTL						0x7af0
+#	define AVIVO_LVDS_EN						((1 << 0) | (1 << 4))
+#define AVIVO_LVDS_BACKLIGHT_CNTL			0x7af8
+#	define AVIVO_LVDS_BACKLIGHT_CNTL_EN			(1 << 0)
+#	define AVIVO_LVDS_BACKLIGHT_LEVEL_MASK		0x0000ff00
+#	define AVIVO_LVDS_BACKLIGHT_LEVEL_SHIFT		8
 
 /* The BIOS says so, anyway ... */
-#define AVIVO_GPIO_DDC_1			0x7e40
-#define AVIVO_GPIO_DDC_2			0x7e50
+#define AVIVO_GPIO_CONNECTOR_0				0x7e40
+#define AVIVO_GPIO_CONNECTOR_1				0x7e50
+#define AVIVO_GPIO_LVDS						0x7e60
 
-#define AVIVO_TMDS_STATUS			0x7e9c
-#	define AVIVO_TMDS1_CONNECTED		(1 << 0)
-#	define AVIVO_TMDS2_CONNECTED		(1 << 8)
+#define AVIVO_TMDS_STATUS					0x7e9c
+#	define AVIVO_TMDS1_CONNECTED				(1 << 0)
+#	define AVIVO_TMDS2_CONNECTED				(1 << 8)
 
 /* Cursor registers. */
-#define AVIVO_CURSOR1_CNTL			0x6400
-#	define AVIVO_CURSOR_EN			(1 << 0)
-#	define AVIVO_CURSOR_FORMAT_MASK		(3 << 8)
-#	define AVIVO_CURSOR_FORMAT_ABGR		0x1
-#	define AVIVO_CURSOR_FORMAT_ARGB		0x2
-#	define AVIVO_CURSOR_FORMAT_SHIFT	8
-#define AVIVO_CURSOR1_LOCATION			0x6408
+#define AVIVO_CURSOR1_CNTL					0x6400
+#	define AVIVO_CURSOR_EN						(1 << 0)
+#	define AVIVO_CURSOR_FORMAT_MASK				(3 << 8)
+#	define AVIVO_CURSOR_FORMAT_ABGR				0x1
+#	define AVIVO_CURSOR_FORMAT_ARGB				0x2
+#	define AVIVO_CURSOR_FORMAT_SHIFT			8
+#define AVIVO_CURSOR1_LOCATION				0x6408
 /* x is in the top 16 bits; y in the lower 16.  Note that _SIZE does not
  * impact the in-memory format: it is always 64x64. */
-#define AVIVO_CURSOR1_SIZE			0x6410
-#define AVIVO_CURSOR1_POSITION			0x6414
+#define AVIVO_CURSOR1_SIZE					0x6410
+#define AVIVO_CURSOR1_POSITION				0x6414
 
-#define AVIVO_I2C_STATUS			0x7d30
-#	define AVIVO_I2C_STATUS_DONE		(1 << 0)
-#	define AVIVO_I2C_STATUS_NACK		(1 << 1)
-#	define AVIVO_I2C_STATUS_HALT		(1 << 2)
-#	define AVIVO_I2C_STATUS_MASK		0x7
+#define AVIVO_I2C_STATUS					0x7d30
+#	define AVIVO_I2C_STATUS_DONE				(1 << 0)
+#	define AVIVO_I2C_STATUS_NACK				(1 << 1)
+#	define AVIVO_I2C_STATUS_HALT				(1 << 2)
+#	define AVIVO_I2C_STATUS_MASK				0x7
 /* If radeon_mm_i2c is to be believed, this is HALT, NACK, and maybe
  * DONE? */
-#	define AVIVO_I2C_STATUS_CMD_RESET	0x7
-#	define AVIVO_I2C_STATUS_CMD_WAIT	(1 << 3)
-#define AVIVO_I2C_STOP				0x7d34
-#define AVIVO_I2C_START_CNTL			0x7d38
-#	define AVIVO_I2C_START			(1 << 8)
-#	define AVIVO_I2C_CONNECTOR1		(0 << 16)
-#	define AVIVO_I2C_CONNECTOR2		(1 << 16)
-#define AVIVO_I2C_7D3C				0x7d3c
-#	define AVIVO_I2C_7D3C_SIZE_SHIFT	8
-#	define AVIVO_I2C_7D3C_SIZE_MASK		(0xf << 8)
-#define AVIVO_I2C_7D40				0x7d40
+#	define AVIVO_I2C_STATUS_CMD_RESET			0x7
+#	define AVIVO_I2C_STATUS_CMD_WAIT			(1 << 3)
+#define AVIVO_I2C_STOP						0x7d34
+#define AVIVO_I2C_START_CNTL				0x7d38
+#	define AVIVO_I2C_START						(1 << 8)
+#	define AVIVO_I2C_CONNECTOR0					(0 << 16)
+#	define AVIVO_I2C_CONNECTOR1					(1 << 16)
+#define AVIVO_I2C_7D3C						0x7d3c
+#	define AVIVO_I2C_7D3C_SIZE_SHIFT			8
+#	define AVIVO_I2C_7D3C_SIZE_MASK				(0xf << 8)
+#define AVIVO_I2C_7D40						0x7d40
 /* Reading is done 4 bytes at a time: read the bottom 8 bits from
  * 7d44, four times in a row.
  * Writing is a little more complex.  First write DATA with
  * 0xnnnnnnzz, then 0xnnnnnnyy, where nnnnnn is some non-deterministic
  * magic number, zz is, I think, the slave address, and yy is the byte
  * you want to write. */
-#define AVIVO_I2C_DATA				0x7d44
-#define AVIVO_I2C_CNTL				0x7d50
-#	define AVIVO_I2C_EN			(1 << 0)
+#define AVIVO_I2C_DATA						0x7d44
+#define AVIVO_I2C_CNTL						0x7d50
+#	define AVIVO_I2C_EN							(1 << 0)
 
 #endif
