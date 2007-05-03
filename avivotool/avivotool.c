@@ -33,6 +33,7 @@
 #include <pciaccess.h>
 
 #include "radeon_reg.h"
+#include "xf86i2c.h"
 
 int debug;
 int debug_i2c;
@@ -298,7 +299,7 @@ void radeon_i2c(void)
 
 	for (i = 0; i < 1; i++) {
 		wbuf[0] = i * 4;
-		_i2c_write_read(wbuf, 1, rbuf, rsize, AVIVO_I2C_CONNECTOR2);
+		_i2c_write_read(wbuf, 1, rbuf, rsize, AVIVO_I2C_CONNECTOR1);
 		for (j = 0; j < rsize; j++) {
 			printf("%02X", rbuf[j]);
 		}
@@ -306,9 +307,79 @@ void radeon_i2c(void)
 	printf("\n");
 }
 
+#define GPIO_IN  0x7E5C
+#define GPIO_OUT 0x7E58
+
+static void AVIVOI2CGetBits(I2CBusPtr b, int *Clock, int *data)
+{
+    unsigned long  val;
+
+    /* Get the result */
+    val = GET_REG(GPIO_IN);
+    *Clock = (val & (1<<0)) != 0;
+    *data  = (val & (1<<8)) != 0;
+}
+
+static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
+{
+    unsigned long  val;
+
+    val = 0;
+    val |= (Clock ? 0:(1<<0));
+    val |= (data ? 0:(1<<8));
+    SET_REG(GPIO_OUT, val);
+    /* read back to improve reliability on some cards. */
+    val = GET_REG(GPIO_OUT);
+}
+
+
 void radeon_i2c_monitor(void)
 {
+    I2CBusPtr i2cbus;
+	I2CByte wbuf[64];
+	I2CByte rbuf[64];
+    int i;
+    I2CDevPtr dev;
+
+    i2cbus = xf86CreateI2CBusRec();
+    if (!i2cbus) {
+        return;
+    }
+
+    i2cbus->BusName    = "DDC";
+    i2cbus->I2CPutBits = AVIVOI2CPutBits;
+    i2cbus->I2CGetBits = AVIVOI2CGetBits;
+    i2cbus->AcknTimeout = 5;
+
+    if (!xf86I2CBusInit(i2cbus))
+        return;
+
+    if (!(dev = xf86I2CFindDev(i2cbus, 0x00A0))) {
+        dev = xf86CreateI2CDevRec();
+        dev->DevName = "ddc2";
+        dev->SlaveAddr = 0xA0;
+        dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
+        dev->StartTimeout = 550;
+        dev->BitTimeout = 40;
+        dev->AcknTimeout = 40;
+
+        dev->pI2CBus = i2cbus;
+        if (!xf86I2CDevInit(dev)) {
+            fprintf(stderr, "No DDC2 device\n");
+            return;
+        }
+    } else {
+        fprintf(stderr, "No device at 0xA0\n");
+    }
+
+    wbuf[0] = 0x0;
+    xf86I2CWriteRead(dev, wbuf, 1, rbuf, 12);
+    for (i=0; i < 12; i++) {
+        printf("%02X", rbuf[i]);
+    }
+    printf("\n");
 }
+
 
 void radeon_output_set(char *output, char *status)
 {
@@ -1346,6 +1417,7 @@ static struct nametable_entry lddc_type_name[] = {
     { 4, "CRT2" },
     { 5, "AVIVO connector #1?" },
     { 6, "AVIVO connector #2?" },
+    { 7, "AVIVO LVDS connector #3?" },
     { 0, NULL }
 };
 
@@ -1455,8 +1527,9 @@ static void radeon_rom_atom_connectors(unsigned char *bios, int master)
                 case RADEON_GPIO_DVI_DDC: ddc = 2; break;
                 case RADEON_GPIO_VGA_DDC: ddc = 3; break;
                 case RADEON_GPIO_CRT2_DDC: ddc = 4; break;
-                case AVIVO_GPIO_DDC_1: ddc = 5; break;
-                case AVIVO_GPIO_DDC_2: ddc = 6; break;
+                case AVIVO_GPIO_CONNECTOR_0: ddc = 5; break;
+                case AVIVO_GPIO_CONNECTOR_1: ddc = 6; break;
+                case AVIVO_GPIO_LVDS: ddc = 7; break;
                 default: ddc = 0; break;
                 }
             }

@@ -1,5 +1,6 @@
 bin_PROGRAMS = avivotool
 avivotool_SOURCES = \
+	xf86i2c.c \
 	avivotool.c
 avivotool_LDADD = \
 	$(PCIACCESS_LIBS)
