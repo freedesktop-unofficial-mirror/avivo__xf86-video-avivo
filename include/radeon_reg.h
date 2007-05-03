@@ -3188,10 +3188,6 @@
 /* Refclk appears to be 108MHz  1080000 / mode clock = this. */
 #define AVIVO_PLL_DIVIDER_CNTL				0x0438
 #define AVIVO_PLL_DIVIDER					0x043c
-#define AVIVO_PLL_MYSTERY1					0x0450
-#	define AVIVO_PLL_MYSTERY1_VAL				0x00310000
-#define AVIVO_PLL_MYSTERY2					0x04CC
-#	define AVIVO_PLL_MYSTERY2_VAL				0x0C000100
 
 /* CRTC controls; these appear to influence the DAC's scanout. */
 #define AVIVO_CRTC1_H_TOTAL					0x6000

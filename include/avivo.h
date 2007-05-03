@@ -148,8 +148,6 @@ struct avivo_state
     int pll_post_mul;
     int pll_divider_cntl;
     int pll_divider;
-    int pll_mystery1;
-    int pll_mystery2;
     int crtc1_h_total;
     int crtc1_h_blank;
     int crtc1_h_sync_wid;
