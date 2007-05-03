@@ -3399,5 +3399,6 @@
 #define AVIVO_I2C_DATA						0x7d44
 #define AVIVO_I2C_CNTL						0x7d50
 #	define AVIVO_I2C_EN							(1 << 0)
+#	define AVIVO_I2C_RESET						(1 << 8)
 
 #endif

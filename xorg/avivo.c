@@ -465,35 +465,50 @@ avivo_i2c_stop(struct avivo_info *avivo)
 static int
 avivo_i2c_wait_ready(struct avivo_info *avivo)
 {
-    int i, num_ready, tmp;
+    int i, num_ready, tmp, num_nack;
 
     OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
-    for (i = 0, num_ready = 0; num_ready < 3; i++) {
+    for (i = 0, num_ready = 0, num_nack; num_ready < 3; i++) {
         tmp = INREG(AVIVO_I2C_STATUS);
         if (tmp == AVIVO_I2C_STATUS_DONE) {
             num_ready++;
         }
+        else if (tmp == AVIVO_I2C_STATUS_NACK) {
+            num_nack++;
+        }
         else if (tmp != AVIVO_I2C_STATUS_CMD_WAIT) {
-            /* FIXME: We probably need to abort in this case; is i2c_stop
-             *        enough, or do we need NACK/ABORT? */
+            /* Unknow state observed (so far i have only seen 0x8 or 0x2
+             * for i2c status thus we stop i2c if we encounter and unknown
+             * status.
+             */
             xf86DrvMsg(0, X_ERROR, "I2C bus error\n");
             avivo_i2c_stop(avivo);
-            OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
-            return 0;
+            tmp = INREG(AVIVO_I2C_CNTL);
+            OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_RESET);
+            return 1;
         }
 
-        /* Timeout 50ms like on radeon. */
-        if (i == 50) {
-            xf86DrvMsg(0, X_ERROR, "timeout waiting for engine to go ready\n");
-            tmp = INREG(AVIVO_I2C_CNTL) & ~(AVIVO_I2C_EN);
-            OUTREG(AVIVO_I2C_CNTL, tmp);
+        /* Timeout 50ms like on radeon */
+        if (i == 50 || num_nack > 3) {
+            xf86DrvMsg(0, X_ERROR, "i2c bus timeout\n");
+            avivo_i2c_stop(avivo);
+            tmp = INREG(AVIVO_I2C_CNTL);
+            OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_RESET);
+            return 1;
+        }
+
+        /* If we got more than 3 NACK we stop the bus */
+        if (num_nack > 3) {
+            avivo_i2c_stop(avivo);
+            tmp = INREG(AVIVO_I2C_CNTL);
+            OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_RESET);
             return 0;
         }
 
         usleep(1000);
     }
     OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_DONE);
-    return 1;
+    return 0;
 }
 
 /**
@@ -507,8 +522,8 @@ avivo_i2c_start(struct avivo_info *avivo)
     volatile int num_ready, i, tmp;
 
     tmp = INREG(AVIVO_I2C_CNTL) & AVIVO_I2C_EN;
-    if (!tmp) {
-        OUTREG(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
+    if (!(tmp & AVIVO_I2C_EN)) {
+        OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_EN);
         avivo_i2c_stop(avivo);
         OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_CONNECTOR1);
         tmp = INREG(AVIVO_I2C_7D3C) & (~0xff);
