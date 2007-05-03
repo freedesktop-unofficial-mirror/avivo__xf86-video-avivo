@@ -29,4 +29,5 @@ avivo_drv_la_LDFLAGS = -module -avoid-version
 avivo_drv_ladir = @moduledir@/drivers
 
 avivo_drv_la_SOURCES = \
+         avivo_bios.c \
          avivo.c

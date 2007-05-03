@@ -73,8 +73,6 @@ static void avivo_adjust_frame(int index, int x, int y, int flags);
 static void avivo_free_screen(int index, int flags);
 static void avivo_free_info(ScrnInfoPtr screen_info);
 
-static struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
-
 static void avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags);
 
 #ifdef PCIACCESS
@@ -167,80 +165,7 @@ static XF86ModuleVersionInfo avivo_version = {
  */
 _X_EXPORT XF86ModuleData avivoModuleData = { &avivo_version, avivo_setup, NULL };
 
-static int
-avivo_info_probe(struct avivo_info *avivo)
-{
-    struct avivo_crtc *crtc;
-    struct avivo_output_driver *output_driver;
-    struct avivo_output *output;
-
-    if (!avivo)
-        FatalError("No driver structure provided for probing\n");
-
-    if (!avivo->crtcs) {
-        avivo->crtcs = xcalloc(sizeof(struct avivo_crtc), 2);
-        if (!avivo->crtcs)
-            FatalError("Couldn't allocate outputs\n");
-
-        crtc = avivo->crtcs;
-        crtc->avivo = avivo;
-        crtc->id = 1;
-        crtc->next = crtc + 1;
-
-        crtc = crtc->next;
-        crtc->avivo = avivo;
-        crtc->id = 2;
-        crtc->next = NULL;
-    }
-
-    if (!avivo->outputs) {
-        avivo->outputs = xcalloc(sizeof(struct avivo_output), 2);
-        if (!avivo->outputs)
-            FatalError("Couldn't allocate outputs\n");
-
-        output = avivo->outputs;
-        output->drivers = xcalloc(sizeof(struct avivo_output_driver), 2);
-        if (!output->drivers)
-            FatalError("Couldn't allocate outputs\n");
-        output_driver = output->drivers;
-        output_driver->id = 1;
-        output_driver->enabled = 0;
-        output_driver->type = TMDS;
-        output_driver->next = output_driver + 1;
-        output_driver = output_driver->next;
-        output_driver->id = 3;
-        output_driver->enabled = 0;
-        output_driver->type = VGA;
-        output_driver->next = NULL;
-        output->avivo = avivo;
-        output->output_num = 1;
-        output->crtc = avivo->crtcs;
-        output->status = Off;
-        output->next = output + 1;
-
-        output = output->next;
-        output->drivers = xcalloc(sizeof(struct avivo_output_driver), 2);
-        if (!output->drivers)
-            FatalError("Couldn't allocate outputs\n");
-        output_driver = output->drivers;
-        output_driver->id = 2;
-        output_driver->enabled = 0;
-        output_driver->type = TMDS;
-        output_driver->next = output_driver + 1;
-        output_driver = output_driver->next;
-        output_driver->id = 4;
-        output_driver->enabled = 0;
-        output_driver->type = VGA;
-        output_driver->next = NULL;
-        output->avivo = avivo;
-        output->output_num = 2;
-        output->crtc = avivo->crtcs;
-        output->status = Off;
-        output->next = NULL;
-    }
-}
-
-static struct avivo_info *
+struct avivo_info *
 avivo_get_info(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo;
@@ -584,10 +509,10 @@ avivo_i2c_start(struct avivo_info *avivo)
     tmp = INREG(AVIVO_I2C_CNTL) & AVIVO_I2C_EN;
     if (!tmp) {
         OUTREG(AVIVO_I2C_CNTL, AVIVO_I2C_EN);
-        OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_CONNECTOR2);
+        avivo_i2c_stop(avivo);
+        OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_CONNECTOR1);
         tmp = INREG(AVIVO_I2C_7D3C) & (~0xff);
         OUTREG(AVIVO_I2C_7D3C, tmp | 1);
-        avivo_i2c_stop(avivo);
     }
     tmp = INREG(AVIVO_I2C_START_CNTL);
     OUTREG(AVIVO_I2C_START_CNTL, tmp | AVIVO_I2C_START);
@@ -615,8 +540,9 @@ avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
         OUTREG(AVIVO_I2C_7D40, tmp);
         avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
         avivo_i2c_write(avivo, &write_buf[i], size);
+        tmp = INREG(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
         OUTREG(AVIVO_I2C_START_CNTL,
-               (AVIVO_I2C_START |
+               (tmp |
                 AVIVO_I2C_STATUS_DONE |
                 AVIVO_I2C_STATUS_NACK));
         avivo_i2c_wait_ready(avivo);
@@ -635,8 +561,9 @@ avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
         OUTREG(AVIVO_I2C_7D40, tmp);
         avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
         avivo_i2c_write(avivo, &i, 1);
+        tmp = INREG(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
         OUTREG(AVIVO_I2C_START_CNTL,
-               (AVIVO_I2C_START |
+               (tmp |
                 AVIVO_I2C_STATUS_DONE |
                 AVIVO_I2C_STATUS_NACK));
         avivo_i2c_wait_ready(avivo);
@@ -645,8 +572,9 @@ avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
         tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
         tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
         OUTREG(AVIVO_I2C_7D3C, tmp);
+        tmp = INREG(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
         OUTREG(AVIVO_I2C_START_CNTL,
-               (AVIVO_I2C_START |
+               (tmp |
                 AVIVO_I2C_STATUS_DONE |
                 AVIVO_I2C_STATUS_NACK |
                 AVIVO_I2C_STATUS_HALT));
@@ -921,7 +849,7 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     screen_info->monitor = screen_info->confScreen->monitor;
 
     /* probe BIOS information */
-    avivo_info_probe(avivo);
+    avivo_probe_info(screen_info);
 
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
@@ -1342,16 +1270,16 @@ avivo_enable_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
 
 static void
 avivo_enable_output(struct avivo_info *avivo,
+                    struct avivo_connector *connector,
                     struct avivo_output *output,
-                    struct avivo_output_driver *output_driver,
                     int enable)
 {
     int value1, value2, value3, value4, value5;
 
     avivo_wait_idle(avivo);
-    output_driver->enabled = enable;
+    output->is_enabled = enable;
 
-    if (output_driver->type == TMDS) {
+    if (output->type == OUTPUT_TMDS) {
         value3 = 0x10000011;
         value5 = 0x00001010;
 
@@ -1359,7 +1287,7 @@ avivo_enable_output(struct avivo_info *avivo,
             value1 = AVIVO_TMDS_MYSTERY1_EN;
             value2 = AVIVO_TMDS_MYSTERY2_EN;
             value4 = 0x00001f1f;
-            if (output->output_num == 2)
+            if (connector->connector_num == 1)
                 value4 |= 0x00000020;
             value5 |= AVIVO_TMDS_EN;
         }
@@ -1369,14 +1297,15 @@ avivo_enable_output(struct avivo_info *avivo,
             value4 = 0x00060000;
         }
 
-        if (output->output_num == 1) {
+        if (connector->connector_num == 0) {
             OUTREG(AVIVO_TMDS1_MYSTERY1, value1);
             OUTREG(AVIVO_TMDS1_MYSTERY2, value2);
             OUTREG(AVIVO_TMDS1_MYSTERY3, value3);
             OUTREG(AVIVO_TMDS1_CLOCK_CNTL, value4);
             OUTREG(AVIVO_TMDS1_CNTL, value5);
         }
-        else if (output->output_num == 2) {
+        else if (connector->connector_num == 1
+                 || connector->connector_num == 2) {
             OUTREG(AVIVO_TMDS2_MYSTERY1, value1);
             OUTREG(AVIVO_TMDS2_MYSTERY2, value2);
             value3 |= 0x00630000;
@@ -1390,7 +1319,7 @@ avivo_enable_output(struct avivo_info *avivo,
             OUTREG(AVIVO_TMDS2_CNTL, value5);
         }
     }
-    else if (output_driver->type == VGA) {
+    else if (output->type == OUTPUT_DAC) {
         if (enable) {
             value1 = 0;
             value2 = 0;
@@ -1402,12 +1331,12 @@ avivo_enable_output(struct avivo_info *avivo,
             value3 = 0;
         }
 
-        if (output->output_num == 1) {
+        if (connector->connector_num == 0) {
             OUTREG(AVIVO_DAC1_MYSTERY1, value1);
             OUTREG(AVIVO_DAC1_MYSTERY2, value2);
             OUTREG(AVIVO_DAC1_CNTL, value3);
         }
-        else if (output->output_num == 2) {
+        else if (connector->connector_num == 1) {
             OUTREG(AVIVO_DAC2_MYSTERY1, value1);
             OUTREG(AVIVO_DAC2_MYSTERY2, value2);
             OUTREG(AVIVO_DAC2_CNTL, value3);
@@ -1450,7 +1379,7 @@ avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
 {
     unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
 
-    if (crtc->id == 1) {
+    if (crtc->id == 0) {
         OUTREG(AVIVO_CRTC1_CNTL, 0);
 
         if (on) {
@@ -1541,21 +1470,21 @@ avivo_switch_mode(int index, DisplayModePtr mode, int flags)
     ScrnInfoPtr screen_info = xf86Screens[index];
     struct avivo_info *avivo = avivo_get_info(screen_info);
     struct avivo_crtc *crtc = avivo->crtcs;
-    struct avivo_output *output = avivo->outputs;
-    struct avivo_output *output_driver;
+    struct avivo_output *output;
+    struct avivo_connector *connector = avivo->connectors;
     Bool ret;
 
     /* FIXME: First CRTC hardcoded ... */
     avivo_setup_crtc(avivo, crtc, mode);
 
-    while (output) {
+    while (connector) {
         /* FIXME: CRTC <-> Output association. */
-        output_driver = output->drivers;
-        while (output_driver) {
-            avivo_enable_output(avivo, output, output_driver, 1);
-            output_driver = output_driver->next;
+        output = connector->outputs;
+        while (output) {
+            avivo_enable_output(avivo, connector, output, 1);
+            output = output->next;
         }
-        output = output->next;
+        connector = connector->next;
     }
 
     return TRUE;
@@ -1605,20 +1534,20 @@ avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
     struct avivo_crtc *crtc = avivo->crtcs;
-    struct avivo_output *output = avivo->outputs;
-    struct avivo_output_driver *output_driver;
+    struct avivo_connector *connector = avivo->connectors;
+    struct avivo_output *output;
     int enable = (mode == DPMSModeOn);
 
     if (!screen_info->vtSema)
         return;
 
-    while (output) {
-        output_driver = output->drivers;
-        while (output_driver) {
-            avivo_enable_output(avivo, output, output_driver, enable);
-            output_driver = output_driver->next;
+    while (connector) {
+        output = connector->outputs;
+        while (output) {
+            avivo_enable_output(avivo, connector, output, enable);
+            output = output->next;
         }
-        output = output->next;
+        connector = connector->next;
     }
 
     /* FIXME: First CRTC hardcoded. */

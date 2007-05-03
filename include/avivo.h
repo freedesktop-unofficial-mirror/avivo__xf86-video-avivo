@@ -37,6 +37,8 @@
 #include "xf86Resources.h"
 #include "xf86RAC.h"
 
+#include "xf86i2c.h"
+
 #include "fb.h"
 
 #ifdef PCIACCESS
@@ -49,6 +51,9 @@
 
 #define PCI_CHIP_RV515_7142     0x7142
 #define PCI_CHIP_RV530_71C5     0x71C5
+
+#define RADEON_VBIOS_SIZE 0x00010000
+
 #define PCI_CHIP_R580_724B      0x724B
 
 #define INREG(x) MMIO_IN32(avivo->ctrl_base, x)
@@ -62,97 +67,77 @@ enum avivo_chip_type {
     CHIP_FAMILY_LAST,
 };
 
-enum avivo_output_type {
-    VGA,
-    TMDS,
-    LVDS,
-    TV,
-};
-
 struct avivo_crtc {
-    struct avivo_info *avivo;
-
     /* Bitmask of output IDs. */
-    int outputs;
-
-    int id;
-
-    int h_total, h_blank, h_sync_wid, h_sync_pol;
-    int v_total, v_blank, v_sync_wid, v_sync_pol;
-    int clock;
-
-    unsigned long fb_offset;
-    int fb_format, fb_length;
-    int fb_pitch, fb_width, fb_height;
-
+    int               outputs;
+    int               id;
+    int               h_total, h_blank, h_sync_wid, h_sync_pol;
+    int               v_total, v_blank, v_sync_wid, v_sync_pol;
+    int               clock;
+    unsigned long     fb_offset;
+    int               fb_format, fb_length;
+    int               fb_pitch, fb_width, fb_height;
     struct avivo_crtc *next;
 };
 
 enum avivo_output_status {
-    On,
-    Blanked,
-    Off,
+    OUTPUT_ON,
+    OUTPUT_BLANKED,
+    OUTPUT_OFF,
+};
+
+enum avivo_output_type {
+    OUTPUT_DAC,
+    OUTPUT_TMDS,
+    OUTPUT_LVDS,
+    OUTPUT_TV,
+};
+
+enum avivo_connector_type {
+    CONNECTOR_VGA,
+    CONNECTOR_DVII,
+    CONNECTOR_DVID,
+    CONNECTOR_DVIA,
+    CONNECTOR_STV,
+    CONNECTOR_CTV,
+    CONNECTOR_LVDS,
+    CONNECTOR_DIGITAL,
+    CONNECTOR_UNSUPPORTED,
 };
 
 /**
- * struct avivo_output_driver - output driver structure (VGA, TMDS, ...)
- * @enabled: is output enabled
- * @id:      output driver id
- * @type:    driver type VGA, TMDS, LVDS, TV
- * @next:    next output driver
- *
- * Each physical output can be drived by several differents outputs
- * (DAC, TMDS, ...), we record here information on this ouput.
+ * struct avivo_output - avivo output information structure
+ * @is_enabled:    is output enabled
+ * @gpio_base:     gpio base address register of this connector
+ * @type:          output type DAC, TMDS, LVDS, TV
+ * @status:        output status
+ * @next:          next output
  */
-struct avivo_output_driver {
-    /* type TMDS + output_num 2 == TMDS2.
-     * type DAC + output_num 1 == DAC1. */
-    int enabled;
-    int id;
-    enum avivo_output_type type;
-    struct avivo_output_driver *next;
+struct avivo_output {
+    struct avivo_crtc        *crtc;
+    int                      is_enabled;
+    enum avivo_output_type   type;
+    enum avivo_output_status status;
+    struct avivo_output      *next;
 };
 
 /**
- * struct avivo_output - output structure
- * @connected:  is output connected
- * @output_num: output number
- * @drivers:    output drivers list
- * @status:     output status
- * @next:       next output
- *
- * Physical output (VGA, DVI, SVideo, ...) status and associated
- * output driver (DAC, TMDS, ...) recorded here.
+ * struct avivo_connector - avivo output connector information structure
+ * @is_connected:  is output connected
+ * @connector_num: connector number
+ * @gpio_base:     gpio base address register of this connector
+ * @type:          connector type VGA, DVI-I, LVDS, STV, ...
+ * @outputs:       associated output
+ * @next:          next connector
  */
-struct avivo_output {
-    struct avivo_info *avivo;
-    struct avivo_crtc *crtc;
-
-    int connected;
-    int output_num;
-    struct avivo_output_driver *drivers;
-    enum avivo_output_status status;
-    struct avivo_output *next;
+struct avivo_connector {
+    int                       is_connected;
+    int                       connector_num;
+    unsigned int              gpio_base;
+    enum avivo_connector_type type;
+    struct avivo_output       *outputs;
+    struct avivo_connector    *next;
 };
-
-#if 0
-struct avivo_output {
-    struct avivo_info *avivo;
-    struct avivo_crtc *crtc;
-
-    int id;
-
-    /* type TMDS + output_num 2 == TMDS2.
-     * type DAC + output_num 1 == DAC1. */
-    enum avivo_output_type type;
-    int output_num;
-
-    int connected;
-    enum avivo_output_status status;
-
-    struct avivo_output *next;
-};
-#endif
 
 struct avivo_state
 {
@@ -247,8 +232,13 @@ struct avivo_info
 
     I2CBusPtr i2c;
 
+    unsigned char *vbios;
+    int rom_header;
+    int master_data;
+    int is_atom_bios;
+
     struct avivo_crtc *crtcs;
-    struct avivo_output *outputs;
+    struct avivo_connector *connectors;
 
     unsigned long cursor_offset;
     int cursor_format, cursor_fg, cursor_bg;
@@ -265,5 +255,8 @@ struct avivo_info
 
     OptionInfoPtr options;
 };
+
+int avivo_probe_info(ScrnInfoPtr screen_info);
+struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
 
 #endif /* _AVIVO_H_ */
