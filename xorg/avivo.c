@@ -978,7 +978,15 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_H_SYNC_POL, state->crtc1_h_sync_pol);
     OUTREG(AVIVO_CRTC1_V_TOTAL, state->crtc1_v_total);
     OUTREG(AVIVO_CRTC1_V_BLANK, state->crtc1_v_blank);
+    /*
+     * Weird we shouldn't restore sync width when going back to text
+     * mode, it must not be a 0 value, i guess a deeper look in cold
+     * text mode register value would help to understand what is
+     * truely needed to do.
+     */
+#if 0
     OUTREG(AVIVO_CRTC1_V_SYNC_WID, state->crtc1_v_sync_wid);
+#endif
     OUTREG(AVIVO_CRTC1_V_SYNC_POL, state->crtc1_v_sync_pol);
     OUTREG(AVIVO_CRTC1_CNTL, state->crtc1_cntl);
     OUTREG(AVIVO_CRTC1_MODE, state->crtc1_mode);
@@ -1006,7 +1014,9 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_65C8, state->crtc1_65c8);
     OUTREG(AVIVO_CRTC2_H_TOTAL, state->crtc2_h_total);
     OUTREG(AVIVO_CRTC2_H_BLANK, state->crtc2_h_blank);
+#if 0
     OUTREG(AVIVO_CRTC2_H_SYNC_WID, state->crtc2_h_sync_wid);
+#endif
     OUTREG(AVIVO_CRTC2_H_SYNC_POL, state->crtc2_h_sync_pol);
     OUTREG(AVIVO_CRTC2_V_TOTAL, state->crtc2_v_total);
     OUTREG(AVIVO_CRTC2_V_BLANK, state->crtc2_v_blank);
