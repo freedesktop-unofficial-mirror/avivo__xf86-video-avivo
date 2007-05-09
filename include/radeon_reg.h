@@ -3172,8 +3172,8 @@
  *             
  * So computation for register:
  *      PLL_DIVIDER = 1080 / (vclk)
- *      PLL_POST_MUL = 2
- *      PLL_POST_DIV = (40 * vclk * PLL_DIVIDER * PLL_POST_MUL) / 1080
+ *      PLL_POST_DIV = 2
+ *      PLL_POST_MUL = (40 * vclk * PLL_DIVIDER * PLL_POST_DIV) / (1080)
  * AVIVO_PLL_POST_MUL must be inferior to 255
  * Then you repeat this until you come to the nearest value:
  *      increment PLL_POST_MUL recompute PLL_POST_DIV
