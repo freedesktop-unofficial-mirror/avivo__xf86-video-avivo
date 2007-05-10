@@ -862,8 +862,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     int i;
     Gamma gzeros = { 0.0, 0.0, 0.0 };
     rgb rzeros = { 0, 0, 0 };
-    unsigned int mc_memory_map;
-    unsigned int mc_memory_map_end;
 
     if (flags & PROBE_DETECT)
         return FALSE;
@@ -917,19 +915,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
     xf86PrintDepthBpp(screen_info);
-
-    /* init gpu memory mapping */
-    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-               "GPU memory mapping %p of at 0x%08X\n", 
-               avivo->fb_addr,
-               avivo->fb_size);
-    mc_memory_map = (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK;
-    mc_memory_map_end = ((avivo->fb_addr + avivo->fb_size) >> 16) - 1;
-    mc_memory_map |= (mc_memory_map_end << AVIVO_MC_MEMORY_MAP_END_SHIFT)
-        & AVIVO_MC_MEMORY_MAP_END_MASK;
-    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-               "GPU memory mapping reg 0x%08X\n", mc_memory_map);
-    radeon_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, mc_memory_map);
 
     /* color weight */
     if (!xf86SetWeight(screen_info, rzeros, rzeros))
@@ -1243,8 +1228,26 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     VisualPtr visual;
     int flags;
+    unsigned int mc_memory_map;
+    unsigned int mc_memory_map_end;
 
     avivo_save_state(screen_info);
+
+    /* init gpu memory mapping */
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "GPU memory mapping %p of at 0x%08X\n", 
+               avivo->fb_addr,
+               avivo->fb_size);
+    mc_memory_map = (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK;
+    mc_memory_map_end = ((avivo->fb_addr + avivo->fb_size) >> 16) - 1;
+    mc_memory_map |= (mc_memory_map_end << AVIVO_MC_MEMORY_MAP_END_SHIFT)
+        & AVIVO_MC_MEMORY_MAP_END_MASK;
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "GPU memory mapping reg 0x%08X\n", mc_memory_map);
+    radeon_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, mc_memory_map);
+    OUTREG(AVIVO_VGA_MEMORY_BASE,
+           (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
+    OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
 
     /* set first video mode */
     if (!avivo_set_mode(screen_info, screen_info->currentMode))
