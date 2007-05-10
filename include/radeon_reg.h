@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2000 ATI Technologies Inc., Markham, Ontario, and
  *                VA Linux Systems Inc., Fremont, California.
@@ -3129,7 +3130,18 @@
 
 /* Memory mapping. */
 #define AVIVO_MC_INDEX						0x0070
-#	define MC01									0x01
+/* AVIVO_MC_MEMORY_MAP control memory mapping of the video card ram: 
+ * base is higher 16bits of the starting address at which card
+ * sees it own memory. end is higher 16bits address at which card
+ * memory should end (might be usefull if you want to use half memory
+ * but don't know what does the card if you address out of bound
+ * memory, likely trigger pci stuff which often end in bad things).
+ */
+#	define AVIVO_MC_MEMORY_MAP					0x01
+#		define AVIVO_MC_MEMORY_MAP_BASE_MASK		(0xFFFF << 0)
+#		define AVIVO_MC_MEMORY_MAP_BASE_SHIFT		0
+#		define AVIVO_MC_MEMORY_MAP_END_MASK			(0xFFFF << 16)
+#		define AVIVO_MC_MEMORY_MAP_END_SHIFT		16
 #	define MC02									0x02
 #	define MC03									0x03
 #	define MC04									0x04
@@ -3162,6 +3174,14 @@
 #	define MC1f									0x1f
 #define AVIVO_MC_DATA						0x0074
 
+/*
+ * You set memory base at which card see its memory (should be the
+ * same as AVIVO_MC_MEMORY_MAP lower 16bits
+ */
+#define AVIVO_VGA_MEMORY_BASE				0x0134
+#define AVIVO_VGA_FB_START					0x0310
+#define AVIVO_VGA_MYSTERY0					0x0330
+#define AVIVO_VGA_MYSTERY1					0x0338
 
 /*
  * We believe reference clock is 108Mhz, the formula we derived

@@ -141,8 +141,11 @@ struct avivo_connector {
 
 struct avivo_state
 {
-    int clock_1;
-    int clock_2;
+    int mc_memory_map;
+    int vga_memory_base;
+    int vga_fb_start;
+    int vga_mystery0;
+    int vga_mystery1;
     int pll_cntl;
     int pll_post_div;
     int pll_post_mul;

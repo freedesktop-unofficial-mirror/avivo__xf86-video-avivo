@@ -642,7 +642,7 @@ static struct {
     void (*set)(unsigned long, const char *, unsigned int);
     unsigned address;
 } reg_list[] = {
-    REGLIST_MC(MC01),
+    REGLIST_MC(AVIVO_MC_MEMORY_MAP),
     REGLIST_MC(MC02),
     REGLIST_MC(MC03),
     REGLIST_MC(MC04),
@@ -937,7 +937,7 @@ void radeon_cmd_regs(const char *type)
 
     if (show_mc) {
         printf("\nMemory controller:\n");
-        SHOW_MC_REG(MC01);
+        SHOW_MC_REG(AVIVO_MC_MEMORY_MAP);
         SHOW_MC_REG(MC02);
         SHOW_MC_REG(MC03);
         SHOW_MC_REG(MC04);

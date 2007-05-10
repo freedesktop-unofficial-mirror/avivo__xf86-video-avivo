@@ -165,6 +165,52 @@ static XF86ModuleVersionInfo avivo_version = {
  */
 _X_EXPORT XF86ModuleData avivoModuleData = { &avivo_version, avivo_setup, NULL };
 
+static void
+radeon_set_indexed(ScrnInfoPtr screen_info,
+                   unsigned int index_offset,
+                   unsigned int data_offset,
+                   unsigned int offset,
+                   unsigned int value)
+{
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+
+    OUTREG(index_offset, offset);
+    OUTREG(data_offset, value);
+}
+
+static unsigned int
+radeon_get_indexed(ScrnInfoPtr screen_info,
+                   unsigned int index_offset,
+                   unsigned int data_offset,
+                   unsigned int offset)
+{
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+
+    OUTREG(index_offset, offset);
+    return INREG(data_offset);
+}
+
+static unsigned int
+radeon_get_mc(ScrnInfoPtr screen_info, unsigned int offset)
+{
+    return radeon_get_indexed(screen_info,
+                              AVIVO_MC_INDEX,
+                              AVIVO_MC_DATA,
+                              offset | 0x007f0000);
+}
+
+static void
+radeon_set_mc(ScrnInfoPtr screen_info,
+              unsigned int offset,
+              unsigned int value)
+{
+    radeon_set_indexed(screen_info,
+                       AVIVO_MC_INDEX,
+                       AVIVO_MC_DATA,
+                       offset | 0xff7f0000,
+                       value);
+}
+
 struct avivo_info *
 avivo_get_info(ScrnInfoPtr screen_info)
 {
@@ -816,6 +862,8 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     int i;
     Gamma gzeros = { 0.0, 0.0, 0.0 };
     rgb rzeros = { 0, 0, 0 };
+    unsigned int mc_memory_map;
+    unsigned int mc_memory_map_end;
 
     if (flags & PROBE_DETECT)
         return FALSE;
@@ -869,6 +917,19 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
     xf86PrintDepthBpp(screen_info);
+
+    /* init gpu memory mapping */
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "GPU memory mapping %p of at 0x%08X\n", 
+               avivo->fb_addr,
+               avivo->fb_size);
+    mc_memory_map = (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK;
+    mc_memory_map_end = ((avivo->fb_addr + avivo->fb_size) >> 16) - 1;
+    mc_memory_map |= (mc_memory_map_end << AVIVO_MC_MEMORY_MAP_END_SHIFT)
+        & AVIVO_MC_MEMORY_MAP_END_MASK;
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "GPU memory mapping reg 0x%08X\n", mc_memory_map);
+    radeon_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, mc_memory_map);
 
     /* color weight */
     if (!xf86SetWeight(screen_info, rzeros, rzeros))
@@ -978,8 +1039,11 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     struct avivo_state *state = &avivo->saved_state;
 
-    OUTREG(0x330, state->clock_1);
-    OUTREG(0x338, state->clock_2);
+    radeon_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, state->mc_memory_map);
+    OUTREG(AVIVO_VGA_MEMORY_BASE, state->vga_memory_base);
+    OUTREG(AVIVO_VGA_FB_START, state->vga_fb_start);
+    OUTREG(AVIVO_VGA_MYSTERY0, state->vga_mystery0);
+    OUTREG(AVIVO_VGA_MYSTERY1, state->vga_mystery1);
 
     OUTREG(AVIVO_PLL_CNTL, state->pll_cntl);
     OUTREG(AVIVO_PLL_POST_DIV, state->pll_post_div);
@@ -1088,8 +1152,11 @@ avivo_save_state(ScrnInfoPtr screen_info)
 
     avivo_save_cursor(screen_info);
 
-    state->clock_1 = INREG(0x330);
-    state->clock_2 = INREG(0x338);
+    state->mc_memory_map = radeon_get_mc(screen_info, AVIVO_MC_MEMORY_MAP);
+    state->vga_memory_base = INREG(AVIVO_VGA_MEMORY_BASE);
+    state->vga_fb_start = INREG(AVIVO_VGA_FB_START);
+    state->vga_mystery0 = INREG(AVIVO_VGA_MYSTERY0);
+    state->vga_mystery1 = INREG(AVIVO_VGA_MYSTERY1);
 
     state->pll_cntl = INREG(AVIVO_PLL_CNTL);
     state->pll_post_div = INREG(AVIVO_PLL_POST_DIV);
