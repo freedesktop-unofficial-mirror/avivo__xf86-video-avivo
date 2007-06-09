@@ -114,7 +114,7 @@ RADEONGetBIOSInfo(ScrnInfoPtr screen_info)
         avivo->is_atom_bios = 0;
 
     if (avivo->is_atom_bios) 
-        avivo->master_data = RADEON_BIOS16 (avivo->rom_header + 32);
+        avivo->master_data = RADEON_BIOS16(avivo->rom_header + 32);
 
     xf86DrvMsg(screen_info->scrnIndex, X_INFO, "%s BIOS detected\n",
                avivo->is_atom_bios ? "ATOM":"Legacy");
@@ -144,7 +144,7 @@ static int
 radeon_rom_atom_connectors(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
-    int offset = BIOS16(avivo->master_data + 22);
+    int offset = RADEON_BIOS16(avivo->master_data + 22);
     int tmp, i;
 
     if (offset == 0) {
@@ -153,7 +153,7 @@ radeon_rom_atom_connectors(ScrnInfoPtr screen_info)
         return 1;
     }
 
-    tmp = BIOS16(offset + 4);
+    tmp = RADEON_BIOS16(offset + 4);
     for (i = 0; i < 8; i++) {
         if (tmp & (1 << i)) {
             int portinfo, connector_num, connector_type, tmp0;
@@ -161,11 +161,11 @@ radeon_rom_atom_connectors(ScrnInfoPtr screen_info)
             enum avivo_connector_type type;
             struct avivo_connector *connector;
 
-            portinfo = BIOS16(offset + 6 + i * 2);
+            portinfo = RADEON_BIOS16(offset + 6 + i * 2);
             connector_num = (portinfo >> 8) & 0xf;
             connector_type = (portinfo >> 4) & 0xf;
-            tmp0 = BIOS16(avivo->master_data + 24);
-            gpio = BIOS16(tmp0 + 4 + 27 * connector_num) * 4;
+            tmp0 = RADEON_BIOS16(avivo->master_data + 24);
+            gpio = RADEON_BIOS16(tmp0 + 4 + 27 * connector_num) * 4;
             switch (connector_type) {
             case 0: type = CONNECTOR_UNSUPPORTED; break;
             case 1: type = CONNECTOR_VGA; break;
@@ -195,6 +195,7 @@ radeon_rom_atom_connectors(ScrnInfoPtr screen_info)
             }
         }
     }
+    return 0;
 }
 
 int
@@ -207,7 +208,9 @@ avivo_probe_info(ScrnInfoPtr screen_info)
 
     if (!avivo)
         FatalError("No driver structure provided for probing\n");
-
+    
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "Set default CRTC list\n");
     if (!avivo->crtcs) {
         /* avivo got 2 crtcs */
         crtc = xcalloc(1, sizeof(struct avivo_crtc));
@@ -225,11 +228,13 @@ avivo_probe_info(ScrnInfoPtr screen_info)
         avivo->crtcs = crtc;
     }
 
-    if (RADEONGetBIOSInfo(screen_info) &&
+    if (RADEONGetBIOSInfo(screen_info) ||
         radeon_rom_atom_connectors(screen_info)) {
         /* We allocate default card connector configuration this
          * should be safe for all card.
          */
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "Can't parse bios, set default connector scheme\n");
         connector = xcalloc(1, sizeof(struct avivo_connector));
         if (!connector)
             FatalError("Couldn't allocate connector\n");
@@ -276,8 +281,13 @@ avivo_probe_info(ScrnInfoPtr screen_info)
      * LVDS connector got LVDS
      * It's a fair world, isn't it ?
      */
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO, "Connectors:\n");
     connector = avivo->connectors;
     while (connector) {
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "\tconnector %d is %d\n",
+                   connector->connector_num,
+                   connector->type);
         if (connector->type == CONNECTOR_DVII
             || connector->type == CONNECTOR_VGA) {
             output = xcalloc(1, sizeof(struct avivo_output));

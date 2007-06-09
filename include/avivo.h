@@ -38,6 +38,7 @@
 #include "xf86RAC.h"
 
 #include "xf86i2c.h"
+#include "xf86DDC.h"
 
 #include "fb.h"
 
@@ -69,7 +70,6 @@ enum avivo_chip_type {
 
 struct avivo_crtc {
     /* Bitmask of output IDs. */
-    int               outputs;
     int               id;
     int               h_total, h_blank, h_sync_wid, h_sync_pol;
     int               v_total, v_blank, v_sync_wid, v_sync_pol;
@@ -127,6 +127,7 @@ struct avivo_output {
  * @connector_num: connector number
  * @gpio_base:     gpio base address register of this connector
  * @type:          connector type VGA, DVI-I, LVDS, STV, ...
+ * @monitor:       monitor information retrieven from DDC
  * @outputs:       associated output
  * @next:          next connector
  */
@@ -135,6 +136,7 @@ struct avivo_connector {
     int                       connector_num;
     unsigned int              gpio_base;
     enum avivo_connector_type type;
+    xf86MonPtr                monitor;
     struct avivo_output       *outputs;
     struct avivo_connector    *next;
 };
@@ -236,14 +238,17 @@ struct avivo_info
 #endif
 
     I2CBusPtr i2c;
+    unsigned int ddc_reg;
 
     unsigned char *vbios;
     int rom_header;
     int master_data;
     int is_atom_bios;
 
+    
     struct avivo_crtc *crtcs;
     struct avivo_connector *connectors;
+    struct avivo_connector *connector_default;
 
     unsigned long cursor_offset;
     int cursor_format, cursor_fg, cursor_bg;

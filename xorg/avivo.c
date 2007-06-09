@@ -435,252 +435,6 @@ avivo_free_info(ScrnInfoPtr screen_info)
 }
 
 static void
-avivo_wait_idle(struct avivo_info *avivo)
-{
-    int i = 1000;
-
-    while (--i && INREG(0x6494) != 0x3fffffff);
-
-    if (!i)
-        FatalError("Avivo: chip lockup!\n");
-}
-
-/**
- * Read num bytes into buf.
- */
-static void
-avivo_i2c_read(struct avivo_info *avivo, uint8_t *buf, int num)
-{
-    int i;
-
-    for (i = 0; i < num; i++) {
-        *buf = INREG(AVIVO_I2C_DATA) & 0xff;
-        buf++;
-    }
-}
-
-/**
- * Write num bytes from buf.
- */
-static void
-avivo_i2c_write(struct avivo_info *avivo, uint8_t *buf, int num)
-{
-    int i;
-
-    for (i = 0; i < num; i++) {
-        OUTREG(AVIVO_I2C_DATA, *buf);
-        buf++;
-    }
-}
-
-/**
- * Write the address out on the line, with allowances for extended
- * 11-byte addresses.  According to the server's PutAddress function,
- * we need to send a start, and follow up with a stop if the start
- * succeeds, but the video BIOS doesn't seem to bother, so ...
- */
-static void
-avivo_i2c_put_address(struct avivo_info *avivo, int addr, int write)
-{
-    uint8_t buf;
-
-    buf = addr & 0xff;
-    if (write)
-        buf &= ~1;
-    else
-        buf |= 1;
-
-    avivo_i2c_write(avivo, &buf, 1);
-    if ((addr & 0xf8) == 0xf0 || (addr & 0xfe) == 0) {
-        buf = (addr >> 8) & 0xff;
-        avivo_i2c_write(avivo, &buf, 1);
-    }
-}
-
-static void
-avivo_i2c_stop(struct avivo_info *avivo)
-{
-    OUTREG(AVIVO_I2C_STATUS,
-           (AVIVO_I2C_STATUS_DONE |
-            AVIVO_I2C_STATUS_NACK |
-            AVIVO_I2C_STATUS_HALT));
-    OUTREG(AVIVO_I2C_STOP, 1);
-    OUTREG(AVIVO_I2C_STOP, 0);
-}
-
-static int
-avivo_i2c_wait_ready(struct avivo_info *avivo)
-{
-    int i, num_ready, tmp, num_nack;
-
-    OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_CMD_WAIT);
-    for (i = 0, num_ready = 0, num_nack; num_ready < 3; i++) {
-        tmp = INREG(AVIVO_I2C_STATUS);
-        if (tmp == AVIVO_I2C_STATUS_DONE) {
-            num_ready++;
-        }
-        else if (tmp == AVIVO_I2C_STATUS_NACK) {
-            num_nack++;
-        }
-        else if (tmp != AVIVO_I2C_STATUS_CMD_WAIT) {
-            /* Unknow state observed (so far i have only seen 0x8 or 0x2
-             * for i2c status thus we stop i2c if we encounter and unknown
-             * status.
-             */
-            xf86DrvMsg(0, X_ERROR, "I2C bus error\n");
-            avivo_i2c_stop(avivo);
-            tmp = INREG(AVIVO_I2C_CNTL);
-            OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_RESET);
-            return 1;
-        }
-
-        /* Timeout 50ms like on radeon */
-        if (i == 50 || num_nack > 3) {
-            xf86DrvMsg(0, X_ERROR, "i2c bus timeout\n");
-            avivo_i2c_stop(avivo);
-            tmp = INREG(AVIVO_I2C_CNTL);
-            OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_RESET);
-            return 1;
-        }
-
-        /* If we got more than 3 NACK we stop the bus */
-        if (num_nack > 3) {
-            avivo_i2c_stop(avivo);
-            tmp = INREG(AVIVO_I2C_CNTL);
-            OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_RESET);
-            return 0;
-        }
-
-        usleep(1000);
-    }
-    OUTREG(AVIVO_I2C_STATUS, AVIVO_I2C_STATUS_DONE);
-    return 0;
-}
-
-/**
- * Start the I2C bus, and wait until it's safe to start sending data.
- * For some reason, it looks like we have to read STATUS_READY three
- * times, then write it back.  Obviously.
- */
-static void
-avivo_i2c_start(struct avivo_info *avivo)
-{
-    volatile int num_ready, i, tmp;
-
-    tmp = INREG(AVIVO_I2C_CNTL) & AVIVO_I2C_EN;
-    if (!(tmp & AVIVO_I2C_EN)) {
-        OUTREG(AVIVO_I2C_CNTL, tmp | AVIVO_I2C_EN);
-        avivo_i2c_stop(avivo);
-        OUTREG(AVIVO_I2C_START_CNTL, AVIVO_I2C_START | AVIVO_I2C_CONNECTOR1);
-        tmp = INREG(AVIVO_I2C_7D3C) & (~0xff);
-        OUTREG(AVIVO_I2C_7D3C, tmp | 1);
-    }
-    tmp = INREG(AVIVO_I2C_START_CNTL);
-    OUTREG(AVIVO_I2C_START_CNTL, tmp | AVIVO_I2C_START);
-}
-
-static Bool
-avivo_i2c_write_read(I2CDevPtr i2c, I2CByte *write_buf, int num_write,
-                    I2CByte *read_buf, int num_read)
-{
-    ScrnInfoPtr screen_info = xf86Screens[i2c->pI2CBus->scrnIndex];
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-    uint8_t i;
-    int tmp, size, chunk_size = 12;
-    
-    for (i = 0; i < num_write; i+= chunk_size) {
-        if ((num_write - i) >= chunk_size)
-            size = chunk_size;
-        else
-            size = num_write % chunk_size;
-        avivo_i2c_start(avivo);
-        tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-        tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
-        OUTREG(AVIVO_I2C_7D3C, tmp);
-        tmp = INREG(AVIVO_I2C_7D40);
-        OUTREG(AVIVO_I2C_7D40, tmp);
-        avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
-        avivo_i2c_write(avivo, &write_buf[i], size);
-        tmp = INREG(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
-        OUTREG(AVIVO_I2C_START_CNTL,
-               (tmp |
-                AVIVO_I2C_STATUS_DONE |
-                AVIVO_I2C_STATUS_NACK));
-        avivo_i2c_wait_ready(avivo);
-    }
-
-    for (i = 0; i < num_read; i+= chunk_size) {
-        if ((num_read - i) >= chunk_size)
-            size = chunk_size;
-        else
-            size = num_read % chunk_size;
-        avivo_i2c_start(avivo);
-        tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-        tmp |= 1 << AVIVO_I2C_7D3C_SIZE_SHIFT;
-        OUTREG(AVIVO_I2C_7D3C, tmp);
-        tmp = INREG(AVIVO_I2C_7D40);
-        OUTREG(AVIVO_I2C_7D40, tmp);
-        avivo_i2c_put_address(avivo, i2c->SlaveAddr, 1);
-        avivo_i2c_write(avivo, &i, 1);
-        tmp = INREG(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
-        OUTREG(AVIVO_I2C_START_CNTL,
-               (tmp |
-                AVIVO_I2C_STATUS_DONE |
-                AVIVO_I2C_STATUS_NACK));
-        avivo_i2c_wait_ready(avivo);
-
-        avivo_i2c_put_address(avivo, i2c->SlaveAddr, 0);
-        tmp = INREG(AVIVO_I2C_7D3C) & (~AVIVO_I2C_7D3C_SIZE_MASK);
-        tmp |= size << AVIVO_I2C_7D3C_SIZE_SHIFT;
-        OUTREG(AVIVO_I2C_7D3C, tmp);
-        tmp = INREG(AVIVO_I2C_START_CNTL) & (~AVIVO_I2C_STATUS_MASK);
-        OUTREG(AVIVO_I2C_START_CNTL,
-               (tmp |
-                AVIVO_I2C_STATUS_DONE |
-                AVIVO_I2C_STATUS_NACK |
-                AVIVO_I2C_STATUS_HALT));
-        avivo_i2c_wait_ready(avivo);
-        avivo_i2c_read(avivo, &read_buf[i], size);
-    }
-
-    avivo_i2c_stop(avivo);
-}
-
-static xf86MonPtr
-avivo_ddc(ScrnInfoPtr screen_info)
-{
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-    xf86MonPtr monitor;
-    int tmp;
-
-    monitor = xf86DoEDID_DDC2(screen_info->scrnIndex, avivo->i2c);
-    return monitor;
-}
-
-static void
-avivo_i2c_init(ScrnInfoPtr screen_info)
-{
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-
-    avivo->i2c = xf86CreateI2CBusRec();
-    if (!avivo->i2c) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Couldn't create I2C bus\n");
-        return;
-    }
-
-    avivo->i2c->BusName = "DDC";
-    avivo->i2c->scrnIndex = screen_info->scrnIndex;
-    avivo->i2c->I2CWriteRead = avivo_i2c_write_read;
-
-    if (!xf86I2CBusInit(avivo->i2c)) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Couldn't initialise I2C bus\n");
-        return;
-    }
-}
-
-static void
 avivo_cursor_show(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
@@ -926,6 +680,15 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 
     xf86SetGamma(screen_info, gzeros);
 
+#if 1
+    avivo_probe_monitor(screen_info);
+    if (avivo->connector_default && avivo->connector_default->monitor)
+        xf86SetDDCproperties(screen_info,
+                             xf86PrintEDID(avivo->connector_default->monitor));
+    else
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "EDID not found over DDC\n");
+#else
     avivo_i2c_init(screen_info);
 
     screen_info->monitor = screen_info->confScreen->monitor;
@@ -933,7 +696,9 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     if (monitor)
         xf86SetDDCproperties(screen_info, xf86PrintEDID(monitor));
     else
-        xf86DrvMsg(screen_info->scrnIndex, X_INFO, "EDID not found over DDC\n");
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "EDID not found over DDC\n");
+#endif
 
     clock_ranges = xcalloc(sizeof(ClockRange), 1);
     clock_ranges->minClock = 12000;
@@ -1348,11 +1113,11 @@ avivo_enable_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
         cntl = 0;
     }
     
-    if (crtc->id == 1) {
+    if (crtc->id == 0) {
         OUTREG(AVIVO_CRTC1_SCAN_ENABLE, scan_enable);
         OUTREG(AVIVO_CRTC1_CNTL, cntl);
     }
-    else if (crtc->id == 2) {
+    else if (crtc->id == 1) {
         OUTREG(AVIVO_CRTC2_SCAN_ENABLE, scan_enable);
         OUTREG(AVIVO_CRTC2_CNTL, cntl);
     }
@@ -1364,6 +1129,7 @@ static void
 avivo_enable_output(struct avivo_info *avivo,
                     struct avivo_connector *connector,
                     struct avivo_output *output,
+                    struct avivo_crtc *crtc,
                     int enable)
 {
     int value1, value2, value3, value4, value5;
@@ -1390,6 +1156,7 @@ avivo_enable_output(struct avivo_info *avivo,
         }
 
         if (connector->connector_num == 0) {
+            OUTREG(AVIVO_TMDS1_CRTC_SOURCE, crtc->id);
             OUTREG(AVIVO_TMDS1_MYSTERY1, value1);
             OUTREG(AVIVO_TMDS1_MYSTERY2, value2);
             OUTREG(AVIVO_TMDS1_MYSTERY3, value3);
@@ -1398,6 +1165,7 @@ avivo_enable_output(struct avivo_info *avivo,
         }
         else if (connector->connector_num == 1
                  || connector->connector_num == 2) {
+            OUTREG(AVIVO_TMDS2_CRTC_SOURCE, crtc->id);
             OUTREG(AVIVO_TMDS2_MYSTERY1, value1);
             OUTREG(AVIVO_TMDS2_MYSTERY2, value2);
             value3 |= 0x00630000;
@@ -1424,11 +1192,13 @@ avivo_enable_output(struct avivo_info *avivo,
         }
 
         if (connector->connector_num == 0) {
+            OUTREG(AVIVO_DAC1_CRTC_SOURCE, crtc->id);
             OUTREG(AVIVO_DAC1_MYSTERY1, value1);
             OUTREG(AVIVO_DAC1_MYSTERY2, value2);
             OUTREG(AVIVO_DAC1_CNTL, value3);
         }
         else if (connector->connector_num == 1) {
+            OUTREG(AVIVO_DAC2_CRTC_SOURCE, crtc->id);
             OUTREG(AVIVO_DAC2_MYSTERY1, value1);
             OUTREG(AVIVO_DAC2_MYSTERY2, value2);
             OUTREG(AVIVO_DAC2_CNTL, value3);
@@ -1573,15 +1343,23 @@ avivo_switch_mode(int index, DisplayModePtr mode, int flags)
     /* FIXME: First CRTC hardcoded ... */
     avivo_setup_crtc(avivo, crtc, mode);
 
+#if 0
     while (connector) {
         /* FIXME: CRTC <-> Output association. */
         output = connector->outputs;
         while (output) {
-            avivo_enable_output(avivo, connector, output, 1);
+            avivo_enable_output(avivo, connector, output, crtc, 1);
             output = output->next;
         }
         connector = connector->next;
     }
+#else
+    output = avivo->connector_default->outputs;
+    while (output) {
+        avivo_enable_output(avivo, avivo->connector_default, output, crtc, 1);
+        output = output->next;
+    }
+#endif
 
     return TRUE;
 }
@@ -1640,12 +1418,11 @@ avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
     while (connector) {
         output = connector->outputs;
         while (output) {
-            avivo_enable_output(avivo, connector, output, enable);
+            avivo_enable_output(avivo, connector, output, crtc, enable);
             output = output->next;
         }
         connector = connector->next;
     }
-
     /* FIXME: First CRTC hardcoded. */
     avivo_enable_crtc(avivo, crtc, enable);
 }
