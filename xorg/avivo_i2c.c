@@ -27,6 +27,7 @@
 
 #include "avivo.h"
 #include "radeon_reg.h"
+#include <stdint.h>
 
 void
 avivo_wait_idle(struct avivo_info *avivo)
