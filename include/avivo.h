@@ -61,6 +61,8 @@
 #define INREG(x) MMIO_IN32(avivo->ctrl_base, x)
 #define OUTREG(x, y) MMIO_OUT32(avivo->ctrl_base, x, y)
 
+struct avivo_info;
+
 enum avivo_chip_type {
     CHIP_FAMILY_RV515,
     CHIP_FAMILY_R520,
@@ -79,6 +81,16 @@ struct avivo_crtc {
     int               fb_format, fb_length;
     int               fb_pitch, fb_width, fb_height;
     struct avivo_crtc *next;
+};
+
+struct avivo_crtc_private {
+    int               crtc_number;
+    unsigned long     fb_offset;
+    int               h_total, h_blank, h_sync_wid, h_sync_pol;
+    int               v_total, v_blank, v_sync_wid, v_sync_pol;
+    int               fb_format, fb_length;
+    int               fb_pitch, fb_width, fb_height;
+    struct avivo_info *avivo;
 };
 
 enum avivo_output_status {
