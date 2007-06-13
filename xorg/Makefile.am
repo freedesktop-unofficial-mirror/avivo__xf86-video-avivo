@@ -30,5 +30,6 @@ avivo_drv_ladir = @moduledir@/drivers
 
 avivo_drv_la_SOURCES = \
          avivo_bios.c \
+	 avivo_cursor.c \
 	 avivo_i2c.c \
          avivo.c

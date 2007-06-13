@@ -270,4 +270,9 @@ struct avivo_info
 int avivo_probe_info(ScrnInfoPtr screen_info);
 struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
 
+/*
+ * avivo cursor
+ */
+void avivo_cursor_init(ScreenPtr screen);
+
 #endif /* _AVIVO_H_ */
