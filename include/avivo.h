@@ -271,7 +271,14 @@ int avivo_probe_info(ScrnInfoPtr screen_info);
 struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
 
 /*
- * avivo cursor
+ * avivo state handling
+ */
+void avivo_restore_state(ScrnInfoPtr screen_info);
+void avivo_save_state(ScrnInfoPtr screen_info);
+
+
+/*
+ * avivo cursor handling
  */
 void avivo_cursor_init(ScreenPtr screen);
 
