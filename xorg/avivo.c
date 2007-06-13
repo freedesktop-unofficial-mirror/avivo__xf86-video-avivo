@@ -171,67 +171,6 @@ static XF86ModuleVersionInfo avivo_version = {
  */
 _X_EXPORT XF86ModuleData avivoModuleData = { &avivo_version, avivo_setup, NULL };
 
-static void
-radeon_set_indexed(ScrnInfoPtr screen_info,
-                   unsigned int index_offset,
-                   unsigned int data_offset,
-                   unsigned int offset,
-                   unsigned int value)
-{
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-
-    OUTREG(index_offset, offset);
-    OUTREG(data_offset, value);
-}
-
-static unsigned int
-radeon_get_indexed(ScrnInfoPtr screen_info,
-                   unsigned int index_offset,
-                   unsigned int data_offset,
-                   unsigned int offset)
-{
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-
-    OUTREG(index_offset, offset);
-    return INREG(data_offset);
-}
-
-static unsigned int
-radeon_get_mc(ScrnInfoPtr screen_info, unsigned int offset)
-{
-    return radeon_get_indexed(screen_info,
-                              AVIVO_MC_INDEX,
-                              AVIVO_MC_DATA,
-                              offset | 0x007f0000);
-}
-
-static void
-radeon_set_mc(ScrnInfoPtr screen_info,
-              unsigned int offset,
-              unsigned int value)
-{
-    radeon_set_indexed(screen_info,
-                       AVIVO_MC_INDEX,
-                       AVIVO_MC_DATA,
-                       offset | 0xff7f0000,
-                       value);
-}
-
-struct avivo_info *
-avivo_get_info(ScrnInfoPtr screen_info)
-{
-    struct avivo_info *avivo;
-
-    if (!screen_info->driverPrivate)
-        screen_info->driverPrivate = xcalloc(sizeof(struct avivo_info), 1);
-
-    avivo = screen_info->driverPrivate;
-    if (!avivo)
-        FatalError("Couldn't allocate driver structure\n");    
-
-    return avivo;
-}
-
 static int
 avivo_map_ctrl_mem(ScrnInfoPtr screen_info)
 {

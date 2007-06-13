@@ -268,7 +268,25 @@ struct avivo_info
 };
 
 int avivo_probe_info(ScrnInfoPtr screen_info);
+
+/*
+ * avivo common functions
+ */
+void radeon_set_indexed(ScrnInfoPtr screen_info,
+                        unsigned int index_offset,
+                        unsigned int data_offset,
+                        unsigned int offset,
+                        unsigned int value);
+unsigned int radeon_get_indexed(ScrnInfoPtr screen_info,
+                                unsigned int index_offset,
+                                unsigned int data_offset,
+                                unsigned int offset);
+unsigned int radeon_get_mc(ScrnInfoPtr screen_info, unsigned int offset);
+void radeon_set_mc(ScrnInfoPtr screen_info,
+                   unsigned int offset,
+                   unsigned int value);
 struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
+
 
 /*
  * avivo state handling
