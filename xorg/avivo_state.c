@@ -34,8 +34,6 @@
 #include "avivo.h"
 #include "radeon_reg.h"
 
-
-
 static void
 avivo_save_cursor(ScrnInfoPtr screen_info)
 {
