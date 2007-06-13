@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <asm/page.h>
 #include <fnmatch.h>
 #include <errno.h>
 #include <pciaccess.h>
