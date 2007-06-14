@@ -18,8 +18,6 @@
  * Authors: Daniel Stone <daniel@fooishbar.org>
  *          Matthew Garrett <mjg59@srcf.ucam.org>
  *          Jerome Glisse <glisse@freedesktop.org>
- *
- * Portions based on the Radeon and VESA drivers.
  */
 /*
  * avivo state handling functions. 

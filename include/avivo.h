@@ -85,12 +85,15 @@ struct avivo_crtc {
 
 struct avivo_crtc_private {
     int               crtc_number;
+    unsigned long     crtc_offset;
+    INT16             cursor_x;
+    INT16             cursor_y;
+    unsigned long     cursor_offset;
     unsigned long     fb_offset;
     int               h_total, h_blank, h_sync_wid, h_sync_pol;
     int               v_total, v_blank, v_sync_wid, v_sync_pol;
     int               fb_format, fb_length;
     int               fb_pitch, fb_width, fb_height;
-    struct avivo_info *avivo;
 };
 
 enum avivo_output_status {
@@ -263,6 +266,7 @@ struct avivo_info
     struct avivo_connector *connectors;
     struct avivo_connector *connector_default;
 
+    int bpp;
     unsigned long cursor_offset;
     int cursor_format, cursor_fg, cursor_bg;
     int cursor_width, cursor_height;

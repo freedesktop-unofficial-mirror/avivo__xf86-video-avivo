@@ -18,8 +18,6 @@
  * Authors: Daniel Stone <daniel@fooishbar.org>
  *          Matthew Garrett <mjg59@srcf.ucam.org>
  *          Jerome Glisse <glisse@freedesktop.org>
- *
- * Portions based on the Radeon and VESA drivers.
  */
 /*
  * avivo crtc handling functions. 
@@ -47,12 +45,8 @@ static void
 avivo_crtc_enable(xf86CrtcPtr crtc, int enable)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
-    struct avivo_info *avivo = avivo_crtc->avivo;
-    unsigned long crtc_offset = 0;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
     int scan_enable, cntl;
-
-    if (avivo_crtc->crtc_number == 2)
-        crtc_offset = AVIVO_CRTC2_H_TOTAL - AVIVO_CRTC1_H_TOTAL;
 
     if (enable) {
         scan_enable = AVIVO_CRTC_SCAN_EN;
@@ -62,8 +56,8 @@ avivo_crtc_enable(xf86CrtcPtr crtc, int enable)
         cntl = 0;
     }
     
-    OUTREG(AVIVO_CRTC1_SCAN_ENABLE + crtc_offset, scan_enable);
-    OUTREG(AVIVO_CRTC1_CNTL + crtc_offset, cntl);
+    OUTREG(AVIVO_CRTC1_SCAN_ENABLE + avivo_crtc->crtc_offset, scan_enable);
+    OUTREG(AVIVO_CRTC1_CNTL + avivo_crtc->crtc_offset, cntl);
     avivo_wait_idle(avivo);
 }
 
@@ -86,7 +80,7 @@ static Bool
 avivo_crtc_lock(xf86CrtcPtr crtc)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
-    struct avivo_info *avivo = avivo_crtc->avivo;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
 
     /* wait idle */
     avivo_wait_idle(avivo);
@@ -121,7 +115,7 @@ static void
 avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
-    struct avivo_info *avivo = avivo_crtc->avivo;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
     int div, pdiv, pmul;
     int n_pdiv, n_pmul;
     int clock;
@@ -160,12 +154,8 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
                    int x, int y)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
-    struct avivo_info *avivo = avivo_crtc->avivo;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
     unsigned long fb_location = avivo_crtc->fb_offset + avivo->fb_addr;
-    unsigned long crtc_offset = 0;
-
-    if (avivo_crtc->crtc_number == 2)
-        crtc_offset = AVIVO_CRTC2_H_TOTAL - AVIVO_CRTC1_H_TOTAL;
 
     /* compute mode value
      * TODO: hsync & vsync pol likely not handled properly
@@ -194,6 +184,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     case 16:
         avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB16;
         break;
+    case 24:
     case 32:
         avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB32;
         break;
@@ -208,12 +199,13 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
 
     /* setup fb format and location
      */
-    OUTREG(AVIVO_CRTC1_FB_LOCATION + crtc_offset, fb_location);
-    OUTREG(AVIVO_CRTC1_FB_FORMAT + crtc_offset, avivo_crtc->fb_format);
-    OUTREG(AVIVO_CRTC1_FB_END + crtc_offset,
+    OUTREG(AVIVO_CRTC1_FB_LOCATION + avivo_crtc->crtc_offset, fb_location);
+    OUTREG(AVIVO_CRTC1_FB_FORMAT + avivo_crtc->crtc_offset,
+           avivo_crtc->fb_format);
+    OUTREG(AVIVO_CRTC1_FB_END + avivo_crtc->crtc_offset,
            fb_location + avivo_crtc->fb_length);
-    OUTREG(AVIVO_CRTC1_MODE + crtc_offset, 0);
-    OUTREG(AVIVO_CRTC1_60c0_MYSTERY + crtc_offset, 0);
+    OUTREG(AVIVO_CRTC1_MODE + avivo_crtc->crtc_offset, 0);
+    OUTREG(AVIVO_CRTC1_60c0_MYSTERY + avivo_crtc->crtc_offset, 0);
 
     /* set PLL TODO: there is likely PLL registers we miss for having
      * different PLL for each CRTC for instance.
@@ -222,35 +214,40 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
 
     /* finaly set the mode
      */
-    OUTREG(AVIVO_CRTC1_FB_HEIGHT + crtc_offset, avivo_crtc->fb_height);
-    OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE + crtc_offset,
+    OUTREG(AVIVO_CRTC1_FB_HEIGHT + avivo_crtc->crtc_offset,
+           avivo_crtc->fb_height);
+    OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE + avivo_crtc->crtc_offset,
            (avivo_crtc->fb_width << 16) | avivo_crtc->fb_height);
-    OUTREG(AVIVO_CRTC1_EXPANSION_CNTL + crtc_offset, AVIVO_CRTC_EXPANSION_EN);
-    OUTREG(AVIVO_CRTC1_659C + crtc_offset, AVIVO_CRTC1_659C_VALUE);
-    OUTREG(AVIVO_CRTC1_65A8 + crtc_offset, AVIVO_CRTC1_65A8_VALUE);
-    OUTREG(AVIVO_CRTC1_65AC + crtc_offset, AVIVO_CRTC1_65AC_VALUE);
-    OUTREG(AVIVO_CRTC1_65B8 + crtc_offset, AVIVO_CRTC1_65B8_VALUE);
-    OUTREG(AVIVO_CRTC1_65BC + crtc_offset, AVIVO_CRTC1_65BC_VALUE);
-    OUTREG(AVIVO_CRTC1_65C8 + crtc_offset, AVIVO_CRTC1_65C8_VALUE);
-    OUTREG(AVIVO_CRTC1_6594 + crtc_offset, AVIVO_CRTC1_6594_VALUE);
-    OUTREG(AVIVO_CRTC1_65A4 + crtc_offset, AVIVO_CRTC1_65A4_VALUE);
-    OUTREG(AVIVO_CRTC1_65B0 + crtc_offset, AVIVO_CRTC1_65B0_VALUE);
-    OUTREG(AVIVO_CRTC1_65C0 + crtc_offset, AVIVO_CRTC1_65C0_VALUE);
+    OUTREG(AVIVO_CRTC1_EXPANSION_CNTL + avivo_crtc->crtc_offset,
+           AVIVO_CRTC_EXPANSION_EN);
+    OUTREG(AVIVO_CRTC1_659C + avivo_crtc->crtc_offset, AVIVO_CRTC1_659C_VALUE);
+    OUTREG(AVIVO_CRTC1_65A8 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65A8_VALUE);
+    OUTREG(AVIVO_CRTC1_65AC + avivo_crtc->crtc_offset, AVIVO_CRTC1_65AC_VALUE);
+    OUTREG(AVIVO_CRTC1_65B8 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65B8_VALUE);
+    OUTREG(AVIVO_CRTC1_65BC + avivo_crtc->crtc_offset, AVIVO_CRTC1_65BC_VALUE);
+    OUTREG(AVIVO_CRTC1_65C8 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65C8_VALUE);
+    OUTREG(AVIVO_CRTC1_6594 + avivo_crtc->crtc_offset, AVIVO_CRTC1_6594_VALUE);
+    OUTREG(AVIVO_CRTC1_65A4 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65A4_VALUE);
+    OUTREG(AVIVO_CRTC1_65B0 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65B0_VALUE);
+    OUTREG(AVIVO_CRTC1_65C0 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65C0_VALUE);
 
-    OUTREG(AVIVO_CRTC1_X_LENGTH + crtc_offset, avivo_crtc->fb_width);
-    OUTREG(AVIVO_CRTC1_Y_LENGTH + crtc_offset, avivo_crtc->fb_height);
-    OUTREG(AVIVO_CRTC1_PITCH + crtc_offset, avivo_crtc->fb_pitch);
-    OUTREG(AVIVO_CRTC1_H_TOTAL + crtc_offset, avivo_crtc->h_total);
-    OUTREG(AVIVO_CRTC1_H_BLANK + crtc_offset, avivo_crtc->h_blank);
-    OUTREG(AVIVO_CRTC1_H_SYNC_WID + crtc_offset, avivo_crtc->h_sync_wid);
-    OUTREG(AVIVO_CRTC1_H_SYNC_POL + crtc_offset, avivo_crtc->h_sync_pol);
-    OUTREG(AVIVO_CRTC1_V_TOTAL + crtc_offset, avivo_crtc->v_total);
-    OUTREG(AVIVO_CRTC1_V_BLANK + crtc_offset, avivo_crtc->v_blank);
-    OUTREG(AVIVO_CRTC1_V_SYNC_WID + crtc_offset, avivo_crtc->v_sync_wid);
-    OUTREG(AVIVO_CRTC1_V_SYNC_POL + crtc_offset, avivo_crtc->v_sync_pol);
-
-    OUTREG(AVIVO_CRTC1_CNTL + crtc_offset, 0x00010101);
-    OUTREG(AVIVO_CRTC1_SCAN_ENABLE + crtc_offset, AVIVO_CRTC_SCAN_EN);
+    OUTREG(AVIVO_CRTC1_X_LENGTH + avivo_crtc->crtc_offset,
+           avivo_crtc->fb_width);
+    OUTREG(AVIVO_CRTC1_Y_LENGTH + avivo_crtc->crtc_offset,
+           avivo_crtc->fb_height);
+    OUTREG(AVIVO_CRTC1_PITCH + avivo_crtc->crtc_offset, avivo_crtc->fb_pitch);
+    OUTREG(AVIVO_CRTC1_H_TOTAL + avivo_crtc->crtc_offset, avivo_crtc->h_total);
+    OUTREG(AVIVO_CRTC1_H_BLANK + avivo_crtc->crtc_offset, avivo_crtc->h_blank);
+    OUTREG(AVIVO_CRTC1_H_SYNC_WID + avivo_crtc->crtc_offset,
+           avivo_crtc->h_sync_wid);
+    OUTREG(AVIVO_CRTC1_H_SYNC_POL + avivo_crtc->crtc_offset,
+           avivo_crtc->h_sync_pol);
+    OUTREG(AVIVO_CRTC1_V_TOTAL + avivo_crtc->crtc_offset, avivo_crtc->v_total);
+    OUTREG(AVIVO_CRTC1_V_BLANK + avivo_crtc->crtc_offset, avivo_crtc->v_blank);
+    OUTREG(AVIVO_CRTC1_V_SYNC_WID + avivo_crtc->crtc_offset,
+           avivo_crtc->v_sync_wid);
+    OUTREG(AVIVO_CRTC1_V_SYNC_POL + avivo_crtc->crtc_offset,
+           avivo_crtc->v_sync_pol);
 }
 
 static void
@@ -259,6 +256,60 @@ avivo_crtc_commit(xf86CrtcPtr crtc)
     crtc->funcs->dpms (crtc, DPMSModeOn);
     if (crtc->scrn->pScreen != NULL)
         xf86_reload_cursors(crtc->scrn->pScreen);
+}
+
+static void
+avivo_crtc_cursor_set_colors(xf86CrtcPtr crtc, int bg, int fg)
+{
+    /* TODO: implement */
+}
+
+static void
+avivo_crtc_cursor_set_position(xf86CrtcPtr crtc, int x, int y)
+{
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+
+    OUTREG(AVIVO_CURSOR1_POSITION + avivo_crtc->crtc_offset, (x << 16) | y);
+    avivo_crtc->cursor_x = x;
+    avivo_crtc->cursor_y = y;
+}
+
+static void
+avivo_crtc_cursor_show(xf86CrtcPtr crtc)
+{
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+
+    OUTREG(AVIVO_CURSOR1_CNTL + avivo_crtc->crtc_offset,
+           INREG(AVIVO_CURSOR1_CNTL + avivo_crtc->crtc_offset)
+           | AVIVO_CURSOR_EN);
+}
+
+static void
+avivo_crtc_cursor_hide(xf86CrtcPtr crtc)
+{
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+
+    OUTREG(AVIVO_CURSOR1_CNTL+ avivo_crtc->crtc_offset,
+           INREG(AVIVO_CURSOR1_CNTL + avivo_crtc->crtc_offset)
+           & ~(AVIVO_CURSOR_EN));
+}
+
+static void
+avivo_crtc_cursor_load_argb(xf86CrtcPtr crtc, CARD32 *image)
+{
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+    CARD32 *dst = (CARD32 *)(avivo->fb_base + avivo_crtc->cursor_offset);
+
+    memcpy(dst, image, 64 * 64 * 4);
 }
 
 static const xf86CrtcFuncsRec avivo_crtc_funcs = {
@@ -272,14 +323,14 @@ static const xf86CrtcFuncsRec avivo_crtc_funcs = {
     .mode_set = avivo_crtc_mode_set,
     .commit = avivo_crtc_commit,
     .gamma_set = NULL,
-    .shadow_create = avivo_crtc_shadow_create,
-    .shadow_allocate = avivo_crtc_shadow_allocate,
-    .shadow_destroy = avivo_crtc_shadow_destroy,
+    .shadow_create = NULL,
+    .shadow_allocate = NULL,
+    .shadow_destroy = NULL,
     .set_cursor_colors = avivo_crtc_set_cursor_colors,
     .set_cursor_position = avivo_crtc_set_cursor_position,
     .show_cursor = avivo_crtc_show_cursor,
     .hide_cursor = avivo_crtc_hide_cursor,
-    .load_cursor_image = avivo_crtc_load_cursor_image,
+    .load_cursor_image = NULL,
     .load_cursor_argb = avivo_crtc_load_cursor_argb,
     .destroy = avivo_crtc_destroy,
 };
@@ -296,7 +347,9 @@ avivo_crtc_init(ScrnInfoPtr screen_info, int crtc_number)
     if (avivo_crtc == NULL)
         return FALSE;
     avivo_crtc->crtc_number = crtc_number;
-    avivo_crtc->avivo = avivo;
+    avivo_crtc->crtc_offset = 0;
+    if (avivo_crtc->crtc_number == 2)
+        avivo_crtc->crtc_offset = AVIVO_CRTC2_H_TOTAL - AVIVO_CRTC1_H_TOTAL;
 
     /* allocate & initialize xf86Crtc */
     crtc = xf86CrtcCreate (screen_info, &avivo_crtc_funcs);

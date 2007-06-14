@@ -454,15 +454,26 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
         }
     }
 #endif
-
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "Control memory at %p, fb at %p\n", avivo->ctrl_addr,
                avivo->fb_addr);
 
     avivo_get_chipset(avivo);
-
     screen_info->chipset = "avivo";
     screen_info->monitor = screen_info->confScreen->monitor;
+
+    switch (xf86GetDepth()) {
+    case 16:
+        avivo->bpp = 2;
+        break;
+    case 24:
+    case 32:
+        avivo->bpp = 4;
+        break;
+    default:
+        FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
+    }
+
 
     /* probe BIOS information */
     avivo_probe_info(screen_info);
