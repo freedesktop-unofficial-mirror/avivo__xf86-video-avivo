@@ -25,6 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+/* DPMS */
+#define DPMS_SERVER
+#include <X11/extensions/dpms.h>
 
 #include "avivo.h"
 #include "radeon_reg.h"
@@ -179,7 +182,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     avivo_crtc->fb_height = adjusted_mode->CrtcVDisplay;
     avivo_crtc->fb_pitch = adjusted_mode->CrtcHDisplay;
     avivo_crtc->fb_offset = 0;
-    avivo_crtc->fb_length = avivo_crtc->fb_pitch * crtc->fb_height * 4;
+    avivo_crtc->fb_length = avivo_crtc->fb_pitch * avivo_crtc->fb_height * 4;
     switch (xf86GetDepth()) {
     case 16:
         avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB16;
@@ -189,6 +192,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
         avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB32;
         break;
     default:
+        FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
     }
 
     /* TODO: find out what this regs truely are for.
@@ -210,7 +214,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     /* set PLL TODO: there is likely PLL registers we miss for having
      * different PLL for each CRTC for instance.
      */
-    avivo_crtc_set_pll(avivo, avivo_crtc, adjusted_mode);
+    avivo_crtc_set_pll(crtc, adjusted_mode);
 
     /* finaly set the mode
      */
@@ -259,13 +263,13 @@ avivo_crtc_commit(xf86CrtcPtr crtc)
 }
 
 static void
-avivo_crtc_cursor_set_colors(xf86CrtcPtr crtc, int bg, int fg)
+avivo_crtc_set_cursor_colors(xf86CrtcPtr crtc, int bg, int fg)
 {
     /* TODO: implement */
 }
 
 static void
-avivo_crtc_cursor_set_position(xf86CrtcPtr crtc, int x, int y)
+avivo_crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
@@ -281,7 +285,7 @@ avivo_crtc_cursor_set_position(xf86CrtcPtr crtc, int x, int y)
 }
 
 static void
-avivo_crtc_cursor_show(xf86CrtcPtr crtc)
+avivo_crtc_show_cursor(xf86CrtcPtr crtc)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
@@ -292,7 +296,7 @@ avivo_crtc_cursor_show(xf86CrtcPtr crtc)
 }
 
 static void
-avivo_crtc_cursor_hide(xf86CrtcPtr crtc)
+avivo_crtc_hide_cursor(xf86CrtcPtr crtc)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
@@ -338,7 +342,7 @@ static const xf86CrtcFuncsRec avivo_crtc_funcs = {
     .show_cursor = avivo_crtc_show_cursor,
     .hide_cursor = avivo_crtc_hide_cursor,
     .load_cursor_image = NULL,
-    .load_cursor_argb = avivo_crtc_load_cursor_argb,
+    .load_cursor_argb = avivo_crtc_cursor_load_argb,
     .destroy = avivo_crtc_destroy,
 };
 

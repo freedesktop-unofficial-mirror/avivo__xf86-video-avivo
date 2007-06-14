@@ -25,6 +25,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+/* DPMS */
+#define DPMS_SERVER
+#include <X11/extensions/dpms.h>
 
 #include "avivo.h"
 #include "radeon_reg.h"
@@ -167,7 +170,7 @@ avivo_output_detect_ddc(xf86OutputPtr output)
 {
     struct avivo_output_private *avivo_output = output->driver_private;
 
-o    return xf86I2CProbeAddress(avivo_output->i2c, 0x00A0);
+    return xf86I2CProbeAddress(avivo_output->i2c, 0x00A0);
 }
 
 static xf86OutputStatus
@@ -202,10 +205,10 @@ avivo_output_destroy(xf86OutputPtr output)
     xfree(avivo_output);
 }
 
-static const xf86OutputFuncsRec avivo_output_output_funcs = {
+static const xf86OutputFuncsRec avivo_output_funcs = {
     .dpms = avivo_output_dpms,
-    .save = avivo_output_save,
-    .restore = avivo_output_restore,
+    .save = NULL,
+    .restore = NULL,
     .mode_valid = avivo_output_mode_valid,
     .mode_fixup = avivo_output_mode_fixup,
     .prepare = avivo_output_prepare,
@@ -221,10 +224,10 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
                   int number, unsigned long ddc_reg)
 {
     xf86OutputPtr output;
-    struct avivo_output_private avivo_output;
+    struct avivo_output_private *avivo_output;
 
     /* allocate & initialize private crtc structure */
-    avivo_output = xcalloc (sizeof(struct avivo_output_private), 1);
+    avivo_output = xcalloc(sizeof(struct avivo_output_private), 1);
     if (avivo_output == NULL)
         return FALSE;
     if (!avivo_output->i2c) {
