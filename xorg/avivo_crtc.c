@@ -312,6 +312,13 @@ avivo_crtc_cursor_load_argb(xf86CrtcPtr crtc, CARD32 *image)
     memcpy(dst, image, 64 * 64 * 4);
 }
 
+static void
+avivo_crtc_destroy(xf86OutputPtr output)
+{
+    if (output->driver_private)
+        xfree(output->driver_private);
+}
+
 static const xf86CrtcFuncsRec avivo_crtc_funcs = {
     .dpms = avivo_crtc_dpms,
     .save = NULL, /* this got saved elsewhere */

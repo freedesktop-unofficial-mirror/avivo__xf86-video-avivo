@@ -24,21 +24,17 @@
 /* All drivers should typically include these */
 #include "xf86.h"
 #include "xf86str.h"
-#include "xf86_OSproc.h"
-#include "xf86Resources.h"
-#include "compiler.h"
-
-/* Drivers for PCI hardware need this */
-#include "xf86PciInfo.h"
-
-/* Drivers that need to access the PCI config space directly need this */
-#include "xf86Pci.h"
-
-#include "xf86Resources.h"
-#include "xf86RAC.h"
-
 #include "xf86i2c.h"
 #include "xf86DDC.h"
+#include "xf86Crtc.h"
+#include "xf86_OSproc.h"
+#include "xf86Resources.h"
+#include "xf86RAC.h"
+#include "compiler.h"
+/* Drivers for PCI hardware need this */
+#include "xf86PciInfo.h"
+/* Drivers that need to access the PCI config space directly need this */
+#include "xf86Pci.h"
 
 #include "fb.h"
 
@@ -135,6 +131,14 @@ struct avivo_output {
     enum avivo_output_type   type;
     enum avivo_output_status status;
     struct avivo_output      *next;
+};
+
+
+struct avivo_output_private {
+    xf86ConnectorType type;
+    I2CBusPtr         i2c;
+    unsigned long     output_offset;
+    int               number;
 };
 
 /**
@@ -310,6 +314,16 @@ struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
 void avivo_restore_state(ScrnInfoPtr screen_info);
 void avivo_save_state(ScrnInfoPtr screen_info);
 
+/*
+ * avivo crtc handling
+ */
+Bool avivo_crtc_create(ScrnInfoPtr screen_info);
+
+/*
+ * avivo output handling
+ */
+Bool avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
+                       int number, unsigned long ddc_reg);
 
 /*
  * avivo cursor handling
