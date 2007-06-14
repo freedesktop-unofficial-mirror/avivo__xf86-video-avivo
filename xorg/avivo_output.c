@@ -202,6 +202,7 @@ avivo_output_destroy(xf86OutputPtr output)
     if (avivo_output == NULL)
         return;
     xf86DestroyI2CBusRec(avivo_output->i2c, TRUE, TRUE);
+    xfree(avivo_output->name);
     xfree(avivo_output);
 }
 
@@ -225,21 +226,32 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
 {
     xf86OutputPtr output;
     struct avivo_output_private *avivo_output;
+    int name_size;
 
     /* allocate & initialize private crtc structure */
     avivo_output = xcalloc(sizeof(struct avivo_output_private), 1);
     if (avivo_output == NULL)
         return FALSE;
-    if (!avivo_output->i2c) {
-        avivo_output->i2c = xf86CreateI2CBusRec();
-        if (!avivo_output->i2c) {
-            xfree(avivo_output);
-            xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                       "Couldn't create I2C bus\n");
-            return FALSE;
-        }
+    name_size = snprintf(NULL, 0, "%s connector %d",
+                         xf86ConnectorGetName(type), number);
+    avivo_output->name = xcalloc(name_size + 1, 1);
+    if (avivo_output->name == NULL) {
+        xfree(avivo_output);
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Failed to allocate memory for I2C bus name\n");
+        return FALSE;
     }
-    avivo_output->i2c->BusName = "DDC";
+    snprintf(avivo_output->name, name_size + 1, "%s connector %d",
+             xf86ConnectorGetName(type), number);
+    avivo_output->i2c = xf86CreateI2CBusRec();
+    if (!avivo_output->i2c) {
+        xfree(avivo_output);
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't create I2C bus for %s connector %d\n",
+                   xf86ConnectorGetName(type), number);
+        return FALSE;
+    }
+    avivo_output->i2c->BusName = avivo_output->name;
     avivo_output->i2c->scrnIndex = screen_info->scrnIndex;
     avivo_output->i2c->I2CPutBits = avivo_i2c_put_bits;
     avivo_output->i2c->I2CGetBits = avivo_i2c_get_bits;
@@ -247,7 +259,8 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     avivo_output->i2c->DriverPrivate.uval = ddc_reg;
     if (!xf86I2CBusInit(avivo_output->i2c)) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Couldn't initialise I2C bus\n");
+                   "Couldn't initialise I2C bus for %s connector %d\n",
+                   xf86ConnectorGetName(type), number);
         return;
     }
     avivo_output->type = type;
@@ -278,4 +291,6 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     output->driver_private = avivo_output;
     output->interlaceAllowed = FALSE;
     output->doubleScanAllowed = FALSE;
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "added %s connector %d\n", xf86ConnectorGetName(type), number);
 }

@@ -183,7 +183,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     avivo_crtc->fb_pitch = adjusted_mode->CrtcHDisplay;
     avivo_crtc->fb_offset = 0;
     avivo_crtc->fb_length = avivo_crtc->fb_pitch * avivo_crtc->fb_height * 4;
-    switch (xf86GetDepth()) {
+    switch (crtc->scrn->depth) {
     case 16:
         avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB16;
         break;
@@ -359,7 +359,7 @@ avivo_crtc_init(ScrnInfoPtr screen_info, int crtc_number)
         return FALSE;
     avivo_crtc->crtc_number = crtc_number;
     avivo_crtc->crtc_offset = 0;
-    if (avivo_crtc->crtc_number == 2)
+    if (avivo_crtc->crtc_number == 1)
         avivo_crtc->crtc_offset = AVIVO_CRTC2_H_TOTAL - AVIVO_CRTC1_H_TOTAL;
 
     /* allocate & initialize xf86Crtc */
@@ -390,6 +390,9 @@ avivo_crtc_create(ScrnInfoPtr screen_info)
     /*
      * add both crtc i think all r5xx chipset got two crtc
      */
-
+    if (!avivo_crtc_init(screen_info, 0))
+        return FALSE;
+    if (!avivo_crtc_init(screen_info, 1))
+        return FALSE;
     return TRUE;
 }
