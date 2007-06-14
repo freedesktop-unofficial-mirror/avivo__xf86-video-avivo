@@ -32,7 +32,7 @@
 #include "avivo.h"
 #include "radeon_reg.h"
 
-static void
+void
 avivo_save_cursor(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);

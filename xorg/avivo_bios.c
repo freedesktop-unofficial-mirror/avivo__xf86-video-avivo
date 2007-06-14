@@ -328,3 +328,78 @@ avivo_probe_info(ScrnInfoPtr screen_info)
         connector = connector->next;
     }
 }
+
+
+int
+avivo_output_clones(ScrnInfoPtr screen_info)
+{
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR (screen_info);
+    int o, index_mask;
+
+    for (o = 0; o < config->num_output; o++) {
+	    index_mask |= (1 << o);
+    }
+    return index_mask;
+}
+
+Bool
+avivo_output_setup(ScrnInfoPtr screen_info)
+{
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(screen_info);
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    int offset = 0;
+    int tmp, i;
+
+    if (RADEONGetBIOSInfo(screen_info))
+        return FALSE;
+
+    offset = RADEON_BIOS16(avivo->master_data + 22);
+    if (offset == 0) {
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "No connector table in BIOS");
+        return 1;
+    }
+
+    tmp = RADEON_BIOS16(offset + 4);
+    for (i = 0; i < 8; i++) {
+        if (tmp & (1 << i)) {
+            int portinfo, number, connector_type, tmp0;
+            unsigned int ddc_reg;
+            xf86ConnectorType type;    
+
+            portinfo = RADEON_BIOS16(offset + 6 + i * 2);
+            number = (portinfo >> 8) & 0xf;
+            connector_type = (portinfo >> 4) & 0xf;
+            tmp0 = RADEON_BIOS16(avivo->master_data + 24);
+            ddc_reg = RADEON_BIOS16(tmp0 + 4 + 27 * number) * 4;
+            switch (connector_type) {
+            case 0: type = XF86ConnectorNone; break;
+            case 1: type = XF86ConnectorVGA; break;
+            case 2: type = XF86ConnectorDVI_I; break;
+            case 3: type = XF86ConnectorDVI_D; break;
+            case 4: type = XF86ConnectorDVI_A; break;
+            case 5: type = XF86ConnectorSvideo; break;
+            case 6: type = XF86ConnectorComponent; break;
+            case 7: type = XF86ConnectorLFP; break;
+            case 8: type = XF86ConnectorNone; break;
+            default: type = XF86ConnectorNone; break;
+            }
+
+            switch (type) {
+            case XF86ConnectorVGA:
+            case XF86ConnectorLFP:
+            case XF86ConnectorDVI_I:
+                avivo_output_init(screen_info, type, number, ddc_reg);
+                break;
+            }
+        }
+    }
+
+
+    for (i = 0; i < config->num_output; i++) {
+        xf86OutputPtr output = config->output[i];
+        output->possible_crtcs = (1 << 0) | (1 << 1);
+        output->possible_clones = avivo_output_clones(screen_info);
+    }
+    return TRUE;
+}

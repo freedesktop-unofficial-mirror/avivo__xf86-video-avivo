@@ -139,6 +139,7 @@ struct avivo_output_private {
     I2CBusPtr         i2c;
     unsigned long     output_offset;
     int               number;
+    char              *name;
 };
 
 /**

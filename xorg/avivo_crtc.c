@@ -194,7 +194,16 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     default:
         FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
     }
-
+    xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
+               "crtc(%d) hdisp %d, htotal %d, hss %d, hse %d, hsk %d\n",
+               avivo_crtc->crtc_number, adjusted_mode->CrtcHDisplay,
+               adjusted_mode->CrtcHTotal, adjusted_mode->CrtcHSyncStart,
+               adjusted_mode->CrtcHSyncEnd, adjusted_mode->CrtcHSkew);
+    xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
+               "crtc(%d) vdisp %d, vtotal %d, vss %d, vse %d, vsc %d\n",
+               avivo_crtc->crtc_number, adjusted_mode->CrtcVDisplay,
+               adjusted_mode->CrtcVTotal, adjusted_mode->CrtcVSyncStart,
+               adjusted_mode->CrtcVSyncEnd, adjusted_mode->VScan);
     /* TODO: find out what this regs truely are for.
      * last guess: Switch from text to graphics mode.
      */
@@ -317,10 +326,10 @@ avivo_crtc_cursor_load_argb(xf86CrtcPtr crtc, CARD32 *image)
 }
 
 static void
-avivo_crtc_destroy(xf86OutputPtr output)
+avivo_crtc_destroy(xf86CrtcPtr crtc)
 {
-    if (output->driver_private)
-        xfree(output->driver_private);
+    if (crtc->driver_private)
+        xfree(crtc->driver_private);
 }
 
 static const xf86CrtcFuncsRec avivo_crtc_funcs = {
@@ -358,6 +367,8 @@ avivo_crtc_init(ScrnInfoPtr screen_info, int crtc_number)
     if (avivo_crtc == NULL)
         return FALSE;
     avivo_crtc->crtc_number = crtc_number;
+    avivo_crtc->fb_offset = 0;
+    avivo_crtc->cursor_offset = 0;
     avivo_crtc->crtc_offset = 0;
     if (avivo_crtc->crtc_number == 1)
         avivo_crtc->crtc_offset = AVIVO_CRTC2_H_TOTAL - AVIVO_CRTC1_H_TOTAL;
@@ -370,6 +381,8 @@ avivo_crtc_init(ScrnInfoPtr screen_info, int crtc_number)
     }
 
     crtc->driver_private = avivo_crtc;
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "added CRTC %d\n", crtc_number);
     return TRUE;
 }
 
