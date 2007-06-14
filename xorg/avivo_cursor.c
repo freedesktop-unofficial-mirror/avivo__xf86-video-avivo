@@ -65,7 +65,7 @@ avivo_cursor_set_position(ScrnInfoPtr screen_info, int x, int y)
     avivo->cursor_y = y;
 }
 
-static void
+void
 avivo_setup_cursor(struct avivo_info *avivo, int id, int enable)
 {
     if (id == 1) {

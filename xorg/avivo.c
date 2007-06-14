@@ -461,8 +461,11 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     avivo_get_chipset(avivo);
     screen_info->chipset = "avivo";
     screen_info->monitor = screen_info->confScreen->monitor;
-
-    switch (xf86GetDepth()) {
+    /* setup depth */
+    if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
+        return FALSE;
+    xf86PrintDepthBpp(screen_info);
+    switch (screen_info->depth) {
     case 16:
         avivo->bpp = 2;
         break;
@@ -477,11 +480,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 
     /* probe BIOS information */
     avivo_probe_info(screen_info);
-
-    if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
-        return FALSE;
-    xf86PrintDepthBpp(screen_info);
-
     /* color weight */
     if (!xf86SetWeight(screen_info, rzeros, rzeros))
         return FALSE;
