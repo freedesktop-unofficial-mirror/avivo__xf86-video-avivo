@@ -28,6 +28,7 @@
  * _doesn't have an allocator_.  Not much point since there's no
  * acceleration yet, anyway.
  */
+#define AVIVO_RR12 1
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -372,10 +373,12 @@ avivo_old_probe(DriverPtr drv, int flags)
 static void
 avivo_free_info(ScrnInfoPtr screen_info)
 {
+#if 0
     struct avivo_info *avivo = avivo_get_info(screen_info);
 
     xfree(screen_info->driverPrivate);
     screen_info->driverPrivate = NULL;
+#endif
 }
 
 static void
@@ -463,19 +466,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     screen_info->monitor = screen_info->confScreen->monitor;
 
 #ifdef AVIVO_RR12
-    if (!avivo_crtc_create(screen_info))
-        return FALSE;
-#if 0
-    if (!avivo_output_setup(screen_info))
-        return FALSE;
-#else
-    avivo_output_setup(screen_info);
-#endif
-    if (!xf86InitialConfiguration(screen_info, FALSE)) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No valid modes.\n");
-        return FALSE;
-    }
-
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
     xf86PrintDepthBpp(screen_info);
@@ -500,6 +490,29 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     xf86SetGamma(screen_info, gzeros);
     /* Set display resolution */
     xf86SetDpi(screen_info, 100, 100);
+
+    if (!avivo_crtc_create(screen_info))
+        return FALSE;
+
+    /* options */
+    xf86CollectOptions(screen_info, NULL);
+    avivo->options = xalloc(sizeof(avivo_options));
+    if (avivo->options == NULL)
+        return FALSE;
+    memcpy(avivo->options, avivo_options, sizeof(avivo_options));
+    xf86ProcessOptions(screen_info->scrnIndex, screen_info->options,
+                       avivo->options);
+
+#if 0
+    if (!avivo_output_setup(screen_info))
+        return FALSE;
+#else
+    avivo_output_setup(screen_info);
+#endif
+    if (!xf86InitialConfiguration(screen_info, FALSE)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No valid modes.\n");
+        return FALSE;
+    }
 #if 0
     /* probe monitor found */
     monitor = NULL;
@@ -615,18 +628,16 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
         return FALSE;
     }
     screen_info->currentMode = screen_info->modes;
-#endif
 
     /* options */
     xf86CollectOptions(screen_info, NULL);
     avivo->options = xalloc(sizeof(avivo_options));
-
-    if (!avivo->options)
+    if (avivo->options == NULL)
         return FALSE;
-
     memcpy(avivo->options, avivo_options, sizeof(avivo_options));
     xf86ProcessOptions(screen_info->scrnIndex, screen_info->options,
                        avivo->options);
+#endif
 
 #ifdef WITH_VGAHW
     xf86LoadSubModule(screen_info, "vgahw");
@@ -651,6 +662,43 @@ avivo_save_screen(ScreenPtr screen, int mode)
     return TRUE;
 }
 
+static Bool
+avivo_init_fb_manager(ScreenPtr screen,  BoxPtr fb_box)
+{
+    ScrnInfoPtr screen_info = xf86Screens[screen->myNum];
+    RegionRec screen_region;
+    RegionRec full_region;
+    BoxRec screen_box;
+    Bool ret;
+
+    screen_box.x1 = 0;
+    screen_box.y1 = 0;
+    screen_box.x2 = screen_info->displayWidth;
+    if (screen_info->virtualX > screen_info->virtualY)
+        screen_box.y2 = screen_info->virtualX;
+    else
+        screen_box.y2 = screen_info->virtualY;
+
+    if((fb_box->x1 >  screen_box.x1) || (fb_box->y1 >  screen_box.y1) ||
+       (fb_box->x2 <  screen_box.x2) || (fb_box->y2 <  screen_box.y2)) {
+        return FALSE;   
+    }
+
+    if (fb_box->y2 < fb_box->y1) return FALSE;
+    if (fb_box->x2 < fb_box->x2) return FALSE;
+
+    REGION_INIT(screen, &screen_region, &screen_box, 1); 
+    REGION_INIT(screen, &full_region, fb_box, 1); 
+
+    REGION_SUBTRACT(screen, &full_region, &full_region, &screen_region);
+
+    ret = xf86InitFBManagerRegion(screen, &full_region);
+
+    REGION_UNINIT(screen, &screen_region);
+    REGION_UNINIT(screen, &full_region);
+    
+    return ret;
+}
     
 static Bool
 avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
@@ -674,6 +722,51 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     OUTREG(AVIVO_VGA_MEMORY_BASE,
            (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
     OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
+
+    /* fb memory box */
+    memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
+    avivo->fb_memory_box.x1 = 0;
+    avivo->fb_memory_box.x2 = screen_info->displayWidth;
+    avivo->fb_memory_box.y1 = 0;
+    avivo->fb_memory_box.y2 = screen_info->virtualY;
+    if (!avivo_init_fb_manager(screen, &avivo->fb_memory_box))
+        return FALSE;
+
+    if (screen_info->virtualX > screen_info->displayWidth)
+        screen_info->displayWidth = screen_info->virtualX;
+
+    /* mi layer */
+    miClearVisualTypes();
+    if (!xf86SetDefaultVisual(screen_info, -1))
+        return FALSE;
+    if (!miSetVisualTypes(screen_info->depth, TrueColorMask,
+                          screen_info->rgbBits, TrueColor))
+        return FALSE;
+    if (!miSetPixmapDepths())
+        return FALSE;
+    ErrorF("scrninitparam: vx %d, vy %d, dw %d\n",
+           screen_info->virtualX, screen_info->virtualY,
+           screen_info->displayWidth);
+    if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
+                      screen_info->virtualX, screen_info->virtualY,
+                      screen_info->xDpi, screen_info->yDpi,
+                      screen_info->displayWidth, screen_info->bitsPerPixel))
+        return FALSE;
+    /* Fixup RGB ordering */
+    visual = screen->visuals + screen->numVisuals;
+    while (--visual >= screen->visuals) {
+        if ((visual->class | DynamicClass) == DirectColor) {
+            visual->offsetRed = screen_info->offset.red;
+            visual->offsetGreen = screen_info->offset.green;
+            visual->offsetBlue = screen_info->offset.blue;
+            visual->redMask  = screen_info->mask.red;
+            visual->greenMask = screen_info->mask.green;
+            visual->blueMask = screen_info->mask.blue;
+        }
+    }
+    /* must be after RGB ordering fixed */
+    fbPictureInit(screen, 0, 0);
+    xf86SetBlackWhitePixels(screen);
 
 #ifdef AVIVO_RR12
     for (i = 0; i < xf86_config->num_crtc; i++) {
@@ -700,39 +793,12 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     /* set the viewport */
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
 
-    /* mi layer */
-    miClearVisualTypes();
-    if (!xf86SetDefaultVisual(screen_info, -1))
-        return FALSE;
-    if (!miSetVisualTypes(screen_info->depth, TrueColorMask,
-                          screen_info->rgbBits, TrueColor))
-        return FALSE;
-    if (!miSetPixmapDepths())
-        return FALSE;
-    if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
-                      screen_info->virtualX, screen_info->virtualY,
-                      screen_info->xDpi, screen_info->yDpi,
-                      screen_info->displayWidth, screen_info->bitsPerPixel))
-        return FALSE;
-    /* Fixup RGB ordering */
-    visual = screen->visuals + screen->numVisuals;
-    while (--visual >= screen->visuals) {
-        if ((visual->class | DynamicClass) == DirectColor) {
-            visual->offsetRed = screen_info->offset.red;
-            visual->offsetGreen = screen_info->offset.green;
-            visual->offsetBlue = screen_info->offset.blue;
-            visual->redMask  = screen_info->mask.red;
-            visual->greenMask = screen_info->mask.green;
-            visual->blueMask = screen_info->mask.blue;
-        }
-    }
-    /* must be after RGB ordering fixed */
-    fbPictureInit(screen, 0, 0);
-    xf86SetBlackWhitePixels(screen);
     xf86DPMSInit(screen, avivo_dpms, 0);
 
+
     miDCInitialize(screen, xf86GetPointerScreenFuncs());
-#if 1
+#ifdef AVIVO_RR12
+#else
     /* FIXME enormous hack ... */
     avivo->cursor_offset = screen_info->virtualX * screen_info->virtualY * 4;
     avivo_cursor_init(screen);
@@ -750,7 +816,6 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     screen->CloseScreen = avivo_close_screen;
 
 #ifdef AVIVO_RR12
-    xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "Should not be here\n");
     if (!xf86CrtcScreenInit(screen))
         return FALSE;
 #endif

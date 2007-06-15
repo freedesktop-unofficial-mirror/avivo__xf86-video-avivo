@@ -348,7 +348,7 @@ avivo_output_setup(ScrnInfoPtr screen_info)
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(screen_info);
     struct avivo_info *avivo = avivo_get_info(screen_info);
     int offset = 0;
-    int tmp, i;
+    int tmp, i, j;
 
     if (RADEONGetBIOSInfo(screen_info))
         return FALSE;
@@ -394,7 +394,30 @@ avivo_output_setup(ScrnInfoPtr screen_info)
             }
         }
     }
-
+    /* check that each DVI-I output also has a VGA output */
+    for (i = 0; i < config->num_output; i++) {
+        int vga = 0;
+        xf86OutputPtr output = config->output[i];
+        struct avivo_output_private *avivo_output = output->driver_private;
+        if (avivo_output->type == XF86ConnectorDVI_I) {
+            for (j = 0; j < config->num_output; j++) {
+                xf86OutputPtr o = config->output[j];
+                struct avivo_output_private *ao = o->driver_private;
+                if (ao->type == XF86ConnectorVGA
+                    && ao->number == avivo_output->number
+                    && ao->i2c->DriverPrivate.uval
+                    == avivo_output->i2c->DriverPrivate.uval) {
+                    vga = 1;
+                    break;
+                }
+            }
+            if (!vga) {
+                avivo_output_init(screen_info, XF86ConnectorVGA,
+                                  avivo_output->number,
+                                  avivo_output->i2c->DriverPrivate.uval);
+            }
+        }
+    }
 
     for (i = 0; i < config->num_output; i++) {
         xf86OutputPtr output = config->output[i];

@@ -65,6 +65,15 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
 {
     struct avivo_output_private *avivo_output = output->driver_private;
     struct avivo_info *avivo = avivo_get_info(output->scrn);
+    int crtc = 0;
+
+    if (output->crtc) {
+        struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
+        crtc = avivo_crtc->crtc_number;
+        xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
+                   "%s connector associated to crtc(%d)\n",
+                   xf86ConnectorGetName(avivo_output->type), crtc);
+    }
 
     switch (avivo_output->type) {
     case XF86ConnectorVGA:
@@ -85,11 +94,15 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
             value3 = 0;
             break;
         }
+        if (output->crtc) {
+            OUTREG(AVIVO_DAC1_CRTC_SOURCE + avivo_output->output_offset, crtc);
+        }
         OUTREG(AVIVO_DAC1_MYSTERY1 + avivo_output->output_offset, value1);
         OUTREG(AVIVO_DAC1_MYSTERY2 + avivo_output->output_offset, value2);
         OUTREG(AVIVO_DAC1_CNTL + avivo_output->output_offset, value3);
         break;
     }
+    case XF86ConnectorLFP:
     case XF86ConnectorDVI_I:
     case XF86ConnectorDVI_D:
     case XF86ConnectorDVI_A:
@@ -114,6 +127,18 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
             value2 = 0;
             value4 = 0x00060000;
             break;
+        }
+        if (output->crtc) {
+            OUTREG(AVIVO_TMDS1_CRTC_SOURCE + avivo_output->output_offset,
+                   crtc);
+        }
+        if (avivo_output->output_offset) {
+            value3 |= 0x00630000;
+            /* This needs to be set on TMDS, and unset on LVDS. */
+            value3 |= INREG(AVIVO_TMDS2_MYSTERY3) & (1 << 29);
+            /* This needs to be set on LVDS, and unset on TMDS.  Luckily, the
+             * BIOS appears to set it up for us, so just carry it over. */
+            value5 |= INREG(AVIVO_TMDS2_CNTL) & (1 << 24);
         }
         OUTREG(AVIVO_TMDS1_MYSTERY1 + avivo_output->output_offset, value1);
         OUTREG(AVIVO_TMDS1_MYSTERY2 + avivo_output->output_offset, value2);
@@ -163,7 +188,6 @@ avivo_output_commit(xf86OutputPtr output)
 {
     output->funcs->dpms(output, DPMSModeOn);
 }
-
 
 static Bool
 avivo_output_detect_ddc(xf86OutputPtr output)
@@ -228,7 +252,7 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     struct avivo_output_private *avivo_output;
     int name_size;
 
-    /* allocate & initialize private crtc structure */
+    /* allocate & initialize private output structure */
     avivo_output = xcalloc(sizeof(struct avivo_output_private), 1);
     if (avivo_output == NULL)
         return FALSE;
@@ -266,11 +290,12 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     avivo_output->type = type;
     avivo_output->number = number;
     avivo_output->output_offset = 0;
-    if (number == 2) {
+    if (number >= 2) {
         switch (avivo_output->type) {
         case XF86ConnectorVGA:
             avivo_output->output_offset = AVIVO_DAC2_CNTL - AVIVO_DAC1_CNTL;
             break;
+        case XF86ConnectorLFP:
         case XF86ConnectorDVI_I:
         case XF86ConnectorDVI_D:
         case XF86ConnectorDVI_A:
@@ -292,5 +317,6 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     output->interlaceAllowed = FALSE;
     output->doubleScanAllowed = FALSE;
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-               "added %s connector %d\n", xf86ConnectorGetName(type), number);
+               "added %s connector %d (0x%04X)\n",
+               xf86ConnectorGetName(type), number, ddc_reg);
 }

@@ -257,35 +257,28 @@ struct avivo_info
     pciVideoPtr pci_info;
     PCITAG pci_tag;
 #endif
-
-    I2CBusPtr i2c;
-    unsigned int ddc_reg;
-
     unsigned char *vbios;
     int rom_header;
     int master_data;
     int is_atom_bios;
+    int bpp;
+    BoxRec fb_memory_box;
+    unsigned long ctrl_addr, fb_addr;
+    int ctrl_size, fb_size;
+    void *ctrl_base, *fb_base;
+    struct avivo_state saved_state;
+    Bool (*close_screen)(int, ScreenPtr);
+    OptionInfoPtr options;
 
-    
+    I2CBusPtr i2c;
+    unsigned int ddc_reg;
     struct avivo_crtc *crtcs;
     struct avivo_connector *connectors;
     struct avivo_connector *connector_default;
-
-    int bpp;
     unsigned long cursor_offset;
     int cursor_format, cursor_fg, cursor_bg;
     int cursor_width, cursor_height;
     INT16 cursor_x, cursor_y;
-
-    unsigned long ctrl_addr, fb_addr;
-    int ctrl_size, fb_size;
-    void *ctrl_base, *fb_base;
-
-    struct avivo_state saved_state;
-
-    Bool (*close_screen)(int, ScreenPtr);
-
-    OptionInfoPtr options;
 };
 
 int avivo_probe_info(ScrnInfoPtr screen_info);
