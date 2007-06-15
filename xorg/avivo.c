@@ -28,7 +28,6 @@
  * _doesn't have an allocator_.  Not much point since there's no
  * acceleration yet, anyway.
  */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -463,6 +462,20 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     screen_info->chipset = "avivo";
     screen_info->monitor = screen_info->confScreen->monitor;
 
+#ifdef AVIVO_RR12
+    if (!avivo_crtc_create(screen_info))
+        return FALSE;
+#if 0
+    if (!avivo_output_setup(screen_info))
+        return FALSE;
+#else
+    avivo_output_setup(screen_info);
+#endif
+    if (!xf86InitialConfiguration(screen_info, FALSE)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No valid modes.\n");
+        return FALSE;
+    }
+
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
     xf86PrintDepthBpp(screen_info);
@@ -477,15 +490,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     default:
         FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
     }
-#if AVIVO_RR12
-    if (!avivo_crtc_create(screen_info))
-        return FALSE;
-#if 0
-    if (!avivo_output_setup(screen_info))
-        return FALSE;
-#else
-    avivo_output_setup(screen_info);
-#endif
     /* color weight */
     if (!xf86SetWeight(screen_info, rzeros, rzeros))
         return FALSE;
@@ -496,6 +500,7 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     xf86SetGamma(screen_info, gzeros);
     /* Set display resolution */
     xf86SetDpi(screen_info, 100, 100);
+#if 0
     /* probe monitor found */
     monitor = NULL;
     config = XF86_CRTC_CONFIG_PTR(screen_info);
@@ -508,6 +513,7 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
             xf86PrintEDID(monitor);
         }
     }
+
     if (monitor == NULL) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
                    "No monitor found.\n");
@@ -534,7 +540,13 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
                       screen_info->display->virtualY,
                       screen_info->videoRam, LOOKUP_BEST_REFRESH);
     xf86PruneDriverModes(screen_info);
+#endif
     /* check if there modes available */
+    if (!xf86RandR12PreInit(screen_info)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "RandR initialization failure\n");
+        return FALSE;
+    }	
     if (screen_info->modes == NULL) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No modes available\n");
         return FALSE;
@@ -543,17 +555,27 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 #else
     /* probe BIOS information */
     avivo_probe_info(screen_info);
-
+    if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
+        return FALSE;
+    xf86PrintDepthBpp(screen_info);
+    switch (screen_info->depth) {
+    case 16:
+        avivo->bpp = 2;
+        break;
+    case 24:
+    case 32:
+        avivo->bpp = 4;
+        break;
+    default:
+        FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
+    }
     /* color weight */
     if (!xf86SetWeight(screen_info, rzeros, rzeros))
         return FALSE;
-
     /* visual init */
     if (!xf86SetDefaultVisual(screen_info, -1))
         return FALSE;
-
     xf86SetGamma(screen_info, gzeros);
-
 #if 1
     avivo_probe_monitor(screen_info);
     if (avivo->connector_default && avivo->connector_default->monitor)
@@ -564,7 +586,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
                    "EDID not found over DDC\n");
 #else
     avivo_i2c_init(screen_info);
-
     screen_info->monitor = screen_info->confScreen->monitor;
     monitor = avivo_ddc(screen_info);
     if (monitor)
@@ -573,7 +594,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
         xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                    "EDID not found over DDC\n");
 #endif
-
     clock_ranges = xcalloc(sizeof(ClockRange), 1);
     clock_ranges->minClock = 12000;
     clock_ranges->maxClock = 165000;
@@ -581,7 +601,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     clock_ranges->interlaceAllowed = FALSE;
     clock_ranges->doubleScanAllowed = FALSE;
     screen_info->progClock = TRUE;
-
     xf86ValidateModes(screen_info, screen_info->monitor->Modes,
                       screen_info->display->modes, clock_ranges, 0, 320, 2048,
                       16 * screen_info->bitsPerPixel, 200, 2047,
@@ -589,8 +608,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
                       screen_info->display->virtualY,
                       screen_info->videoRam, LOOKUP_BEST_REFRESH);
     xf86PruneDriverModes(screen_info);
-
-    /* Set display resolution */
     xf86SetDpi(screen_info, 100, 100);
 
     if (screen_info->modes == NULL) {
@@ -658,42 +675,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
            (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
     OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
 
-    /* mi layer */
-    miClearVisualTypes();
-
-    if (!xf86SetDefaultVisual(screen_info, -1))
-        return FALSE;
-
-    if (!miSetVisualTypes(screen_info->depth, TrueColorMask,
-                          screen_info->rgbBits, TrueColor))
-        return FALSE;
-
-    if (!miSetPixmapDepths())
-        return FALSE;
-
-    if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
-                      screen_info->virtualX, screen_info->virtualY,
-                      screen_info->xDpi, screen_info->yDpi,
-                      screen_info->displayWidth, screen_info->bitsPerPixel))
-        return FALSE;
-
-    /* Fixup RGB ordering */
-    visual = screen->visuals + screen->numVisuals;
-    while (--visual >= screen->visuals) {
-        if ((visual->class | DynamicClass) == DirectColor) {
-            visual->offsetRed = screen_info->offset.red;
-            visual->offsetGreen = screen_info->offset.green;
-            visual->offsetBlue = screen_info->offset.blue;
-            visual->redMask  = screen_info->mask.red;
-            visual->greenMask = screen_info->mask.green;
-            visual->blueMask = screen_info->mask.blue;
-        }
-    }
-    /* must be after RGB ordering fixed */
-    fbPictureInit(screen, 0, 0);
-
-    xf86SetBlackWhitePixels(screen);
-#if AVIVO_RR12
+#ifdef AVIVO_RR12
     for (i = 0; i < xf86_config->num_crtc; i++) {
         xf86CrtcPtr crtc = xf86_config->crtc[i];
         /* Mark that we'll need to re-set the mode for sure */
@@ -718,14 +700,43 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     /* set the viewport */
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
 
+    /* mi layer */
+    miClearVisualTypes();
+    if (!xf86SetDefaultVisual(screen_info, -1))
+        return FALSE;
+    if (!miSetVisualTypes(screen_info->depth, TrueColorMask,
+                          screen_info->rgbBits, TrueColor))
+        return FALSE;
+    if (!miSetPixmapDepths())
+        return FALSE;
+    if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
+                      screen_info->virtualX, screen_info->virtualY,
+                      screen_info->xDpi, screen_info->yDpi,
+                      screen_info->displayWidth, screen_info->bitsPerPixel))
+        return FALSE;
+    /* Fixup RGB ordering */
+    visual = screen->visuals + screen->numVisuals;
+    while (--visual >= screen->visuals) {
+        if ((visual->class | DynamicClass) == DirectColor) {
+            visual->offsetRed = screen_info->offset.red;
+            visual->offsetGreen = screen_info->offset.green;
+            visual->offsetBlue = screen_info->offset.blue;
+            visual->redMask  = screen_info->mask.red;
+            visual->greenMask = screen_info->mask.green;
+            visual->blueMask = screen_info->mask.blue;
+        }
+    }
+    /* must be after RGB ordering fixed */
+    fbPictureInit(screen, 0, 0);
+    xf86SetBlackWhitePixels(screen);
+    xf86DPMSInit(screen, avivo_dpms, 0);
+
     miDCInitialize(screen, xf86GetPointerScreenFuncs());
 #if 1
     /* FIXME enormous hack ... */
     avivo->cursor_offset = screen_info->virtualX * screen_info->virtualY * 4;
     avivo_cursor_init(screen);
 #endif
-
-    xf86DPMSInit(screen, avivo_dpms, 0);
 
     if (!miCreateDefColormap(screen))
         return FALSE;
@@ -738,7 +749,8 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     avivo->close_screen = screen->CloseScreen;
     screen->CloseScreen = avivo_close_screen;
 
-#if AVIVO_RR12
+#ifdef AVIVO_RR12
+    xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "Should not be here\n");
     if (!xf86CrtcScreenInit(screen))
         return FALSE;
 #endif
@@ -891,18 +903,21 @@ avivo_set_pll(struct avivo_info *avivo, struct avivo_crtc *crtc)
     div = 1080000 / crtc->clock;
     pdiv = 2;
     pmul = floor(((40.0 * crtc->clock * pdiv * div) / 1080000.0) + 0.5);
-    clock = (pmul * 108000) / (40 * pdiv * div);
+    clock = (pmul * 1080000) / (40 * pdiv * div);
     diff = fabsl(clock - crtc->clock);
     while (1) {
         n_pdiv = pdiv + 1;
         n_pmul = floor(((40.0 * crtc->clock * n_pdiv * div) / 1080000.0) + 0.5);
-        clock = (n_pmul * 108000) / (40 * n_pdiv * div);
+        clock = (n_pmul * 1080000) / (40 * n_pdiv * div);
         n_diff = fabsl(clock - crtc->clock);
         if (n_diff >= diff)
             break;
         pdiv = n_pdiv;
         pmul = n_pmul;
+        diff = n_diff;
     }
+    clock = (pmul * 1080000) / (40 * pdiv * div);
+    ErrorF("clock: %d requested: %d\n", clock, crtc->clock);
     ErrorF("pll: div %d, pmul 0x%X(%d), pdiv %d\n",
            div, pmul, pmul, pdiv);
 
@@ -1003,7 +1018,7 @@ avivo_setup_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
 
     avivo_crtc_enable(avivo, crtc, 1);
 }
-#if AVIVO_RR12
+#ifdef AVIVO_RR12
 static Bool
 avivo_switch_mode(int index, DisplayModePtr mode, int flags)
 {

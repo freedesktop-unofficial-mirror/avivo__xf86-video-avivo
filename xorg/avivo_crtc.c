@@ -127,20 +127,25 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
     div = 1080000 / mode->Clock;
     pdiv = 2;
     pmul = floor(((40.0 * mode->Clock * pdiv * div) / 1080000.0) + 0.5);
-    clock = (pmul * 108000) / (40 * pdiv * div);
+    clock = (pmul * 1080000) / (40 * pdiv * div);
     diff = fabsl(clock - mode->Clock);
     while (1) {
         n_pdiv = pdiv + 1;
         n_pmul = floor(((40.0 * mode->Clock * n_pdiv * div) / 1080000.0)+0.5);
-        clock = (n_pmul * 108000) / (40 * n_pdiv * div);
+        clock = (n_pmul * 1080000) / (40 * n_pdiv * div);
         n_diff = fabsl(clock - mode->Clock);
         if (n_diff >= diff)
             break;
         pdiv = n_pdiv;
         pmul = n_pmul;
+        diff = n_diff;
     }
+    clock = (pmul * 1080000) / (40 * pdiv * div);
     xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
-               "crtc(%d) PLL: div %d, pmul 0x%X(%d), pdiv %d\n",
+               "crtc(%d) Clock: mode %d, PLL %d\n",
+               avivo_crtc->crtc_number, mode->Clock, clock);
+    xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
+               "crtc(%d) PLL  : div %d, pmul 0x%X(%d), pdiv %d\n",
                avivo_crtc->crtc_number, div, pmul, pmul, pdiv);
     OUTREG(AVIVO_PLL_CNTL, 0);
     OUTREG(AVIVO_PLL_DIVIDER, div);
