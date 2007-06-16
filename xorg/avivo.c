@@ -722,6 +722,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     OUTREG(AVIVO_VGA_MEMORY_BASE,
            (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
     OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
+    avivo_wait_idle(avivo);
 
     /* fb memory box */
     memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
@@ -729,29 +730,44 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     avivo->fb_memory_box.x2 = screen_info->displayWidth;
     avivo->fb_memory_box.y1 = 0;
     avivo->fb_memory_box.y2 = screen_info->virtualY;
-    if (!avivo_init_fb_manager(screen, &avivo->fb_memory_box))
+    if (!avivo_init_fb_manager(screen, &avivo->fb_memory_box)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't init fb manager\n");
         return FALSE;
+    }
 
     if (screen_info->virtualX > screen_info->displayWidth)
         screen_info->displayWidth = screen_info->virtualX;
 
     /* mi layer */
     miClearVisualTypes();
-    if (!xf86SetDefaultVisual(screen_info, -1))
+    if (!xf86SetDefaultVisual(screen_info, -1)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't set default visual\n");
         return FALSE;
+    }
     if (!miSetVisualTypes(screen_info->depth, TrueColorMask,
-                          screen_info->rgbBits, TrueColor))
+                          screen_info->rgbBits, TrueColor)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't set visual types\n");
         return FALSE;
-    if (!miSetPixmapDepths())
+    }
+    if (!miSetPixmapDepths()) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't set pixmap depth\n");
         return FALSE;
+    }
     ErrorF("scrninitparam: vx %d, vy %d, dw %d\n",
            screen_info->virtualX, screen_info->virtualY,
            screen_info->displayWidth);
     if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
                       screen_info->virtualX, screen_info->virtualY,
                       screen_info->xDpi, screen_info->yDpi,
-                      screen_info->displayWidth, screen_info->bitsPerPixel))
+                      screen_info->displayWidth, screen_info->bitsPerPixel)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't init fb\n");
         return FALSE;
+    }
     /* Fixup RGB ordering */
     visual = screen->visuals + screen->numVisuals;
     while (--visual >= screen->visuals) {
@@ -782,8 +798,11 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
         }
 
         if (!xf86CrtcSetMode (crtc, &crtc->desiredMode, crtc->desiredRotation,
-                              crtc->desiredX, crtc->desiredY))
+                              crtc->desiredX, crtc->desiredY)) {
+            xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                       "Couldn't set crtc mode\n");
             return FALSE;
+        }
     }
 #else
     /* set first video mode */
@@ -804,8 +823,11 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     avivo_cursor_init(screen);
 #endif
 
-    if (!miCreateDefColormap(screen))
+    if (!miCreateDefColormap(screen)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't create colormap\n");
         return FALSE;
+    }
 
     /* Report any unused options (only for the first generation) */
     if (serverGeneration == 1)
@@ -816,8 +838,11 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     screen->CloseScreen = avivo_close_screen;
 
 #ifdef AVIVO_RR12
-    if (!xf86CrtcScreenInit(screen))
+    if (!xf86CrtcScreenInit(screen)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't initialize crtc\n");
         return FALSE;
+    }
 #endif
 
     xf86DrvMsg(screen_info->scrnIndex, X_INFO, "[ScreenInit OK]\n");
