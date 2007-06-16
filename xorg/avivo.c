@@ -1218,7 +1218,8 @@ avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
 
     if (!screen_info->vtSema)
         return;
-
+#ifdef AVIVO_RR12
+#else
     while (connector) {
         output = connector->outputs;
         while (output) {
@@ -1229,4 +1230,5 @@ avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
     }
     /* FIXME: First CRTC hardcoded. */
     avivo_enable_crtc(avivo, crtc, enable);
+#endif
 }
