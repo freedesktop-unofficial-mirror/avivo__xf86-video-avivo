@@ -73,7 +73,7 @@ radeon_set_mc(ScrnInfoPtr screen_info,
     radeon_set_indexed(screen_info,
                        AVIVO_MC_INDEX,
                        AVIVO_MC_DATA,
-                       offset | 0xff7f0000,
+                       offset | 0x00ff0000,
                        value);
 }
 
