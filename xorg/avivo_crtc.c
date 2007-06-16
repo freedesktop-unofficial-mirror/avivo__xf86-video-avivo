@@ -148,11 +148,13 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
                "crtc(%d) PLL  : div %d, pmul 0x%X(%d), pdiv %d\n",
                avivo_crtc->crtc_number, div, pmul, pmul, pdiv);
     OUTREG(AVIVO_PLL_CNTL, 0);
+    avivo_wait_idle(avivo);
     OUTREG(AVIVO_PLL_DIVIDER, div);
     OUTREG(AVIVO_PLL_DIVIDER_CNTL, AVIVO_PLL_EN);
     OUTREG(AVIVO_PLL_POST_DIV, pdiv);
     OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
     OUTREG(AVIVO_PLL_CNTL, AVIVO_PLL_EN);
+    avivo_wait_idle(avivo);
 }
 
 static void
