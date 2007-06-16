@@ -3137,14 +3137,15 @@
  * but don't know what does the card if you address out of bound
  * memory, likely trigger pci stuff which often end in bad things).
  */
-#	define AVIVO_MC_MEMORY_MAP					0x01
+#	define MC00									0x00
+#	define MC01									0x01
+#	define MC02									0x02
+#	define MC03									0x03
+#	define AVIVO_MC_MEMORY_MAP					0x04
 #		define AVIVO_MC_MEMORY_MAP_BASE_MASK		(0xFFFF << 0)
 #		define AVIVO_MC_MEMORY_MAP_BASE_SHIFT		0
 #		define AVIVO_MC_MEMORY_MAP_END_MASK			(0xFFFF << 16)
 #		define AVIVO_MC_MEMORY_MAP_END_SHIFT		16
-#	define MC02									0x02
-#	define MC03									0x03
-#	define MC04									0x04
 #	define MC05									0x05
 #	define MC06									0x06
 #	define MC07									0x07

@@ -131,7 +131,7 @@ static void radeon_set_mc(unsigned long offset, const char *name,
                           unsigned int value)
 {
     return radeon_set_indexed(AVIVO_MC_INDEX, AVIVO_MC_DATA,
-                              offset | 0xff7f0000, name, value);
+                              offset | 0x00ff0000, name, value);
 }
 
 static void usage(void)
@@ -641,10 +641,11 @@ static struct {
     void (*set)(unsigned long, const char *, unsigned int);
     unsigned address;
 } reg_list[] = {
-    REGLIST_MC(AVIVO_MC_MEMORY_MAP),
+    REGLIST_MC(MC00),
+    REGLIST_MC(MC01),
     REGLIST_MC(MC02),
     REGLIST_MC(MC03),
-    REGLIST_MC(MC04),
+    REGLIST_MC(AVIVO_MC_MEMORY_MAP),
     REGLIST_MC(MC05),
     REGLIST_MC(MC06),
     REGLIST_MC(MC07),
@@ -936,10 +937,11 @@ void radeon_cmd_regs(const char *type)
 
     if (show_mc) {
         printf("\nMemory controller:\n");
-        SHOW_MC_REG(AVIVO_MC_MEMORY_MAP);
+        SHOW_MC_REG(MC00);
+        SHOW_MC_REG(MC01);
         SHOW_MC_REG(MC02);
         SHOW_MC_REG(MC03);
-        SHOW_MC_REG(MC04);
+        SHOW_MC_REG(AVIVO_MC_MEMORY_MAP);
         SHOW_MC_REG(MC05);
         SHOW_MC_REG(MC06);
         SHOW_MC_REG(MC07);
