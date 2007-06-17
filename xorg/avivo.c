@@ -725,6 +725,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     avivo_wait_idle(avivo);
 
     /* fb memory box */
+#if 0
     memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
     avivo->fb_memory_box.x1 = 0;
     avivo->fb_memory_box.x2 = screen_info->displayWidth;
@@ -735,6 +736,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
                    "Couldn't init fb manager\n");
         return FALSE;
     }
+#endif
 
     if (screen_info->virtualX > screen_info->displayWidth)
         screen_info->displayWidth = screen_info->virtualX;
