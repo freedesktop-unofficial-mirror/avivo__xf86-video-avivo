@@ -424,5 +424,21 @@ avivo_output_setup(ScrnInfoPtr screen_info)
         output->possible_crtcs = (1 << 0) | (1 << 1);
         output->possible_clones = avivo_output_clones(screen_info);
     }
+
+    /* Set LFP possible crtc so that only crtc1 is used this isn't
+     * necessary but this make easier to compare with fglrx for
+     * time being as fglrx always use crtc1 with LFP where avivo
+     * will more likely use crtc2 due to the order of connector
+     * in bios table.
+     */
+    for (i = 0; i < config->num_output; i++) {
+        xf86OutputPtr output = config->output[i];
+        struct avivo_output_private *avivo_output = output->driver_private;
+        if (avivo_output->type == XF86ConnectorLFP) {
+            output->possible_crtcs = (1 << 0);
+        }
+    }
+
+
     return TRUE;
 }
