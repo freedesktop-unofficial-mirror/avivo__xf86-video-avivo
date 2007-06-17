@@ -741,6 +741,9 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     if (screen_info->virtualX > screen_info->displayWidth)
         screen_info->displayWidth = screen_info->virtualX;
 
+    screen_info->displayWidth = ceil(screen_info->displayWidth * avivo->bpp
+		    / 256.0) * 256 / avivo->bpp;
+
     /* mi layer */
     miClearVisualTypes();
     if (!xf86SetDefaultVisual(screen_info, -1)) {

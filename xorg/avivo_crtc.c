@@ -252,10 +252,11 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     OUTREG(AVIVO_CRTC1_65C0 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65C0_VALUE);
 
     OUTREG(AVIVO_CRTC1_X_LENGTH + avivo_crtc->crtc_offset,
-           avivo_crtc->fb_width);
+           crtc->scrn->virtualX);
     OUTREG(AVIVO_CRTC1_Y_LENGTH + avivo_crtc->crtc_offset,
-           avivo_crtc->fb_height);
-    OUTREG(AVIVO_CRTC1_PITCH + avivo_crtc->crtc_offset, avivo_crtc->fb_pitch);
+           crtc->scrn->virtualY);
+    OUTREG(AVIVO_CRTC1_PITCH + avivo_crtc->crtc_offset,
+           crtc->scrn->displayWidth);
     OUTREG(AVIVO_CRTC1_H_TOTAL + avivo_crtc->crtc_offset, avivo_crtc->h_total);
     OUTREG(AVIVO_CRTC1_H_BLANK + avivo_crtc->crtc_offset, avivo_crtc->h_blank);
     OUTREG(AVIVO_CRTC1_H_SYNC_WID + avivo_crtc->crtc_offset,
