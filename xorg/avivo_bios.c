@@ -439,6 +439,5 @@ avivo_output_setup(ScrnInfoPtr screen_info)
         }
     }
 
-
     return TRUE;
 }

@@ -1015,13 +1015,14 @@ avivo_set_pll(struct avivo_info *avivo, struct avivo_crtc *crtc)
     ErrorF("clock: %d requested: %d\n", clock, crtc->clock);
     ErrorF("pll: div %d, pmul 0x%X(%d), pdiv %d\n",
            div, pmul, pmul, pdiv);
-
+#if 0
     OUTREG(AVIVO_PLL_CNTL, 0);
     OUTREG(AVIVO_PLL_DIVIDER, div);
     OUTREG(AVIVO_PLL_DIVIDER_CNTL, AVIVO_PLL_EN);
     OUTREG(AVIVO_PLL_POST_DIV, pdiv);
     OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
     OUTREG(AVIVO_PLL_CNTL, AVIVO_PLL_EN);
+#endif
 }
 
 static void

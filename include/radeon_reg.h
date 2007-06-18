@@ -3185,8 +3185,10 @@
 #define AVIVO_VGA_MYSTERY1					0x0338
 
 /*
- * We believe reference clock is 108Mhz, the formula we derived
- * seems so far to work for card we have:
+ * We believe reference clock is 108Mhz, we likely can change that using
+ * mystery PLL reg spoted below more dump are needed in order to find out.
+ *
+ * The formula we derived so far seems to work for card we have:
  * (vclk is video mode clock)
  * vclk = (1080 * AVIVO_PLL_POST_MUL) /
  *        (AVIVO_PLL_DIVIDER * AVIVO_PLL_POST_DIV * 40)
@@ -3200,15 +3202,33 @@
  *      increment PLL_POST_MUL recompute PLL_POST_DIV
  *      if new video mode clock value is better keep on otherwise last
  *      previously found value should be the better.
+ * Refclk appears to be 108MHz  1080000 / mode clock = this. 
  */
-#define AVIVO_PLL_CNTL						0x0400
-#	define AVIVO_PLL_EN						(1 << 0)
-#define AVIVO_PLL_POST_DIV					0x0404
-#define AVIVO_PLL_POST_MUL					0x0430
-#	define AVIVO_PLL_POST_MUL_SHIFT				16
-/* Refclk appears to be 108MHz  1080000 / mode clock = this. */
-#define AVIVO_PLL_DIVIDER_CNTL				0x0438
-#define AVIVO_PLL_DIVIDER					0x043c
+#define AVIVO_PLL1_POST_DIV_CNTL		0x0400
+#	define AVIVO_PLL_POST_DIV_EN			(1 << 0)
+#define AVIVO_PLL1_POST_DIV			0x0404
+#define AVIVO_PLL1_POST_DIV_MYSTERY		0x040C
+#	define AVIVO_PLL_POST_DIV_MYSTERY_VALUE		0x10000
+#define AVIVO_PLL2_POST_DIV_CNTL		0x0400
+#define AVIVO_PLL2_POST_DIV			0x0404
+#define AVIVO_PLL2_POST_DIV_MYSTERY		0x041C
+#define AVIVO_PLL1_POST_MUL			0x0430
+#	define AVIVO_PLL_POST_MUL_SHIFT			16
+#define AVIVO_PLL2_POST_MUL			0x0434
+#define AVIVO_PLL1_DIVIDER_CNTL			0x0438
+#	define AVIVO_PLL_DIVIDER_EN			(1 << 0)
+#define AVIVO_PLL1_DIVIDER			0x043C
+#define AVIVO_PLL2_DIVIDER_CNTL			0x0440
+#define AVIVO_PLL2_DIVIDER			0x0444
+#define AVIVO_PLL1_MYSTERY0			0x0448
+#	define AVIVO_PLL_MYSTERY0_VALUE			0x20704
+#define AVIVO_PLL2_MYSTERY0			0x044C
+#define AVIVO_PLL1_MYSTERY1			0x0450
+#	define AVIVO_PLL_MYSTERY1_VALUE			0x4310000
+#define AVIVO_PLL2_MYSTERY1			0x0454
+#define AVIVO_CRTC_PLL_SOURCE			0x0484
+#	define AVIVO_CRTC1_PLL_SOURCE_SHIFT		0
+#	define AVIVO_CRTC2_PLL_SOURCE_SHIFT		16
 
 /* CRTC controls; these appear to influence the DAC's scanout. */
 #define AVIVO_CRTC1_H_TOTAL					0x6000

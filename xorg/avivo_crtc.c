@@ -119,22 +119,26 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
 {
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+    int adjusted_clock;
     int div, pdiv, pmul;
     int n_pdiv, n_pmul;
     int clock;
     int diff, n_diff;
 
-    div = 1080000 / mode->Clock;
+    /* compute pll to be 0.1% above of mode clock */
+    adjusted_clock = mode->Clock + (mode->Clock / 1000);
+    div = 1080000 / adjusted_clock;
     pdiv = 2;
-    pmul = floor(((40.0 * mode->Clock * pdiv * div) / 1080000.0) + 0.5);
+    pmul = floor(((40.0 * adjusted_clock * pdiv * div) / 1080000.0) + 0.5);
     clock = (pmul * 1080000) / (40 * pdiv * div);
-    diff = fabsl(clock - mode->Clock);
+    diff = clock - mode->Clock;
     while (1) {
         n_pdiv = pdiv + 1;
-        n_pmul = floor(((40.0 * mode->Clock * n_pdiv * div) / 1080000.0)+0.5);
+        n_pmul = floor(((40.0 * adjusted_clock * n_pdiv * div) / 1080000.0)
+                       + 0.5);
         clock = (n_pmul * 1080000) / (40 * n_pdiv * div);
-        n_diff = fabsl(clock - mode->Clock);
-        if (n_diff >= diff)
+        n_diff = clock - adjusted_clock;
+        if (diff >= 0 && n_diff >= diff)
             break;
         pdiv = n_pdiv;
         pmul = n_pmul;
@@ -147,13 +151,30 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
     xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
                "crtc(%d) PLL  : div %d, pmul 0x%X(%d), pdiv %d\n",
                avivo_crtc->crtc_number, div, pmul, pmul, pdiv);
-    OUTREG(AVIVO_PLL_CNTL, 0);
-    avivo_wait_idle(avivo);
-    OUTREG(AVIVO_PLL_DIVIDER, div);
-    OUTREG(AVIVO_PLL_DIVIDER_CNTL, AVIVO_PLL_EN);
-    OUTREG(AVIVO_PLL_POST_DIV, pdiv);
-    OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
-    OUTREG(AVIVO_PLL_CNTL, AVIVO_PLL_EN);
+    switch (avivo_crtc->crtc_number) {
+    case 0:
+        OUTREG(AVIVO_PLL1_POST_DIV_CNTL, AVIVO_PLL_POST_DIV_EN);
+	OUTREG(AVIVO_PLL1_POST_DIV_MYSTERY, AVIVO_PLL_POST_DIV_MYSTERY_VALUE);
+	OUTREG(AVIVO_PLL1_POST_DIV, pdiv);
+	OUTREG(AVIVO_PLL1_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
+	OUTREG(AVIVO_PLL1_DIVIDER_CNTL, AVIVO_PLL_DIVIDER_EN);
+	OUTREG(AVIVO_PLL1_DIVIDER, div);
+	OUTREG(AVIVO_PLL1_MYSTERY0, AVIVO_PLL_MYSTERY0_VALUE);
+	OUTREG(AVIVO_PLL1_MYSTERY1, AVIVO_PLL_MYSTERY1_VALUE);
+        break;
+    case 1:
+        OUTREG(AVIVO_PLL2_POST_DIV_CNTL, AVIVO_PLL_POST_DIV_EN);
+	OUTREG(AVIVO_PLL2_POST_DIV_MYSTERY, AVIVO_PLL_POST_DIV_MYSTERY_VALUE);
+	OUTREG(AVIVO_PLL2_POST_DIV, pdiv);
+	OUTREG(AVIVO_PLL2_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
+	OUTREG(AVIVO_PLL2_DIVIDER_CNTL, AVIVO_PLL_DIVIDER_EN);
+	OUTREG(AVIVO_PLL2_DIVIDER, div);
+	OUTREG(AVIVO_PLL2_MYSTERY0, AVIVO_PLL_MYSTERY0_VALUE);
+	OUTREG(AVIVO_PLL2_MYSTERY1, AVIVO_PLL_MYSTERY1_VALUE);
+        break;
+    }
+    OUTREG(AVIVO_CRTC_PLL_SOURCE, (0 << AVIVO_CRTC1_PLL_SOURCE_SHIFT)	
+                                  | (1 << AVIVO_CRTC2_PLL_SOURCE_SHIFT));
     avivo_wait_idle(avivo);
 }
 

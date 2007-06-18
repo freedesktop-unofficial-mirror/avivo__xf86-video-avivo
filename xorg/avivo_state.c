@@ -68,11 +68,23 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_VGA_MYSTERY0, state->vga_mystery0);
     OUTREG(AVIVO_VGA_MYSTERY1, state->vga_mystery1);
 
-    OUTREG(AVIVO_PLL_CNTL, state->pll_cntl);
-    OUTREG(AVIVO_PLL_POST_DIV, state->pll_post_div);
-    OUTREG(AVIVO_PLL_POST_MUL, state->pll_post_mul);
-    OUTREG(AVIVO_PLL_DIVIDER_CNTL, state->pll_divider_cntl);
-    OUTREG(AVIVO_PLL_DIVIDER, state->pll_divider);
+    OUTREG(AVIVO_PLL1_POST_DIV_CNTL, state->pll1_post_div_cntl);
+    OUTREG(AVIVO_PLL1_POST_DIV, state->pll1_post_div);
+    OUTREG(AVIVO_PLL1_POST_DIV_MYSTERY, state->pll1_post_div_mystery);
+    OUTREG(AVIVO_PLL1_POST_MUL, state->pll1_post_mul);
+    OUTREG(AVIVO_PLL1_DIVIDER_CNTL, state->pll1_divider_cntl);
+    OUTREG(AVIVO_PLL1_DIVIDER, state->pll1_divider);
+    OUTREG(AVIVO_PLL1_MYSTERY0, state->pll1_mystery0);
+    OUTREG(AVIVO_PLL1_MYSTERY1, state->pll1_mystery1);
+    OUTREG(AVIVO_PLL2_POST_DIV_CNTL, state->pll2_post_div_cntl);
+    OUTREG(AVIVO_PLL2_POST_DIV, state->pll2_post_div);
+    OUTREG(AVIVO_PLL2_POST_DIV_MYSTERY, state->pll2_post_div_mystery);
+    OUTREG(AVIVO_PLL2_POST_MUL, state->pll2_post_mul);
+    OUTREG(AVIVO_PLL2_DIVIDER_CNTL, state->pll2_divider_cntl);
+    OUTREG(AVIVO_PLL2_DIVIDER, state->pll2_divider);
+    OUTREG(AVIVO_PLL2_MYSTERY0, state->pll2_mystery0);
+    OUTREG(AVIVO_PLL2_MYSTERY1, state->pll2_mystery1);
+    OUTREG(AVIVO_CRTC_PLL_SOURCE, state->crtc_pll_source);
 
     OUTREG(AVIVO_CRTC1_H_TOTAL, state->crtc1_h_total);
     OUTREG(AVIVO_CRTC1_H_BLANK, state->crtc1_h_blank);
@@ -181,11 +193,23 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->vga_mystery0 = INREG(AVIVO_VGA_MYSTERY0);
     state->vga_mystery1 = INREG(AVIVO_VGA_MYSTERY1);
 
-    state->pll_cntl = INREG(AVIVO_PLL_CNTL);
-    state->pll_post_div = INREG(AVIVO_PLL_POST_DIV);
-    state->pll_post_mul = INREG(AVIVO_PLL_POST_MUL);
-    state->pll_divider_cntl = INREG(AVIVO_PLL_DIVIDER_CNTL);
-    state->pll_divider = INREG(AVIVO_PLL_DIVIDER);
+    state->pll1_post_div_cntl = INREG(AVIVO_PLL1_POST_DIV_CNTL);
+    state->pll1_post_div = INREG(AVIVO_PLL1_POST_DIV);
+    state->pll1_post_div_mystery = INREG(AVIVO_PLL1_POST_DIV_MYSTERY);
+    state->pll1_post_mul = INREG(AVIVO_PLL1_POST_MUL);
+    state->pll1_divider_cntl = INREG(AVIVO_PLL1_DIVIDER_CNTL);
+    state->pll1_divider = INREG(AVIVO_PLL1_DIVIDER);
+    state->pll1_mystery0 = INREG(AVIVO_PLL1_MYSTERY0);
+    state->pll1_mystery1 = INREG(AVIVO_PLL1_MYSTERY1);
+    state->pll2_post_div_cntl = INREG(AVIVO_PLL2_POST_DIV_CNTL);
+    state->pll2_post_div = INREG(AVIVO_PLL2_POST_DIV);
+    state->pll2_post_div_mystery = INREG(AVIVO_PLL2_POST_DIV_MYSTERY);
+    state->pll2_post_mul = INREG(AVIVO_PLL2_POST_MUL);
+    state->pll2_divider_cntl = INREG(AVIVO_PLL2_DIVIDER_CNTL);
+    state->pll2_divider = INREG(AVIVO_PLL2_DIVIDER);
+    state->pll2_mystery0 = INREG(AVIVO_PLL2_MYSTERY0);
+    state->pll2_mystery1 = INREG(AVIVO_PLL2_MYSTERY1);
+    state->crtc_pll_source = INREG(AVIVO_CRTC_PLL_SOURCE);
 
     state->crtc1_h_total = INREG(AVIVO_CRTC1_H_TOTAL);
     state->crtc1_h_blank = INREG(AVIVO_CRTC1_H_BLANK);
