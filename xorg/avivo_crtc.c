@@ -126,19 +126,19 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
     int diff, n_diff;
 
     /* compute pll to be 0.1% above of mode clock */
-    adjusted_clock = mode->Clock + (mode->Clock / 1000);
+    adjusted_clock = mode->Clock;
     div = 1080000 / adjusted_clock;
     pdiv = 2;
     pmul = floor(((40.0 * adjusted_clock * pdiv * div) / 1080000.0) + 0.5);
     clock = (pmul * 1080000) / (40 * pdiv * div);
-    diff = clock - mode->Clock;
+    diff = clock - adjusted_clock;
     while (1) {
         n_pdiv = pdiv + 1;
         n_pmul = floor(((40.0 * adjusted_clock * n_pdiv * div) / 1080000.0)
                        + 0.5);
         clock = (n_pmul * 1080000) / (40 * n_pdiv * div);
         n_diff = clock - adjusted_clock;
-        if (diff >= 0 && n_diff >= diff)
+        if ((diff >= 0 && fabsl(n_diff) >= diff) || n_pmul >= 255)
             break;
         pdiv = n_pdiv;
         pmul = n_pmul;
