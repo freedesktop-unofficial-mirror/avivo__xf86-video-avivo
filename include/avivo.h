@@ -31,12 +31,9 @@
 #include "xf86Resources.h"
 #include "xf86RAC.h"
 #include "compiler.h"
-/* Drivers for PCI hardware need this */
-#include "xf86PciInfo.h"
-/* Drivers that need to access the PCI config space directly need this */
-#include "xf86Pci.h"
-
 #include "fb.h"
+
+#include "avivo_chipset.h"
 
 #ifdef PCIACCESS
 #include <pciaccess.h>
@@ -46,27 +43,12 @@
 #define AVIVO_DRIVER_NAME	"avivo"
 #define AVIVO_DRIVER_VERSION    1000
 
-#define PCI_CHIP_RV515_7142     0x7142
-#define PCI_CHIP_RV530_71C2     0x71C2
-#define PCI_CHIP_RV530_71C5     0x71C5
-
 #define RADEON_VBIOS_SIZE 0x00010000
-
-#define PCI_CHIP_R580_724B      0x724B
 
 #define INREG(x) MMIO_IN32(avivo->ctrl_base, x)
 #define OUTREG(x, y) MMIO_OUT32(avivo->ctrl_base, x, y)
 
 struct avivo_info;
-
-enum avivo_chip_type {
-    CHIP_FAMILY_RV515,
-    CHIP_FAMILY_R520,
-    CHIP_FAMILY_RV530,
-    CHIP_FAMILY_R580,
-    CHIP_FAMILY_LAST,
-};
-
 struct avivo_crtc {
     /* Bitmask of output IDs. */
     int               id;
@@ -294,6 +276,11 @@ struct avivo_info
 };
 
 int avivo_probe_info(ScrnInfoPtr screen_info);
+
+/*
+ * avivo chipset
+ */
+void avivo_get_chipset(struct avivo_info *avivo);
 
 /*
  * avivo common functions

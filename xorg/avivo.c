@@ -75,46 +75,6 @@ static void avivo_free_info(ScrnInfoPtr screen_info);
 
 static void avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags);
 
-#ifdef PCIACCESS
-static const struct pci_id_match avivo_device_match[] = {
-    {
-        PCI_VENDOR_ATI, 0x71c2, PCI_MATCH_ANY, PCI_MATCH_ANY,
-        0x00030000, 0x00ffffff, 0
-    },
-    {
-        PCI_VENDOR_ATI, 0x71c5, PCI_MATCH_ANY, PCI_MATCH_ANY,
-        0x00030000, 0x00ffffff, 0
-    },
-    {
-        PCI_VENDOR_ATI, 0x724b, PCI_MATCH_ANY, PCI_MATCH_ANY,
-        0x00030000, 0x00ffffff, 0
-    },
-    {
-        PCI_VENDOR_ATI, 0x7142, PCI_MATCH_ANY, PCI_MATCH_ANY,
-        0x00030000, 0x00ffffff, 0      
-    },
-
-    { 0, 0, 0 },
-};
-#endif
-    
-/* Supported chipsets.  I'm really, really glad that these are
- * separate, and the nomenclature is beyond reproach. */
-static SymTabRec avivo_chips[] = {
-    { PCI_CHIP_RV515_7142, "RV515 (Radeon X1300)" },
-    { PCI_CHIP_RV530_71C2, "RV530 (Radeon X1600)" },
-    { PCI_CHIP_RV530_71C5, "RV530 (Radeon X1600)" },
-    { PCI_CHIP_R580_724B,  "R580 (Radeon X1900 GT)" },
-    { -1,                  NULL }
-};
-
-static PciChipsets avivo_pci_chips[] = {
-  { PCI_CHIP_RV530_71C2, PCI_CHIP_RV530_71C2, RES_SHARED_VGA },
-  { PCI_CHIP_RV530_71C5, PCI_CHIP_RV530_71C5, RES_SHARED_VGA },
-  { PCI_CHIP_R580_724B,  PCI_CHIP_R580_724B,  RES_SHARED_VGA },
-  { PCI_CHIP_RV515_7142, PCI_CHIP_RV515_7142, RES_SHARED_VGA },
-  { -1,                  -1,                  RES_UNDEFINED }
-};
 
 /* 
  * This contains the functions needed by the server after loading the
@@ -379,29 +339,6 @@ avivo_free_info(ScrnInfoPtr screen_info)
     xfree(screen_info->driverPrivate);
     screen_info->driverPrivate = NULL;
 #endif
-}
-
-static void
-avivo_get_chipset(struct avivo_info *avivo)
-{
-    switch (avivo->pci_info->chipType) {
-    case PCI_CHIP_RV530_71C2:
-    case PCI_CHIP_RV530_71C5:
-        avivo->chipset = CHIP_FAMILY_RV530;
-        break;
-
-    case PCI_CHIP_R580_724B:
-        avivo->chipset = CHIP_FAMILY_R580;    
-        break;
-
-    case PCI_CHIP_RV515_7142:
-        avivo->chipset = CHIP_FAMILY_RV515;    
-        break;
-
-    default:
-        FatalError("Unknown chipset for %x!\n", avivo->pci_info->device);
-        break;
-    }
 }
 
 /*
