@@ -33,6 +33,17 @@
 #include "radeon_reg.h"
 
 void
+avivo_wait_idle(struct avivo_info *avivo)
+{
+    int i = 1000;
+  
+    while (--i && INREG(0x6494) != 0x3fffffff);
+
+    if (!i)
+        FatalError("Avivo: chip lockup!\n");
+}
+
+void
 avivo_save_cursor(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);

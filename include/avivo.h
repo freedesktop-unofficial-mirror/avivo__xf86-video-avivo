@@ -39,27 +39,14 @@
 #include <pciaccess.h>
 #endif
 
-#define AVIVO_NAME		"Avivo"
-#define AVIVO_DRIVER_NAME	"avivo"
+#define AVIVO_NAME		"Avivo-v0.2.90"
+#define AVIVO_DRIVER_NAME	"avivo-v0.2.90"
 #define AVIVO_DRIVER_VERSION    1000
 
 #define RADEON_VBIOS_SIZE 0x00010000
 
 #define INREG(x) MMIO_IN32(avivo->ctrl_base, x)
 #define OUTREG(x, y) MMIO_OUT32(avivo->ctrl_base, x, y)
-
-struct avivo_info;
-struct avivo_crtc {
-    /* Bitmask of output IDs. */
-    int               id;
-    int               h_total, h_blank, h_sync_wid, h_sync_pol;
-    int               v_total, v_blank, v_sync_wid, v_sync_pol;
-    int               clock;
-    unsigned long     fb_offset;
-    int               fb_format, fb_length;
-    int               fb_pitch, fb_width, fb_height;
-    struct avivo_crtc *next;
-};
 
 struct avivo_crtc_private {
     int               crtc_number;
@@ -74,74 +61,12 @@ struct avivo_crtc_private {
     int               fb_pitch, fb_width, fb_height;
 };
 
-enum avivo_output_status {
-    OUTPUT_ON,
-    OUTPUT_BLANKED,
-    OUTPUT_OFF,
-};
-
-enum avivo_output_type {
-    OUTPUT_DAC,
-    OUTPUT_TMDS,
-    OUTPUT_LVDS,
-    OUTPUT_TV,
-};
-
-enum avivo_connector_type {
-    CONNECTOR_VGA,
-    CONNECTOR_DVII,
-    CONNECTOR_DVID,
-    CONNECTOR_DVIA,
-    CONNECTOR_STV,
-    CONNECTOR_CTV,
-    CONNECTOR_LVDS,
-    CONNECTOR_DIGITAL,
-    CONNECTOR_UNSUPPORTED,
-};
-
-/**
- * struct avivo_output - avivo output information structure
- * @is_enabled:    is output enabled
- * @gpio_base:     gpio base address register of this connector
- * @type:          output type DAC, TMDS, LVDS, TV
- * @status:        output status
- * @next:          next output
- */
-struct avivo_output {
-    struct avivo_crtc        *crtc;
-    int                      is_enabled;
-    enum avivo_output_type   type;
-    enum avivo_output_status status;
-    struct avivo_output      *next;
-};
-
-
 struct avivo_output_private {
     xf86ConnectorType type;
     I2CBusPtr         i2c;
     unsigned long     output_offset;
     int               number;
     char              *name;
-};
-
-/**
- * struct avivo_connector - avivo output connector information structure
- * @is_connected:  is output connected
- * @connector_num: connector number
- * @gpio_base:     gpio base address register of this connector
- * @type:          connector type VGA, DVI-I, LVDS, STV, ...
- * @monitor:       monitor information retrieven from DDC
- * @outputs:       associated output
- * @next:          next connector
- */
-struct avivo_connector {
-    int                       is_connected;
-    int                       connector_num;
-    unsigned int              gpio_base;
-    enum avivo_connector_type type;
-    xf86MonPtr                monitor;
-    struct avivo_output       *outputs;
-    struct avivo_connector    *next;
 };
 
 struct avivo_state
@@ -264,11 +189,6 @@ struct avivo_info
     Bool (*close_screen)(int, ScreenPtr);
     OptionInfoPtr options;
 
-    I2CBusPtr i2c;
-    unsigned int ddc_reg;
-    struct avivo_crtc *crtcs;
-    struct avivo_connector *connectors;
-    struct avivo_connector *connector_default;
     unsigned long cursor_offset;
     int cursor_format, cursor_fg, cursor_bg;
     int cursor_width, cursor_height;

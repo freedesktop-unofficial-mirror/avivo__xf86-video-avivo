@@ -68,7 +68,6 @@ static Bool avivo_close_screen(int index, ScreenPtr screen);
 static Bool avivo_save_screen(ScreenPtr screen, int mode);
 
 static Bool avivo_switch_mode(int index, DisplayModePtr mode, int flags);
-static Bool avivo_set_mode(ScrnInfoPtr screen_info, DisplayModePtr mode);
 static void avivo_adjust_frame(int index, int x, int y, int flags);
 static void avivo_free_screen(int index, int flags);
 static void avivo_free_info(ScrnInfoPtr screen_info);
@@ -333,12 +332,6 @@ avivo_old_probe(DriverPtr drv, int flags)
 static void
 avivo_free_info(ScrnInfoPtr screen_info)
 {
-#if 0
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-
-    xfree(screen_info->driverPrivate);
-    screen_info->driverPrivate = NULL;
-#endif
 }
 
 /*
@@ -402,7 +395,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     screen_info->chipset = "avivo";
     screen_info->monitor = screen_info->confScreen->monitor;
 
-#ifdef AVIVO_RR12
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
     xf86PrintDepthBpp(screen_info);
@@ -440,57 +432,11 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     xf86ProcessOptions(screen_info->scrnIndex, screen_info->options,
                        avivo->options);
 
-#if 0
-    if (!avivo_output_setup(screen_info))
-        return FALSE;
-#else
     avivo_output_setup(screen_info);
-#endif
     if (!xf86InitialConfiguration(screen_info, FALSE)) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No valid modes.\n");
         return FALSE;
     }
-#if 0
-    /* probe monitor found */
-    monitor = NULL;
-    config = XF86_CRTC_CONFIG_PTR(screen_info);
-    for (i = 0; i < config->num_output; i++) {
-        xf86OutputPtr output = config->output[i];
-        struct avivo_output_private *avivo_output = output->driver_private;
-        if (output->funcs->detect(output) == XF86OutputStatusConnected) {
-            output->funcs->get_modes(output);
-            monitor = output->MonInfo;
-            xf86PrintEDID(monitor);
-        }
-    }
-
-    if (monitor == NULL) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "No monitor found.\n");
-        return FALSE;
-    }
-    xf86SetDDCproperties(screen_info, monitor);
-    /* validates mode */
-    clock_ranges = xcalloc(sizeof(ClockRange), 1);
-    if (clock_ranges == NULL) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Failed to allocate memory for clock range\n");
-        return FALSE;
-    }
-    clock_ranges->minClock = 12000;
-    clock_ranges->maxClock = 165000;
-    clock_ranges->clockIndex = -1;
-    clock_ranges->interlaceAllowed = FALSE;
-    clock_ranges->doubleScanAllowed = FALSE;
-    screen_info->progClock = TRUE;
-    xf86ValidateModes(screen_info, screen_info->monitor->Modes,
-                      screen_info->display->modes, clock_ranges, 0, 320, 2048,
-                      16 * screen_info->bitsPerPixel, 200, 2047,
-                      screen_info->display->virtualX,
-                      screen_info->display->virtualY,
-                      screen_info->videoRam, LOOKUP_BEST_REFRESH);
-    xf86PruneDriverModes(screen_info);
-#endif
     /* check if there modes available */
     if (!xf86RandR12PreInit(screen_info)) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
@@ -502,86 +448,12 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
         return FALSE;
     }
     screen_info->currentMode = screen_info->modes;
-#else
-    /* probe BIOS information */
-    avivo_probe_info(screen_info);
-    if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
-        return FALSE;
-    xf86PrintDepthBpp(screen_info);
-    switch (screen_info->depth) {
-    case 16:
-        avivo->bpp = 2;
-        break;
-    case 24:
-    case 32:
-        avivo->bpp = 4;
-        break;
-    default:
-        FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
-    }
-    /* color weight */
-    if (!xf86SetWeight(screen_info, rzeros, rzeros))
-        return FALSE;
-    /* visual init */
-    if (!xf86SetDefaultVisual(screen_info, -1))
-        return FALSE;
-    xf86SetGamma(screen_info, gzeros);
-#if 1
-    avivo_probe_monitor(screen_info);
-    if (avivo->connector_default && avivo->connector_default->monitor)
-        xf86SetDDCproperties(screen_info,
-                             xf86PrintEDID(avivo->connector_default->monitor));
-    else
-        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-                   "EDID not found over DDC\n");
-#else
-    avivo_i2c_init(screen_info);
-    screen_info->monitor = screen_info->confScreen->monitor;
-    monitor = avivo_ddc(screen_info);
-    if (monitor)
-        xf86SetDDCproperties(screen_info, xf86PrintEDID(monitor));
-    else
-        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-                   "EDID not found over DDC\n");
-#endif
-    clock_ranges = xcalloc(sizeof(ClockRange), 1);
-    clock_ranges->minClock = 12000;
-    clock_ranges->maxClock = 165000;
-    clock_ranges->clockIndex = -1;
-    clock_ranges->interlaceAllowed = FALSE;
-    clock_ranges->doubleScanAllowed = FALSE;
-    screen_info->progClock = TRUE;
-    xf86ValidateModes(screen_info, screen_info->monitor->Modes,
-                      screen_info->display->modes, clock_ranges, 0, 320, 2048,
-                      16 * screen_info->bitsPerPixel, 200, 2047,
-                      screen_info->display->virtualX,
-                      screen_info->display->virtualY,
-                      screen_info->videoRam, LOOKUP_BEST_REFRESH);
-    xf86PruneDriverModes(screen_info);
-    xf86SetDpi(screen_info, 100, 100);
-
-    if (screen_info->modes == NULL) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No modes available\n");
-        return FALSE;
-    }
-    screen_info->currentMode = screen_info->modes;
-
-    /* options */
-    xf86CollectOptions(screen_info, NULL);
-    avivo->options = xalloc(sizeof(avivo_options));
-    if (avivo->options == NULL)
-        return FALSE;
-    memcpy(avivo->options, avivo_options, sizeof(avivo_options));
-    xf86ProcessOptions(screen_info->scrnIndex, screen_info->options,
-                       avivo->options);
-#endif
 
 #ifdef WITH_VGAHW
     xf86LoadSubModule(screen_info, "vgahw");
 
     vgaHWGetHWRec (screen_info);
     vgaHWGetIOBase(VGAHWPTR(screen_info));
-
 #endif
 
     xf86DrvMsg(screen_info->scrnIndex, X_INFO, "[ScreenPreInit OK]\n");
@@ -726,7 +598,6 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     fbPictureInit(screen, 0, 0);
     xf86SetBlackWhitePixels(screen);
 
-#ifdef AVIVO_RR12
     for (i = 0; i < xf86_config->num_crtc; i++) {
         xf86CrtcPtr crtc = xf86_config->crtc[i];
         /* Mark that we'll need to re-set the mode for sure */
@@ -746,24 +617,12 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
             return FALSE;
         }
     }
-#else
-    /* set first video mode */
-    if (!avivo_set_mode(screen_info, screen_info->currentMode))
-        return FALSE;
-#endif
     /* set the viewport */
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
 
-    xf86DPMSInit(screen, avivo_dpms, 0);
-
+    xf86DPMSInit(screen, xf86DPMSSet, 0);
 
     miDCInitialize(screen, xf86GetPointerScreenFuncs());
-#ifdef AVIVO_RR12
-#else
-    /* FIXME enormous hack ... */
-    avivo->cursor_offset = screen_info->virtualX * screen_info->virtualY * 4;
-    avivo_cursor_init(screen);
-#endif
 
     if (!miCreateDefColormap(screen)) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
@@ -779,13 +638,11 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     avivo->close_screen = screen->CloseScreen;
     screen->CloseScreen = avivo_close_screen;
 
-#ifdef AVIVO_RR12
     if (!xf86CrtcScreenInit(screen)) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
                    "Couldn't initialize crtc\n");
         return FALSE;
     }
-#endif
 
     xf86DrvMsg(screen_info->scrnIndex, X_INFO, "[ScreenInit OK]\n");
     return TRUE;
@@ -798,10 +655,9 @@ avivo_enter_vt(int index, int flags)
 
     avivo_save_state(screen_info);
 
-    if (!avivo_set_mode(screen_info, screen_info->currentMode))
+    screen_info->vtSema = TRUE;
+    if (!xf86SetDesiredModes(screen_info))
         return FALSE;
-
-    avivo_restore_cursor(screen_info);
     avivo_adjust_frame(index, screen_info->frameX0, screen_info->frameY0, 0);
 
     return TRUE;
@@ -812,251 +668,13 @@ avivo_leave_vt(int index, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
 
-    avivo_save_cursor(screen_info);
     avivo_restore_state(screen_info);
 }
 
-static void
-avivo_enable_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
-                  int enable)
-{
-    int scan_enable, cntl;
-
-    if (enable) {
-        scan_enable = AVIVO_CRTC_SCAN_EN;
-        cntl = 0x00010101;
-    }
-    else {
-        scan_enable = 0;
-        cntl = 0;
-    }
-    
-    if (crtc->id == 0) {
-        OUTREG(AVIVO_CRTC1_SCAN_ENABLE, scan_enable);
-        OUTREG(AVIVO_CRTC1_CNTL, cntl);
-    }
-    else if (crtc->id == 1) {
-        OUTREG(AVIVO_CRTC2_SCAN_ENABLE, scan_enable);
-        OUTREG(AVIVO_CRTC2_CNTL, cntl);
-    }
-
-    avivo_wait_idle(avivo);
-}
-
-static void
-avivo_enable_output(struct avivo_info *avivo,
-                    struct avivo_connector *connector,
-                    struct avivo_output *output,
-                    struct avivo_crtc *crtc,
-                    int enable)
-{
-    int value1, value2, value3, value4, value5;
-
-    avivo_wait_idle(avivo);
-    output->is_enabled = enable;
-
-    if (output->type == OUTPUT_TMDS) {
-        value3 = 0x10000011;
-        value5 = 0x00001010;
-
-        if (enable) {
-            value1 = AVIVO_TMDS_MYSTERY1_EN;
-            value2 = AVIVO_TMDS_MYSTERY2_EN;
-            value4 = 0x00001f1f;
-            if (connector->connector_num == 1)
-                value4 |= 0x00000020;
-            value5 |= AVIVO_TMDS_EN;
-        }
-        else {
-            value1 = 0x04000000;
-            value2 = 0;
-            value4 = 0x00060000;
-        }
-
-        if (connector->connector_num == 0) {
-            OUTREG(AVIVO_TMDS1_CRTC_SOURCE, crtc->id);
-            OUTREG(AVIVO_TMDS1_MYSTERY1, value1);
-            OUTREG(AVIVO_TMDS1_MYSTERY2, value2);
-            OUTREG(AVIVO_TMDS1_MYSTERY3, value3);
-            OUTREG(AVIVO_TMDS1_CLOCK_CNTL, value4);
-            OUTREG(AVIVO_TMDS1_CNTL, value5);
-        }
-        else if (connector->connector_num == 1
-                 || connector->connector_num == 2) {
-            OUTREG(AVIVO_TMDS2_CRTC_SOURCE, crtc->id);
-            OUTREG(AVIVO_TMDS2_MYSTERY1, value1);
-            OUTREG(AVIVO_TMDS2_MYSTERY2, value2);
-            value3 |= 0x00630000;
-            /* This needs to be set on TMDS, and unset on LVDS. */
-            value3 |= INREG(AVIVO_TMDS2_MYSTERY3) & (1 << 29);
-            OUTREG(AVIVO_TMDS2_MYSTERY3, value3);
-            OUTREG(AVIVO_TMDS2_CLOCK_CNTL, value4);
-            /* This needs to be set on LVDS, and unset on TMDS.  Luckily, the
-             * BIOS appears to set it up for us, so just carry it over. */
-            value5 |= INREG(AVIVO_TMDS2_CNTL) & (1 << 24);
-            OUTREG(AVIVO_TMDS2_CNTL, value5);
-        }
-    }
-    else if (output->type == OUTPUT_DAC) {
-        if (enable) {
-            value1 = 0;
-            value2 = 0;
-            value3 = AVIVO_DAC_EN;
-        }
-        else {
-            value1 = AVIVO_DAC_MYSTERY1_DIS;
-            value2 = AVIVO_DAC_MYSTERY2_DIS;
-            value3 = 0;
-        }
-
-        if (connector->connector_num == 0) {
-            OUTREG(AVIVO_DAC1_CRTC_SOURCE, crtc->id);
-            OUTREG(AVIVO_DAC1_MYSTERY1, value1);
-            OUTREG(AVIVO_DAC1_MYSTERY2, value2);
-            OUTREG(AVIVO_DAC1_CNTL, value3);
-        }
-        else if (connector->connector_num == 1) {
-            OUTREG(AVIVO_DAC2_CRTC_SOURCE, crtc->id);
-            OUTREG(AVIVO_DAC2_MYSTERY1, value1);
-            OUTREG(AVIVO_DAC2_MYSTERY2, value2);
-            OUTREG(AVIVO_DAC2_CNTL, value3);
-        }
-    }
-}
-
-static void
-avivo_set_pll(struct avivo_info *avivo, struct avivo_crtc *crtc)
-{
-    int div, pdiv, pmul;
-    int n_pdiv, n_pmul;
-    int clock;
-    int diff, n_diff;
-
-    div = 1080000 / crtc->clock;
-    pdiv = 2;
-    pmul = floor(((40.0 * crtc->clock * pdiv * div) / 1080000.0) + 0.5);
-    clock = (pmul * 1080000) / (40 * pdiv * div);
-    diff = fabsl(clock - crtc->clock);
-    while (1) {
-        n_pdiv = pdiv + 1;
-        n_pmul = floor(((40.0 * crtc->clock * n_pdiv * div) / 1080000.0) + 0.5);
-        clock = (n_pmul * 1080000) / (40 * n_pdiv * div);
-        n_diff = fabsl(clock - crtc->clock);
-        if (n_diff >= diff)
-            break;
-        pdiv = n_pdiv;
-        pmul = n_pmul;
-        diff = n_diff;
-    }
-    clock = (pmul * 1080000) / (40 * pdiv * div);
-    ErrorF("clock: %d requested: %d\n", clock, crtc->clock);
-    ErrorF("pll: div %d, pmul 0x%X(%d), pdiv %d\n",
-           div, pmul, pmul, pdiv);
-#if 0
-    OUTREG(AVIVO_PLL_CNTL, 0);
-    OUTREG(AVIVO_PLL_DIVIDER, div);
-    OUTREG(AVIVO_PLL_DIVIDER_CNTL, AVIVO_PLL_EN);
-    OUTREG(AVIVO_PLL_POST_DIV, pdiv);
-    OUTREG(AVIVO_PLL_POST_MUL, (pmul << AVIVO_PLL_POST_MUL_SHIFT));
-    OUTREG(AVIVO_PLL_CNTL, AVIVO_PLL_EN);
-#endif
-}
-
-static void
-avivo_crtc_enable(struct avivo_info *avivo, struct avivo_crtc *crtc, int on)
-{
-    unsigned long fb_location = crtc->fb_offset + avivo->fb_addr;
-
-    if (crtc->id == 0) {
-        OUTREG(AVIVO_CRTC1_CNTL, 0);
-
-        if (on) {
-            /* Switch from text to graphics mode. */
-            OUTREG(0x0330, 0x00010600);
-            OUTREG(0x0338, 0x00000400);
-
-            avivo_setup_cursor(avivo, 1, 1);
-
-            OUTREG(AVIVO_CRTC1_FB_LOCATION, fb_location);
-            OUTREG(AVIVO_CRTC1_FB_FORMAT, crtc->fb_format);
-            OUTREG(AVIVO_CRTC1_FB_END, fb_location + crtc->fb_length);
-            OUTREG(AVIVO_CRTC1_MODE, 0);
-            OUTREG(AVIVO_CRTC1_60c0_MYSTERY, 0);
-
-            avivo_set_pll(avivo, crtc);
-
-            OUTREG(AVIVO_CRTC1_FB_HEIGHT, crtc->fb_height);
-            OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, (crtc->fb_width << 16) |
-                                                 crtc->fb_height);
-            OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, AVIVO_CRTC_EXPANSION_EN);
-
-            OUTREG(AVIVO_CRTC1_659C, AVIVO_CRTC1_659C_VALUE);
-            OUTREG(AVIVO_CRTC1_65A8, AVIVO_CRTC1_65A8_VALUE);
-            OUTREG(AVIVO_CRTC1_65AC, AVIVO_CRTC1_65AC_VALUE);
-            OUTREG(AVIVO_CRTC1_65B8, AVIVO_CRTC1_65B8_VALUE);
-            OUTREG(AVIVO_CRTC1_65BC, AVIVO_CRTC1_65BC_VALUE);
-            OUTREG(AVIVO_CRTC1_65C8, AVIVO_CRTC1_65C8_VALUE);
-            OUTREG(AVIVO_CRTC1_6594, AVIVO_CRTC1_6594_VALUE);
-            OUTREG(AVIVO_CRTC1_65A4, AVIVO_CRTC1_65A4_VALUE);
-            OUTREG(AVIVO_CRTC1_65B0, AVIVO_CRTC1_65B0_VALUE);
-            OUTREG(AVIVO_CRTC1_65C0, AVIVO_CRTC1_65C0_VALUE);
-
-            OUTREG(AVIVO_CRTC1_X_LENGTH, crtc->fb_width);
-            OUTREG(AVIVO_CRTC1_Y_LENGTH, crtc->fb_height);
-            OUTREG(AVIVO_CRTC1_PITCH, crtc->fb_pitch);
-            OUTREG(AVIVO_CRTC1_H_TOTAL, crtc->h_total);
-            OUTREG(AVIVO_CRTC1_H_BLANK, crtc->h_blank);
-            OUTREG(AVIVO_CRTC1_H_SYNC_WID, crtc->h_sync_wid);
-            OUTREG(AVIVO_CRTC1_H_SYNC_POL, crtc->h_sync_pol);
-            OUTREG(AVIVO_CRTC1_V_TOTAL, crtc->v_total);
-            OUTREG(AVIVO_CRTC1_V_BLANK, crtc->v_blank);
-            OUTREG(AVIVO_CRTC1_V_SYNC_WID, crtc->v_sync_wid);
-            OUTREG(AVIVO_CRTC1_V_SYNC_POL, crtc->v_sync_pol);
-
-            OUTREG(AVIVO_CRTC1_CNTL, 0x00010101);
-            OUTREG(AVIVO_CRTC1_SCAN_ENABLE, AVIVO_CRTC_SCAN_EN);
-        }
-    }
-}
-
-static void
-avivo_setup_crtc(struct avivo_info *avivo, struct avivo_crtc *crtc,
-                 DisplayModePtr mode)
-{
-    ErrorF("mode: hdisp %d, htotal %d, hss %d, hse %d, hsk %d\n",
-           mode->HDisplay, mode->HTotal, mode->HSyncStart, mode->HSyncEnd,
-           mode->HSkew);
-    ErrorF("      vdisp %d, vtotal %d, vss %d, vse %d, vsc %d\n",
-           mode->VDisplay, mode->VTotal, mode->VSyncStart, mode->VSyncEnd,
-           mode->VScan);
-
-    crtc->h_total = mode->HTotal - 1;
-    crtc->h_blank = (mode->HTotal - mode->HSyncStart) << 16 |
-                    (mode->HTotal - mode->HSyncStart + mode->HDisplay);
-    crtc->h_sync_wid = (mode->HSyncEnd - mode->HSyncStart) << 16;
-    crtc->h_sync_pol = 0;
-    crtc->v_total = mode->VTotal - 1;
-    crtc->v_blank = (mode->VTotal - mode->VSyncStart) << 16 |
-                    (mode->VTotal - mode->VSyncStart + mode->VDisplay);
-    crtc->v_sync_wid = (mode->VSyncEnd - mode->VSyncStart) << 16;
-
-    crtc->clock = mode->Clock;
-
-    crtc->fb_width = mode->HDisplay;
-    crtc->fb_height = mode->VDisplay;
-    crtc->fb_pitch = mode->HDisplay;
-    crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB32;
-    crtc->fb_offset = 0;
-    crtc->fb_length = crtc->fb_pitch * crtc->fb_height * 4;
-
-    avivo_crtc_enable(avivo, crtc, 1);
-}
-#ifdef AVIVO_RR12
 static Bool
 avivo_switch_mode(int index, DisplayModePtr mode, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
-    Bool ok;
 
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "set mode: hdisp %d, htotal %d, hss %d, hse %d, hsk %d\n",
@@ -1064,71 +682,26 @@ avivo_switch_mode(int index, DisplayModePtr mode, int flags)
                mode->HSkew);
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "      vdisp %d, vtotal %d, vss %d, vse %d, vsc %d\n",
-               mode->VDisplay, mode->VTotal, mode->VSyncStart, mode->VSyncEnd,
-               mode->VScan);
+               mode->VDisplay, mode->VTotal, mode->VSyncStart, mode->VSyncEnd,               mode->VScan);
 
-    ok = xf86SetSingleMode(screen_info, mode, RR_Rotate_0);
-    if (!ok) {
-        xf86DrvMsg(screen_info->scrnIndex, X_INFO, "Failed to set mode\n");
-    } else {
-        xf86DrvMsg(screen_info->scrnIndex, X_INFO, "Setting mode succeed\n");
-    }
-    return ok;
-}
-#else
-static Bool
-avivo_switch_mode(int index, DisplayModePtr mode, int flags)
-{
-    ScrnInfoPtr screen_info = xf86Screens[index];
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-    struct avivo_crtc *crtc = avivo->crtcs;
-    struct avivo_output *output;
-    struct avivo_connector *connector = avivo->connectors;
-    Bool ret;
-
-    /* FIXME: First CRTC hardcoded ... */
-    avivo_setup_crtc(avivo, crtc, mode);
-
-#if 0
-    while (connector) {
-        /* FIXME: CRTC <-> Output association. */
-        output = connector->outputs;
-        while (output) {
-            avivo_enable_output(avivo, connector, output, crtc, 1);
-            output = output->next;
-        }
-        connector = connector->next;
-    }
-#else
-    output = avivo->connector_default->outputs;
-    while (output) {
-        avivo_enable_output(avivo, avivo->connector_default, output, crtc, 1);
-        output = output->next;
-    }
-#endif
-
-    return TRUE;
-}
-#endif
-
-/* Set a graphics mode */
-static Bool
-avivo_set_mode(ScrnInfoPtr screen_info, DisplayModePtr mode)
-{
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-
-    avivo_switch_mode(screen_info->scrnIndex, mode, 0);
-    screen_info->vtSema = TRUE;
-
-    return TRUE;
+    return xf86SetSingleMode (screen_info, mode, RR_Rotate_0);
 }
 
 static void
 avivo_adjust_frame(int index, int x, int y, int flags)
 {
+    ScrnInfoPtr screen_info = xf86Screens[index];
     struct avivo_info *avivo = avivo_get_info(xf86Screens[index]);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(screen_info);
+    xf86OutputPtr output = config->output[config->compat_output];
+    xf86CrtcPtr crtc = output->crtc;
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
 
-    OUTREG(AVIVO_CRTC1_OFFSET, (x << 16) | y);
+    if (crtc && crtc->enabled) {
+        OUTREG(AVIVO_CRTC1_OFFSET + avivo_crtc->crtc_offset, (x << 16) | y);
+        crtc->x = output->initial_x + x;
+        crtc->y = output->initial_y + y;
+    }
 }
 
 static void
@@ -1142,36 +715,9 @@ avivo_close_screen(int index, ScreenPtr screen)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
     struct avivo_info *avivo = avivo_get_info(screen_info);
-    Bool ret;
 
     avivo_restore_state(screen_info);
     
     screen->CloseScreen = avivo->close_screen;
     return screen->CloseScreen(index, screen);
-}
-
-static void
-avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags)
-{
-    struct avivo_info *avivo = avivo_get_info(screen_info);
-    struct avivo_crtc *crtc = avivo->crtcs;
-    struct avivo_connector *connector = avivo->connectors;
-    struct avivo_output *output;
-    int enable = (mode == DPMSModeOn);
-
-    if (!screen_info->vtSema)
-        return;
-#ifdef AVIVO_RR12
-#else
-    while (connector) {
-        output = connector->outputs;
-        while (output) {
-            avivo_enable_output(avivo, connector, output, crtc, enable);
-            output = output->next;
-        }
-        connector = connector->next;
-    }
-    /* FIXME: First CRTC hardcoded. */
-    avivo_enable_crtc(avivo, crtc, enable);
-#endif
 }
