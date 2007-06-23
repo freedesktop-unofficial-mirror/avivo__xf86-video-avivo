@@ -388,8 +388,11 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     }
 #endif
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-               "Control memory at %p, fb at %p\n", avivo->ctrl_addr,
-               avivo->fb_addr);
+               "Control memory at %p[size = %d, 0x%08X]\n",
+               avivo->ctrl_addr, avivo->ctrl_size, avivo->ctrl_size);
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "Frame buffer memory at %p[size = %d, 0x%08X]\n",
+               avivo->fb_addr, avivo->fb_size, avivo->fb_size);
 
     avivo_get_chipset(avivo);
     screen_info->chipset = "avivo";
@@ -451,12 +454,11 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 
 #ifdef WITH_VGAHW
     xf86LoadSubModule(screen_info, "vgahw");
-
     vgaHWGetHWRec (screen_info);
     vgaHWGetIOBase(VGAHWPTR(screen_info));
 #endif
-
-    xf86DrvMsg(screen_info->scrnIndex, X_INFO, "[ScreenPreInit OK]\n");
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "pre-initialization successfull\n");
     return TRUE;
 }
 
@@ -532,7 +534,8 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
            (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
     OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
     avivo_wait_idle(avivo);
-
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "setup GPU memory mapping\n");
     /* fb memory box */
 #if 0
     memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
@@ -546,13 +549,14 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
         return FALSE;
     }
 #endif
-
+    /* display width is the higher resolution from width & height */
     if (screen_info->virtualX > screen_info->displayWidth)
         screen_info->displayWidth = screen_info->virtualX;
-
+    /* display width * bpp need to be a multiple of 256 */
     screen_info->displayWidth = ceil(screen_info->displayWidth * avivo->bpp
 		    / 256.0) * 256 / avivo->bpp;
-
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "padded display width %d\n", screen_info->displayWidth);
     /* mi layer */
     miClearVisualTypes();
     if (!xf86SetDefaultVisual(screen_info, -1)) {
@@ -571,9 +575,8 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
                    "Couldn't set pixmap depth\n");
         return FALSE;
     }
-    ErrorF("scrninitparam: vx %d, vy %d, dw %d\n",
-           screen_info->virtualX, screen_info->virtualY,
-           screen_info->displayWidth);
+    ErrorF("VirtualX,Y %d, %d\n",
+           screen_info->virtualX, screen_info->virtualY);
     if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
                       screen_info->virtualX, screen_info->virtualY,
                       screen_info->xDpi, screen_info->yDpi,
@@ -644,7 +647,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
         return FALSE;
     }
 
-    xf86DrvMsg(screen_info->scrnIndex, X_INFO, "[ScreenInit OK]\n");
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO, "initialization successfull\n");
     return TRUE;
 }
 

@@ -63,6 +63,7 @@ avivo_i2c_put_bits(I2CBusPtr b, int Clock, int data)
 static void
 avivo_output_dpms(xf86OutputPtr output, int mode)
 {
+    ScrnInfoPtr screen_info = output->scrn;
     struct avivo_output_private *avivo_output = output->driver_private;
     struct avivo_info *avivo = avivo_get_info(output->scrn);
     int crtc = 0;
@@ -85,6 +86,10 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
             value1 = 0;
             value2 = 0;
             value3 = AVIVO_DAC_EN;
+            if (!avivo_output->output_offset)
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable DAC1\n");
+            else
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable DAC2\n");
             break;
         case DPMSModeStandby:
         case DPMSModeSuspend:
@@ -92,6 +97,10 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
             value1 = AVIVO_DAC_MYSTERY1_DIS;
             value2 = AVIVO_DAC_MYSTERY2_DIS;
             value3 = 0;
+            if (!avivo_output->output_offset)
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable DAC1\n");
+            else
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable DAC2\n");
             break;
         }
         if (output->crtc) {
@@ -119,6 +128,10 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
             if (avivo_output->number == 2)
                 value4 |= 0x00000020;
             value5 |= AVIVO_TMDS_EN;
+            if (!avivo_output->output_offset)
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable TMDS1\n");
+            else
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable TMDS2\n");
             break;
         case DPMSModeStandby:
         case DPMSModeSuspend:
@@ -126,6 +139,10 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
             value1 = 0x04000000;
             value2 = 0;
             value4 = 0x00060000;
+            if (!avivo_output->output_offset)
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable TMDS1\n");
+            else
+                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable TMDS2\n");
             break;
         }
         if (output->crtc) {
