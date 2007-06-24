@@ -320,7 +320,7 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
             break;
         }
     }
-    if (avivo_output->output_offset == XF86ConnectorLFP) {
+    if (avivo_output->type == XF86ConnectorLFP) {
         avivo_output->output_offset = AVIVO_TMDS2_CNTL - AVIVO_TMDS1_CNTL;
     }
 
