@@ -198,7 +198,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            + adjusted_mode->CrtcHDisplay);
     avivo_crtc->h_sync_wid = (adjusted_mode->CrtcHSyncEnd
                               - adjusted_mode->CrtcHSyncStart) << 16;
-    avivo_crtc->h_sync_pol = 0;
+    avivo_crtc->h_sync_pol = (adjusted_mode->Flags & V_NHSYNC) ? 1 : 0;
     avivo_crtc->v_total = adjusted_mode->CrtcVTotal - 1;
     avivo_crtc->v_blank =
         ((adjusted_mode->CrtcVTotal - adjusted_mode->CrtcVSyncStart) << 16)
@@ -206,6 +206,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            + adjusted_mode->CrtcVDisplay);
     avivo_crtc->v_sync_wid = (adjusted_mode->CrtcVSyncEnd
                               - adjusted_mode->CrtcVSyncStart) << 16;
+    avivo_crtc->v_sync_pol = (adjusted_mode->Flags & V_NVSYNC) ? 1 : 0;
     avivo_crtc->fb_width = adjusted_mode->CrtcHDisplay;
     avivo_crtc->fb_height = adjusted_mode->CrtcVDisplay;
     avivo_crtc->fb_pitch = adjusted_mode->CrtcHDisplay;
