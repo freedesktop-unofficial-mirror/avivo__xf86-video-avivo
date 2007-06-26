@@ -224,15 +224,17 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
         FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
     }
     xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
-               "crtc(%d) hdisp %d, htotal %d, hss %d, hse %d, hsk %d\n",
+               "crtc(%d) hdisp %d, htotal %d, hss %d, hse %d, hsk %d, hsp %d\n",
                avivo_crtc->crtc_number, adjusted_mode->CrtcHDisplay,
                adjusted_mode->CrtcHTotal, adjusted_mode->CrtcHSyncStart,
-               adjusted_mode->CrtcHSyncEnd, adjusted_mode->CrtcHSkew);
+               adjusted_mode->CrtcHSyncEnd, adjusted_mode->CrtcHSkew,
+               avivo_crtc->h_sync_pol);
     xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
-               "crtc(%d) vdisp %d, vtotal %d, vss %d, vse %d, vsc %d\n",
+               "crtc(%d) vdisp %d, vtotal %d, vss %d, vse %d, vsc %di, vsp %d\n",
                avivo_crtc->crtc_number, adjusted_mode->CrtcVDisplay,
                adjusted_mode->CrtcVTotal, adjusted_mode->CrtcVSyncStart,
-               adjusted_mode->CrtcVSyncEnd, adjusted_mode->VScan);
+               adjusted_mode->CrtcVSyncEnd, adjusted_mode->VScan,
+               avivo_crtc->v_sync_pol);
     /* TODO: find out what this regs truely are for.
      * last guess: Switch from text to graphics mode.
      */
