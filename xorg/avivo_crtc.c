@@ -242,7 +242,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
                adjusted_mode->CrtcHSyncEnd, adjusted_mode->CrtcHSkew,
                avivo_crtc->h_sync_pol);
     xf86DrvMsg(crtc->scrn->scrnIndex, X_INFO,
-               "crtc(%d) vdisp %d, vtotal %d, vss %d, vse %d, vsc %di, vsp %d\n",
+               "crtc(%d) vdisp %d, vtotal %d, vss %d, vse %d, vsc %d, vsp %d\n",
                avivo_crtc->crtc_number, adjusted_mode->CrtcVDisplay,
                adjusted_mode->CrtcVTotal, adjusted_mode->CrtcVSyncStart,
                adjusted_mode->CrtcVSyncEnd, adjusted_mode->VScan,
