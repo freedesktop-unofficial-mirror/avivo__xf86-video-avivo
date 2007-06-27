@@ -121,25 +121,37 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
     int adjusted_clock;
     int div, pdiv, pmul;
-    int n_pdiv, n_pmul;
+    int n_pdiv, n_pmul, n_div;
     int clock;
     int diff, n_diff;
 
-    /* compute pll to be 0.1% above of mode clock */
     adjusted_clock = mode->Clock;
-    div = 1080000 / adjusted_clock;
-    pdiv = 2;
-    pmul = floor(((40.0 * adjusted_clock * pdiv * div) / 1080000.0) + 0.5);
+    div = 8;
+    pdiv = 6;
+    pmul = floor(((40.0 * adjusted_clock * pdiv * div)
+                 / 1080000.0) + 0.5);
     clock = (pmul * 1080000) / (40 * pdiv * div);
     diff = clock - adjusted_clock;
     while (1) {
-        n_pdiv = pdiv + 1;
-        n_pmul = floor(((40.0 * adjusted_clock * n_pdiv * div) / 1080000.0)
+        if (pmul > 255) {
+            if (pdiv > 2) {
+                n_pdiv = pdiv - 1;
+                n_div = div;
+            } else {
+                n_pdiv = pdiv;
+                n_div = div - 1;
+            }
+        } else {
+            n_pdiv = pdiv;
+            n_div = div + 1;
+        }
+        n_pmul = floor(((40.0 * adjusted_clock * n_pdiv * n_div) / 1080000.0)
                        + 0.5);
-        clock = (n_pmul * 1080000) / (40 * n_pdiv * div);
+        clock = (n_pmul * 1080000) / (40 * n_pdiv * n_div);
         n_diff = clock - adjusted_clock;
-        if ((diff >= 0 && fabsl(n_diff) >= diff) || n_pmul >= 255)
+        if (diff >= 0 && fabsl(n_diff) >= diff && pmul <= 255)
             break;
+        div = n_div;
         pdiv = n_pdiv;
         pmul = n_pmul;
         diff = n_diff;

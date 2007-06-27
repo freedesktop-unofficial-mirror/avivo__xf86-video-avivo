@@ -3192,17 +3192,9 @@
  * (vclk is video mode clock)
  * vclk = (1080 * AVIVO_PLL_POST_MUL) /
  *        (AVIVO_PLL_DIVIDER * AVIVO_PLL_POST_DIV * 40)
- *             
- * So computation for register:
- *      PLL_DIVIDER = 1080 / (vclk)
- *      PLL_POST_DIV = 2
- *      PLL_POST_MUL = (40 * vclk * PLL_DIVIDER * PLL_POST_DIV) / (1080)
- * AVIVO_PLL_POST_MUL must be inferior to 255
- * Then you repeat this until you come to the nearest value:
- *      increment PLL_POST_MUL recompute PLL_POST_DIV
- *      if new video mode clock value is better keep on otherwise last
- *      previously found value should be the better.
- * Refclk appears to be 108MHz  1080000 / mode clock = this. 
+ * It seems that AVIVO_PLL_DIVIDER * AVIVO_PLL_POST_DIV needs to be
+ * above 40 and that AVIVO_DIVIDER should be greater than AVIVO_PLL_POST_DIV
+ * Try to keep this constraint while computing PLL values.
  */
 #define AVIVO_PLL1_POST_DIV_CNTL		0x0400
 #	define AVIVO_PLL_POST_DIV_EN			(1 << 0)
