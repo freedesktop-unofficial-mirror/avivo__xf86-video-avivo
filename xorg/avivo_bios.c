@@ -178,10 +178,12 @@ avivo_output_setup(ScrnInfoPtr screen_info)
             }
 
             switch (type) {
-            case XF86ConnectorVGA:
             case XF86ConnectorLFP:
+	    	number = 1;
+            case XF86ConnectorVGA:
             case XF86ConnectorDVI_I:
-                avivo_output_init(screen_info, type, number, ddc_reg);
+	    	if (!avivo_output_exist(screen_info, type, number, ddc_reg))
+                    avivo_output_init(screen_info, type, number, ddc_reg);
                 break;
             }
         }

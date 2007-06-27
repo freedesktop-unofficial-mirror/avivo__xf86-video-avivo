@@ -262,6 +262,29 @@ static const xf86OutputFuncsRec avivo_output_funcs = {
 };
 
 Bool
+avivo_output_exist(ScrnInfoPtr screen_info, xf86ConnectorType type,
+                  int number, unsigned long ddc_reg)
+{
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(screen_info);
+    int i;
+
+    for (i = 0; i < config->num_output; i++) {
+        xf86OutputPtr output = config->output[i];
+        struct avivo_output_private *avivo_output = output->driver_private;
+        if (avivo_output->number == number && avivo_output->type == type)
+            return TRUE;
+        /* TMDS2 is shared by LFP & DVI-I */
+        if (avivo_output->type == XF86ConnectorLFP && number == 1)
+            return TRUE;
+        if (type == XF86ConnectorLFP && avivo_output->number == 1) {
+            avivo_output->i2c->DriverPrivate.uval = ddc_reg;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+Bool
 avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
                   int number, unsigned long ddc_reg)
 {
