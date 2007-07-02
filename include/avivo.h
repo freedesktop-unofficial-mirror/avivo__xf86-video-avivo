@@ -235,12 +235,28 @@ Bool avivo_crtc_create(ScrnInfoPtr screen_info);
 /*
  * avivo output handling
  */
+Bool avivo_output_exist(ScrnInfoPtr screen_info, xf86ConnectorType type,
+		                  int number, unsigned long ddc_reg);
+
 Bool avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
                        int number, unsigned long ddc_reg);
+
+Bool avivo_output_setup(ScrnInfoPtr screen_info);
 
 /*
  * avivo cursor handling
  */
 void avivo_cursor_init(ScreenPtr screen);
+
+
+void avivo_wait_idle(struct avivo_info *avivo);
+
+void avivo_probe_monitor(ScrnInfoPtr screen_info);
+
+void avivo_restore_cursor(ScrnInfoPtr screen_info);
+
+void avivo_save_cursor(ScrnInfoPtr screen_info);
+
+void avivo_setup_cursor(struct avivo_info *avivo, int id, int enable);
 
 #endif /* _AVIVO_H_ */

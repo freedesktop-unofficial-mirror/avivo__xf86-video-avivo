@@ -39,6 +39,8 @@
 #include "cursorstr.h"
 #include "xf86Cursor.h"
 #include "xf86str.h"
+#include "xf86RandR12.h"
+#include "xf86fbman.h"
 
 #ifdef WITH_VGAHW
 #include "vgaHW.h"
@@ -149,9 +151,10 @@ avivo_map_ctrl_mem(ScrnInfoPtr screen_info)
 #endif
     if (!avivo->ctrl_base) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Couldn't map control memory at %p", avivo->ctrl_addr);
+                   "Couldn't map control memory at %p", (void *)avivo->ctrl_addr);
         return 0;
     }
+    return 1;
 }
 
 static int
@@ -172,7 +175,7 @@ avivo_map_fb_mem(ScrnInfoPtr screen_info)
 #endif
     if (!avivo->fb_base) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Couldn't map fb memory at %p", avivo->fb_addr);
+                   "Couldn't map fb memory at %p", (void *)avivo->fb_addr);
         return 0;
     }
     screen_info->memPhysBase = 0;
@@ -389,10 +392,10 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
 #endif
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "Control memory at %p[size = %d, 0x%08X]\n",
-               avivo->ctrl_addr, avivo->ctrl_size, avivo->ctrl_size);
+               (void *)avivo->ctrl_addr, avivo->ctrl_size, avivo->ctrl_size);
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "Frame buffer memory at %p[size = %d, 0x%08X]\n",
-               avivo->fb_addr, avivo->fb_size, avivo->fb_size);
+               (void *)avivo->fb_addr, avivo->fb_size, avivo->fb_size);
 
     avivo_get_chipset(avivo);
     screen_info->chipset = "avivo";

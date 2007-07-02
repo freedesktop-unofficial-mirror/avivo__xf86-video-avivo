@@ -55,7 +55,7 @@ avivo_save_cursor(ScrnInfoPtr screen_info)
     state->cursor1_position = INREG(AVIVO_CURSOR1_POSITION);
 }
 
-static void
+void
 avivo_restore_cursor(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);

@@ -81,10 +81,11 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
     {
         int value1, value2, value3;
 
+		value1 = 0;
+		value2 = 0;
+		value3 = 0;
         switch(mode) {
         case DPMSModeOn:
-            value1 = 0;
-            value2 = 0;
             value3 = AVIVO_DAC_EN;
             if (!avivo_output->output_offset)
                 xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable DAC1\n");
@@ -96,7 +97,6 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
         case DPMSModeOff:
             value1 = AVIVO_DAC_MYSTERY1_DIS;
             value2 = AVIVO_DAC_MYSTERY2_DIS;
-            value3 = 0;
             if (!avivo_output->output_offset)
                 xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable DAC1\n");
             else
@@ -118,7 +118,10 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
     {
         int value1, value2, value3, value4, value5;
 
+        value1 = 0;
+        value2 = 0;
         value3 = 0x10000011;
+        value4 = 0;
         value5 = 0x00001010;
         switch(mode) {
         case DPMSModeOn:
@@ -325,7 +328,7 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
                    "Couldn't initialise I2C bus for %s connector %d\n",
                    xf86ConnectorGetName(type), number);
-        return;
+        return FALSE;
     }
     avivo_output->type = type;
     avivo_output->number = number;
@@ -360,6 +363,8 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     output->interlaceAllowed = FALSE;
     output->doubleScanAllowed = FALSE;
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-               "added %s connector %d (0x%04X)\n",
+               "added %s connector %d (0x%04lX)\n",
                xf86ConnectorGetName(type), number, ddc_reg);
+
+	return TRUE;
 }

@@ -156,7 +156,7 @@ static void usage(void)
 void _i2c_set(unsigned long offset, unsigned int value)
 {
 	if (debug_i2c)
-		printf("OUTREG(0x%08X, 0x%08X);\n", offset, value);
+		printf("OUTREG(0x%08lX, 0x%08X);\n", offset, value);
 	SET_REG(offset, value);
 }
 
@@ -166,7 +166,7 @@ unsigned int _i2c_get(unsigned long offset)
 
 	value = GET_REG(offset);
 	if (debug_i2c)
-		printf("tmp = INREG(0x%08X);\t/* should get 0x%08X */\n",
+		printf("tmp = INREG(0x%08lX);\t/* should get 0x%08X */\n",
 		       offset, value);
 	return value;
 }

@@ -126,7 +126,7 @@ int
 avivo_output_clones(ScrnInfoPtr screen_info)
 {
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(screen_info);
-    int o, index_mask;
+    int o, index_mask = 0;
 
     for (o = 0; o < config->num_output; o++) {
 	    index_mask |= (1 << o);

@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "xf86i2c.h"
 
 #define I2C_TIMEOUT(x)	/*(x)*/  /* Report timeouts */
