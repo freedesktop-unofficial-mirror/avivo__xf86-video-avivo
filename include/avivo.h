@@ -39,9 +39,12 @@
 #include <pciaccess.h>
 #endif
 
-#define AVIVO_NAME      "Avivo-v0.2.90"
-#define AVIVO_DRIVER_NAME   "avivo-v0.2.90"
-#define AVIVO_DRIVER_VERSION    1000
+#define AVIVO_NAME              "avivo"
+#define AVIVO_DRIVER_NAME       "avivo"
+#define AVIVO_DRIVER_VERSION \
+    ((PACKAGE_VERSION_MAJOR << 20) | \
+     (PACKAGE_VERSION_MINOR << 10) | \
+     (PACKAGE_VERSION_PATCHLEVEL))
 
 #define RADEON_VBIOS_SIZE 0x00010000
 

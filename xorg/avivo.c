@@ -239,8 +239,8 @@ avivo_identify(int flags)
 void fill_in_screen(ScrnInfoPtr screen_info)
 {
     screen_info->driverVersion = AVIVO_DRIVER_VERSION;
-    screen_info->driverName = "avivo";
-    screen_info->name = "Avivo";
+    screen_info->driverName = AVIVO_DRIVER_NAME;
+    screen_info->name = AVIVO_NAME;
     screen_info->Probe = avivo_old_probe;
     screen_info->PreInit = avivo_preinit;
     screen_info->ScreenInit = avivo_screen_init;

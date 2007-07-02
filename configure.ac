@@ -22,7 +22,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT([xf86-video-avivo],
-        0.0.1,
+        0.0.999,
         [http://home.fooishbar.org/wiki/Avivo],
         xf86-video-avivo)
 
