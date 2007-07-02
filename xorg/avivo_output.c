@@ -167,6 +167,8 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
         OUTREG(AVIVO_TMDS1_CNTL + avivo_output->output_offset, value5);
         break;
     }
+    default:
+        break;
     }
 }
 
@@ -343,6 +345,8 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
         case XF86ConnectorDVI_D:
         case XF86ConnectorDVI_A:
             avivo_output->output_offset = AVIVO_TMDS2_CNTL - AVIVO_TMDS1_CNTL;
+            break;
+        default:
             break;
         }
     }

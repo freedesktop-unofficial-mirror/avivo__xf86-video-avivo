@@ -74,9 +74,6 @@ static void avivo_adjust_frame(int index, int x, int y, int flags);
 static void avivo_free_screen(int index, int flags);
 static void avivo_free_info(ScrnInfoPtr screen_info);
 
-static void avivo_dpms(ScrnInfoPtr screen_info, int mode, int flags);
-
-
 /* 
  * This contains the functions needed by the server after loading the
  * driver module.  It must be supplied, and gets added the driver list by
@@ -136,7 +133,6 @@ static int
 avivo_map_ctrl_mem(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
-    int i;
 
     if (avivo->ctrl_base)
         return 1;
@@ -161,7 +157,6 @@ static int
 avivo_map_fb_mem(ScrnInfoPtr screen_info)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
-    int i = 0;
 
     if (avivo->fb_base)
         return 0;
@@ -285,7 +280,6 @@ avivo_pci_probe(DriverPtr drv, int entity_num, struct pci_device *dev,
 static Bool
 avivo_old_probe(DriverPtr drv, int flags)
 {
-    struct avivo_info avivo;
     ScrnInfoPtr screen_info = NULL;
     GDevPtr *sections;
     Bool found_screen = FALSE;
@@ -344,12 +338,7 @@ avivo_free_info(ScrnInfoPtr screen_info)
 static Bool
 avivo_preinit(ScrnInfoPtr screen_info, int flags)
 {
-    xf86CrtcConfigPtr config;
     struct avivo_info *avivo;
-    DisplayModePtr mode;
-    ClockRangePtr clock_ranges;
-    xf86MonPtr monitor;
-    char *mod = NULL;
     int i;
     Gamma gzeros = { 0.0, 0.0, 0.0 };
     rgb rzeros = { 0, 0, 0 };
@@ -521,7 +510,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(screen_info);
     VisualPtr visual;
-    int flags, i;
+    int i;
     unsigned int mc_memory_map;
     unsigned int mc_memory_map_end;
 
@@ -532,7 +521,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     mc_memory_map_end = ((avivo->fb_addr + avivo->fb_size) >> 16) - 1;
     mc_memory_map |= (mc_memory_map_end << AVIVO_MC_MEMORY_MAP_END_SHIFT)
         & AVIVO_MC_MEMORY_MAP_END_MASK;
-    radeon_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, mc_memory_map);
+    avivo_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, mc_memory_map);
     OUTREG(AVIVO_VGA_MEMORY_BASE,
            (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
     OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
@@ -723,7 +712,9 @@ avivo_close_screen(int index, ScreenPtr screen)
     struct avivo_info *avivo = avivo_get_info(screen_info);
 
     avivo_restore_state(screen_info);
-    
+    avivo_unmap_ctrl_mem(screen_info);
+    avivo_unmap_fb_mem(screen_info);
+
     screen->CloseScreen = avivo->close_screen;
     return screen->CloseScreen(index, screen);
 }

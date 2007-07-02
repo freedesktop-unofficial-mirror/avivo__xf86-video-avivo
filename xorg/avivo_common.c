@@ -32,11 +32,11 @@
 #include "radeon_reg.h"
 
 void
-radeon_set_indexed(ScrnInfoPtr screen_info,
-                   unsigned int index_offset,
-                   unsigned int data_offset,
-                   unsigned int offset,
-                   unsigned int value)
+avivo_set_indexed(ScrnInfoPtr screen_info,
+                  unsigned int index_offset,
+                  unsigned int data_offset,
+                  unsigned int offset,
+                  unsigned int value)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
 
@@ -45,10 +45,10 @@ radeon_set_indexed(ScrnInfoPtr screen_info,
 }
 
 unsigned int
-radeon_get_indexed(ScrnInfoPtr screen_info,
-                   unsigned int index_offset,
-                   unsigned int data_offset,
-                   unsigned int offset)
+avivo_get_indexed(ScrnInfoPtr screen_info,
+                  unsigned int index_offset,
+                  unsigned int data_offset,
+                  unsigned int offset)
 {
     struct avivo_info *avivo = avivo_get_info(screen_info);
 
@@ -57,24 +57,24 @@ radeon_get_indexed(ScrnInfoPtr screen_info,
 }
 
 unsigned int
-radeon_get_mc(ScrnInfoPtr screen_info, unsigned int offset)
+avivo_get_mc(ScrnInfoPtr screen_info, unsigned int offset)
 {
-    return radeon_get_indexed(screen_info,
-                              AVIVO_MC_INDEX,
-                              AVIVO_MC_DATA,
-                              offset | 0x007f0000);
+    return avivo_get_indexed(screen_info,
+                             AVIVO_MC_INDEX,
+                             AVIVO_MC_DATA,
+                             offset | 0x007f0000);
 }
 
 void
-radeon_set_mc(ScrnInfoPtr screen_info,
-              unsigned int offset,
-              unsigned int value)
+avivo_set_mc(ScrnInfoPtr screen_info,
+             unsigned int offset,
+             unsigned int value)
 {
-    radeon_set_indexed(screen_info,
-                       AVIVO_MC_INDEX,
-                       AVIVO_MC_DATA,
-                       offset | 0x00ff0000,
-                       value);
+    avivo_set_indexed(screen_info,
+                      AVIVO_MC_INDEX,
+                      AVIVO_MC_DATA,
+                      offset | 0x00ff0000,
+                      value);
 }
 
 struct avivo_info *

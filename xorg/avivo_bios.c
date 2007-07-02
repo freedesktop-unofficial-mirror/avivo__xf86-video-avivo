@@ -185,6 +185,8 @@ avivo_output_setup(ScrnInfoPtr screen_info)
 	    	if (!avivo_output_exist(screen_info, type, number, ddc_reg))
                     avivo_output_init(screen_info, type, number, ddc_reg);
                 break;
+            default:
+                break;
             }
         }
     }

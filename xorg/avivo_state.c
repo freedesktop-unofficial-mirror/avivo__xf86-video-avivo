@@ -73,7 +73,7 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     struct avivo_state *state = &avivo->saved_state;
 
-    radeon_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, state->mc_memory_map);
+    avivo_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, state->mc_memory_map);
     OUTREG(AVIVO_VGA_MEMORY_BASE, state->vga_memory_base);
     OUTREG(AVIVO_VGA_FB_START, state->vga_fb_start);
     OUTREG(AVIVO_VGA_MYSTERY0, state->vga_mystery0);
@@ -198,7 +198,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
 
     avivo_save_cursor(screen_info);
 
-    state->mc_memory_map = radeon_get_mc(screen_info, AVIVO_MC_MEMORY_MAP);
+    state->mc_memory_map = avivo_get_mc(screen_info, AVIVO_MC_MEMORY_MAP);
     state->vga_memory_base = INREG(AVIVO_VGA_MEMORY_BASE);
     state->vga_fb_start = INREG(AVIVO_VGA_FB_START);
     state->vga_mystery0 = INREG(AVIVO_VGA_MYSTERY0);

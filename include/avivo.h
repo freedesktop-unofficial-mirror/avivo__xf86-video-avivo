@@ -39,8 +39,8 @@
 #include <pciaccess.h>
 #endif
 
-#define AVIVO_NAME		"Avivo-v0.2.90"
-#define AVIVO_DRIVER_NAME	"avivo-v0.2.90"
+#define AVIVO_NAME      "Avivo-v0.2.90"
+#define AVIVO_DRIVER_NAME   "avivo-v0.2.90"
 #define AVIVO_DRIVER_VERSION    1000
 
 #define RADEON_VBIOS_SIZE 0x00010000
@@ -195,8 +195,6 @@ struct avivo_info
     INT16 cursor_x, cursor_y;
 };
 
-int avivo_probe_info(ScrnInfoPtr screen_info);
-
 /*
  * avivo chipset
  */
@@ -205,27 +203,29 @@ void avivo_get_chipset(struct avivo_info *avivo);
 /*
  * avivo common functions
  */
-void radeon_set_indexed(ScrnInfoPtr screen_info,
-                        unsigned int index_offset,
-                        unsigned int data_offset,
-                        unsigned int offset,
-                        unsigned int value);
-unsigned int radeon_get_indexed(ScrnInfoPtr screen_info,
-                                unsigned int index_offset,
-                                unsigned int data_offset,
-                                unsigned int offset);
-unsigned int radeon_get_mc(ScrnInfoPtr screen_info, unsigned int offset);
-void radeon_set_mc(ScrnInfoPtr screen_info,
-                   unsigned int offset,
-                   unsigned int value);
+void avivo_set_indexed(ScrnInfoPtr screen_info,
+                       unsigned int index_offset,
+                       unsigned int data_offset,
+                       unsigned int offset,
+                       unsigned int value);
+unsigned int avivo_get_indexed(ScrnInfoPtr screen_info,
+                               unsigned int index_offset,
+                               unsigned int data_offset,
+                               unsigned int offset);
+unsigned int avivo_get_mc(ScrnInfoPtr screen_info, unsigned int offset);
+void avivo_set_mc(ScrnInfoPtr screen_info,
+                  unsigned int offset,
+                  unsigned int value);
 struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
-
 
 /*
  * avivo state handling
  */
+void avivo_wait_idle(struct avivo_info *avivo);
 void avivo_restore_state(ScrnInfoPtr screen_info);
 void avivo_save_state(ScrnInfoPtr screen_info);
+void avivo_restore_cursor(ScrnInfoPtr screen_info);
+void avivo_save_cursor(ScrnInfoPtr screen_info);
 
 /*
  * avivo crtc handling
@@ -236,7 +236,7 @@ Bool avivo_crtc_create(ScrnInfoPtr screen_info);
  * avivo output handling
  */
 Bool avivo_output_exist(ScrnInfoPtr screen_info, xf86ConnectorType type,
-		                  int number, unsigned long ddc_reg);
+                        int number, unsigned long ddc_reg);
 
 Bool avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
                        int number, unsigned long ddc_reg);
@@ -247,16 +247,6 @@ Bool avivo_output_setup(ScrnInfoPtr screen_info);
  * avivo cursor handling
  */
 void avivo_cursor_init(ScreenPtr screen);
-
-
-void avivo_wait_idle(struct avivo_info *avivo);
-
-void avivo_probe_monitor(ScrnInfoPtr screen_info);
-
-void avivo_restore_cursor(ScrnInfoPtr screen_info);
-
-void avivo_save_cursor(ScrnInfoPtr screen_info);
-
 void avivo_setup_cursor(struct avivo_info *avivo, int id, int enable);
 
 #endif /* _AVIVO_H_ */
