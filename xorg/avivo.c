@@ -530,8 +530,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     if (screen_info->virtualX > screen_info->displayWidth)
         screen_info->displayWidth = screen_info->virtualX;
     /* display width * bpp need to be a multiple of 256 */
-    screen_info->displayWidth = ceil(screen_info->displayWidth * avivo->bpp
-		    / 256.0) * 256 / avivo->bpp;
+    screen_info->displayWidth = (screen_info->displayWidth + 255) & (~0xFF);
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "padded display width %d\n", screen_info->displayWidth);
     /* mi layer */
