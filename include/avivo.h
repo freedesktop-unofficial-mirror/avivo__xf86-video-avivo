@@ -252,4 +252,9 @@ Bool avivo_output_setup(ScrnInfoPtr screen_info);
 void avivo_cursor_init(ScreenPtr screen);
 void avivo_setup_cursor(struct avivo_info *avivo, int id, int enable);
 
+/*
+ * avivo memory
+ */
+void avivo_setup_gpu_memory_map(ScrnInfoPtr screen_info);
+
 #endif /* _AVIVO_H_ */

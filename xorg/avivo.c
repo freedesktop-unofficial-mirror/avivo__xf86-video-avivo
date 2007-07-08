@@ -28,7 +28,6 @@
  * _doesn't have an allocator_.  Not much point since there's no
  * acceleration yet, anyway.
  */
-#define AVIVO_RR12 1
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -511,23 +510,9 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(screen_info);
     VisualPtr visual;
     int i;
-    unsigned int mc_memory_map;
-    unsigned int mc_memory_map_end;
 
     avivo_save_state(screen_info);
-
-    /* init gpu memory mapping */
-    mc_memory_map = (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK;
-    mc_memory_map_end = ((avivo->fb_addr + avivo->fb_size) >> 16) - 1;
-    mc_memory_map |= (mc_memory_map_end << AVIVO_MC_MEMORY_MAP_END_SHIFT)
-        & AVIVO_MC_MEMORY_MAP_END_MASK;
-    avivo_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, mc_memory_map);
-    OUTREG(AVIVO_VGA_MEMORY_BASE,
-           (avivo->fb_addr >> 16) & AVIVO_MC_MEMORY_MAP_BASE_MASK);
-    OUTREG(AVIVO_VGA_FB_START, avivo->fb_addr);
-    avivo_wait_idle(avivo);
-    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
-               "setup GPU memory mapping\n");
+    avivo_setup_gpu_memory_map(screen_info);
     /* fb memory box */
 #if 0
     memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
@@ -647,8 +632,15 @@ static Bool
 avivo_enter_vt(int index, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
+    vgaHWPtr vga_hw = VGAHWPTR(screen_info);
 
+#ifdef WITH_VGAHW
+    vgaHWUnlock(vga_hw);
+    vgaHWSave(screen_info, &vga_hw->SavedReg, VGA_SR_MODE | VGA_SR_FONTS);
+    vgaHWLock(vga_hw);
+#endif
     avivo_save_state(screen_info);
+    avivo_setup_gpu_memory_map(screen_info);
 
     screen_info->vtSema = TRUE;
     if (!xf86SetDesiredModes(screen_info))
@@ -662,8 +654,14 @@ static void
 avivo_leave_vt(int index, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
+    vgaHWPtr vga_hw = VGAHWPTR(screen_info);
 
     avivo_restore_state(screen_info);
+#ifdef WITH_VGAHW
+    vgaHWUnlock(vga_hw);
+    vgaHWRestore(screen_info, &vga_hw->SavedReg, VGA_SR_MODE | VGA_SR_FONTS);
+    vgaHWLock(vga_hw);
+#endif
 }
 
 static Bool
@@ -702,6 +700,11 @@ avivo_adjust_frame(int index, int x, int y, int flags)
 static void
 avivo_free_screen(int index, int flags)
 {
+    ScrnInfoPtr screen_info = xf86Screens[index];
+
+#ifdef WITH_VGAHW
+    vgaHWFreeHWRec(screen_info);
+#endif
     avivo_free_info(xf86Screens[index]);
 }
 
@@ -711,9 +714,15 @@ avivo_close_screen(int index, ScreenPtr screen)
     ScrnInfoPtr screen_info = xf86Screens[index];
     struct avivo_info *avivo = avivo_get_info(screen_info);
 
-    avivo_restore_state(screen_info);
+    if (screen_info->vtSema == TRUE) {
+        avivo_leave_vt(index, 0);
+    }
     avivo_unmap_ctrl_mem(screen_info);
     avivo_unmap_fb_mem(screen_info);
+#ifdef WITH_VGAHW
+    vgaHWUnmapMem(screen_info);
+#endif
+    screen_info->vtSema = FALSE;
 
     screen->CloseScreen = avivo->close_screen;
     return screen->CloseScreen(index, screen);

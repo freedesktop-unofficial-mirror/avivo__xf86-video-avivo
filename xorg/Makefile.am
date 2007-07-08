@@ -29,12 +29,13 @@ avivo_drv_la_LDFLAGS = -module -avoid-version
 avivo_drv_ladir = @moduledir@/drivers
 
 avivo_drv_la_SOURCES = \
-	 avivo_chipset.c \
-	 avivo_common.c \
-	 avivo_state.c \
-         avivo_bios.c \
-	 avivo_cursor.c \
-	 avivo_crtc.c \
-	 avivo_output.c \
-	 avivo_i2c.c \
-         avivo.c
+					   avivo_memory.c \
+					   avivo_chipset.c \
+					   avivo_common.c \
+					   avivo_state.c \
+					   avivo_bios.c \
+					   avivo_cursor.c \
+					   avivo_crtc.c \
+					   avivo_output.c \
+					   avivo_i2c.c \
+					   avivo.c
