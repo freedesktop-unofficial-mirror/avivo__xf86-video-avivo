@@ -82,7 +82,6 @@ avivo_crtc_dpms(xf86CrtcPtr crtc, int mode)
 static Bool
 avivo_crtc_lock(xf86CrtcPtr crtc)
 {
-    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
 
     /* wait idle */
@@ -315,6 +314,76 @@ avivo_crtc_commit(xf86CrtcPtr crtc)
         xf86_reload_cursors(crtc->scrn->pScreen);
 }
 
+static void *
+avivo_crtc_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
+{
+    ScrnInfoPtr screen_info = crtc->scrn;
+    ScreenPtr screen = screen_info->pScreen;
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+    unsigned long pitch;
+    unsigned long offset;
+    int align, size;
+
+    /* The XFree86 linear allocator operates in units of screen pixels. */
+    align = 256;
+    pitch = screen_info->displayWidth * avivo->bpp;
+    size = pitch * height;
+    size = (size + avivo->bpp - 1) / avivo->bpp;
+    align = (align + avivo->bpp - 1) / avivo->bpp;
+
+    assert(avivo_crtc->fb_rotate == NULL);
+    avivo_crtc->fb_rotate = avivo_xf86AllocateOffscreenLinear(screen, size,
+                                                              align, NULL,
+                                                              NULL, NULL);
+    if (avivo_crtc->fb_rotate == NULL) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't allocate shadow memory for rotated CRTC\n");
+        return NULL;
+    }
+    offset = avivo_crtc->fb_offset + avivo_crtc->fb_rotate->offset * avivo->bpp;
+    return avivo->fb_base + offset;
+}
+
+static PixmapPtr
+avivo_crtc_shadow_create(xf86CrtcPtr crtc, void *data, int width, int height)
+{
+    ScrnInfoPtr screen_info = crtc->scrn;
+    struct avivo_info *avivo = avivo_get_info(crtc->scrn);
+    unsigned long pitch;
+    PixmapPtr pixmap;
+
+    if (!data)
+        data = avivo_crtc_shadow_allocate(crtc, width, height);
+                            
+    pitch = screen_info->displayWidth * avivo->bpp;
+    pixmap = GetScratchPixmapHeader(screen_info->pScreen,
+                                    width, height,
+                                    screen_info->depth,
+                                    screen_info->bitsPerPixel,
+                                    pitch,
+                                    data);
+    if (pixmap == NULL) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "Couldn't allocate shadow pixmap for rotated CRTC\n");
+    }
+    return pixmap;
+}
+
+static void
+avivo_crtc_shadow_destroy(xf86CrtcPtr crtc, PixmapPtr pixmap, void *data)
+{
+    struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
+
+    if (pixmap)
+        FreeScratchPixmapHeader(pixmap);
+
+    if (data) {
+        xf86FreeOffscreenLinear(avivo_crtc->fb_rotate);
+        avivo_crtc->fb_rotate = NULL;
+    }
+}
+
 static void
 avivo_crtc_set_cursor_colors(xf86CrtcPtr crtc, int bg, int fg)
 {
@@ -387,9 +456,9 @@ static const xf86CrtcFuncsRec avivo_crtc_funcs = {
     .mode_set = avivo_crtc_mode_set,
     .commit = avivo_crtc_commit,
     .gamma_set = NULL,
-    .shadow_create = NULL,
-    .shadow_allocate = NULL,
-    .shadow_destroy = NULL,
+    .shadow_create = avivo_crtc_shadow_create,
+    .shadow_allocate = avivo_crtc_shadow_allocate,
+    .shadow_destroy = avivo_crtc_shadow_destroy,
     .set_cursor_colors = avivo_crtc_set_cursor_colors,
     .set_cursor_position = avivo_crtc_set_cursor_position,
     .show_cursor = avivo_crtc_show_cursor,
@@ -404,12 +473,12 @@ avivo_crtc_init(ScrnInfoPtr screen_info, int crtc_number)
 {
     xf86CrtcPtr crtc;
     struct avivo_crtc_private *avivo_crtc;
-    struct avivo_info *avivo = avivo_get_info(screen_info);
 
     /* allocate & initialize private crtc structure */
     avivo_crtc = xcalloc (sizeof(struct avivo_crtc_private), 1);
     if (avivo_crtc == NULL)
         return FALSE;
+    avivo_crtc->fb_rotate = NULL;
     avivo_crtc->crtc_number = crtc_number;
     avivo_crtc->fb_offset = 0;
     avivo_crtc->cursor_offset = 0;

@@ -513,8 +513,12 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
 
     avivo_save_state(screen_info);
     avivo_setup_gpu_memory_map(screen_info);
+    /* display width is the higher resolution from width & height */
+    if (screen_info->virtualX > screen_info->displayWidth)
+        screen_info->displayWidth = screen_info->virtualX;
+    /* display width * bpp need to be a multiple of 256 */
+    screen_info->displayWidth = (screen_info->displayWidth + 255) & (~0xFF);
     /* fb memory box */
-#if 0
     memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
     avivo->fb_memory_box.x1 = 0;
     avivo->fb_memory_box.x2 = screen_info->displayWidth;
@@ -525,12 +529,6 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
                    "Couldn't init fb manager\n");
         return FALSE;
     }
-#endif
-    /* display width is the higher resolution from width & height */
-    if (screen_info->virtualX > screen_info->displayWidth)
-        screen_info->displayWidth = screen_info->virtualX;
-    /* display width * bpp need to be a multiple of 256 */
-    screen_info->displayWidth = (screen_info->displayWidth + 255) & (~0xFF);
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "padded display width %d\n", screen_info->displayWidth);
     /* mi layer */

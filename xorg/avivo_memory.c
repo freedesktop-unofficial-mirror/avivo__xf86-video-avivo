@@ -45,3 +45,30 @@ avivo_setup_gpu_memory_map(ScrnInfoPtr screen_info)
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "setup GPU memory mapping\n");
 }
+
+FBLinearPtr
+avivo_xf86AllocateOffscreenLinear(ScreenPtr screen, int length,
+                                  int granularity,
+                                  MoveLinearCallbackProcPtr moveCB,
+                                  RemoveLinearCallbackProcPtr removeCB,
+                                  pointer priv_data)
+{
+    FBLinearPtr linear;
+    int max_size;
+
+    linear = xf86AllocateOffscreenLinear(screen, length, granularity, moveCB,
+                                         removeCB, priv_data);
+    if (linear != NULL)
+        return linear;
+
+    /* The above allocation didn't succeed, so purge unlocked stuff and try
+     * again.
+     */
+    xf86QueryLargestOffscreenLinear(screen, &max_size, granularity,
+                                    PRIORITY_EXTREME);
+    if (max_size < length)
+        return NULL;
+    xf86PurgeUnlockedOffscreenAreas(screen);
+    return xf86AllocateOffscreenLinear(screen, length, granularity, moveCB,
+                                       removeCB, priv_data);
+}

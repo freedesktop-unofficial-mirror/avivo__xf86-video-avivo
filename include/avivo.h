@@ -30,6 +30,7 @@
 #include "xf86_OSproc.h"
 #include "xf86Resources.h"
 #include "xf86RAC.h"
+#include "xf86fbman.h"
 #include "compiler.h"
 #include "fb.h"
 
@@ -52,6 +53,7 @@
 #define OUTREG(x, y) MMIO_OUT32(avivo->ctrl_base, x, y)
 
 struct avivo_crtc_private {
+    FBLinearPtr       fb_rotate;
     int               crtc_number;
     unsigned long     crtc_offset;
     INT16             cursor_x;
@@ -256,5 +258,10 @@ void avivo_setup_cursor(struct avivo_info *avivo, int id, int enable);
  * avivo memory
  */
 void avivo_setup_gpu_memory_map(ScrnInfoPtr screen_info);
+FBLinearPtr avivo_xf86AllocateOffscreenLinear(ScreenPtr screen, int length,
+        int granularity,
+        MoveLinearCallbackProcPtr moveCB,
+        RemoveLinearCallbackProcPtr removeCB,
+        pointer priv_data);
 
 #endif /* _AVIVO_H_ */
