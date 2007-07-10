@@ -272,7 +272,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     OUTREG(AVIVO_CRTC1_FB_HEIGHT + avivo_crtc->crtc_offset,
            avivo_crtc->fb_height);
     OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE + avivo_crtc->crtc_offset,
-           (avivo_crtc->fb_width << 16) | avivo_crtc->fb_height);
+           (mode->HDisplay << 16) | mode->VDisplay);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL + avivo_crtc->crtc_offset,
            AVIVO_CRTC_EXPANSION_EN);
     OUTREG(AVIVO_CRTC1_659C + avivo_crtc->crtc_offset, AVIVO_CRTC1_659C_VALUE);

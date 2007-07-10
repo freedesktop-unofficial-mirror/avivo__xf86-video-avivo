@@ -200,18 +200,16 @@ avivo_output_lfp_mode_fixup(xf86OutputPtr output,
     struct avivo_info *avivo = avivo_get_info(output->scrn);
 
     if (avivo->lfp_fixed_mode) {
-        adjusted_mode->HDisplay = mode->HDisplay;
+        adjusted_mode->HDisplay = avivo->lfp_fixed_mode->HDisplay;
         adjusted_mode->HSyncStart = avivo->lfp_fixed_mode->HSyncStart;
         adjusted_mode->HSyncEnd = avivo->lfp_fixed_mode->HSyncEnd;
         adjusted_mode->HTotal = avivo->lfp_fixed_mode->HTotal;
-        adjusted_mode->VDisplay = mode->VDisplay;
+        adjusted_mode->VDisplay = avivo->lfp_fixed_mode->VDisplay;
         adjusted_mode->VSyncStart = avivo->lfp_fixed_mode->VSyncStart;
         adjusted_mode->VSyncEnd = avivo->lfp_fixed_mode->VSyncEnd;
         adjusted_mode->VTotal = avivo->lfp_fixed_mode->VTotal;
         adjusted_mode->Clock = avivo->lfp_fixed_mode->Clock;
-
-        adjusted_mode->HDisplay = avivo->lfp_fixed_mode->HDisplay;
-        adjusted_mode->VDisplay = avivo->lfp_fixed_mode->VDisplay;
+        xf86SetModeCrtc(adjusted_mode, 0);
     }
     return TRUE;
 }
