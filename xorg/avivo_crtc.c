@@ -33,10 +33,10 @@
 #include "radeon_reg.h"
 
 static Bool
-avivo_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
+avivo_xf86crtc_resize(ScrnInfoPtr screen_info, int width, int height)
 {
-    scrn->virtualX = width;
-    scrn->virtualY = height;
+    screen_info->virtualX = width;
+    screen_info->virtualY = height;
     return TRUE;
 }
 
@@ -195,6 +195,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
                    DisplayModePtr adjusted_mode,
                    int x, int y)
 {
+    ScrnInfoPtr screen_info = crtc->scrn;
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
     unsigned long fb_location = avivo_crtc->fb_offset + avivo->fb_addr;
@@ -219,7 +220,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
                               - adjusted_mode->CrtcVSyncStart) << 16;
     avivo_crtc->v_sync_pol = (adjusted_mode->Flags & V_NVSYNC) ? 1 : 0;
     avivo_crtc->fb_width = adjusted_mode->CrtcHDisplay;
-    avivo_crtc->fb_height = adjusted_mode->CrtcVDisplay;
+    avivo_crtc->fb_height = screen_info->virtualY;
     avivo_crtc->fb_pitch = adjusted_mode->CrtcHDisplay;
     avivo_crtc->fb_offset = 0;
     avivo_crtc->fb_length = avivo_crtc->fb_pitch * avivo_crtc->fb_height * 4;
@@ -261,6 +262,14 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            fb_location + avivo_crtc->fb_length);
     OUTREG(AVIVO_CRTC1_MODE + avivo_crtc->crtc_offset, 0);
     OUTREG(AVIVO_CRTC1_60c0_MYSTERY + avivo_crtc->crtc_offset, 0);
+    /* avivo can only shift offset by 4 pixel in x if you program somethings
+     * not multiple of 4 you gonna drive the GPU crazy and likely won't
+     * be able to restore it without cold reboot (vbe post not enough)
+     */
+    x = x & ~3;
+    OUTREG(AVIVO_CRTC1_OFFSET_END + avivo_crtc->crtc_offset,
+           ((mode->HDisplay + x -128) << 16) | (mode->VDisplay + y - 128));
+    OUTREG(AVIVO_CRTC1_OFFSET_START + avivo_crtc->crtc_offset, (x << 16) | y);
 
     /* set PLL TODO: there is likely PLL registers we miss for having
      * different PLL for each CRTC for instance.
@@ -275,13 +284,13 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            (mode->HDisplay << 16) | mode->VDisplay);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL + avivo_crtc->crtc_offset,
            AVIVO_CRTC_EXPANSION_EN);
+    OUTREG(AVIVO_CRTC1_6594 + avivo_crtc->crtc_offset, AVIVO_CRTC1_6594_VALUE);
     OUTREG(AVIVO_CRTC1_659C + avivo_crtc->crtc_offset, AVIVO_CRTC1_659C_VALUE);
     OUTREG(AVIVO_CRTC1_65A8 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65A8_VALUE);
     OUTREG(AVIVO_CRTC1_65AC + avivo_crtc->crtc_offset, AVIVO_CRTC1_65AC_VALUE);
     OUTREG(AVIVO_CRTC1_65B8 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65B8_VALUE);
     OUTREG(AVIVO_CRTC1_65BC + avivo_crtc->crtc_offset, AVIVO_CRTC1_65BC_VALUE);
     OUTREG(AVIVO_CRTC1_65C8 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65C8_VALUE);
-    OUTREG(AVIVO_CRTC1_6594 + avivo_crtc->crtc_offset, AVIVO_CRTC1_6594_VALUE);
     OUTREG(AVIVO_CRTC1_65A4 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65A4_VALUE);
     OUTREG(AVIVO_CRTC1_65B0 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65B0_VALUE);
     OUTREG(AVIVO_CRTC1_65C0 + avivo_crtc->crtc_offset, AVIVO_CRTC1_65C0_VALUE);

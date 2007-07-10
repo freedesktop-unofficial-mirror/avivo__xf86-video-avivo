@@ -670,8 +670,15 @@ avivo_adjust_frame(int index, int x, int y, int flags)
     xf86CrtcPtr crtc = output->crtc;
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
 
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+               "adjust frame: %d %d %d %d\n", index, x, y, flags);
     if (crtc && crtc->enabled) {
-        OUTREG(AVIVO_CRTC1_OFFSET + avivo_crtc->crtc_offset, (x << 16) | y);
+        x = x & ~3;
+        OUTREG(AVIVO_CRTC1_OFFSET_START + avivo_crtc->crtc_offset,
+               (x << 16) | y);
+        OUTREG(AVIVO_CRTC1_OFFSET_END + avivo_crtc->crtc_offset,
+            ((crtc->mode.HDisplay + x - 128) << 16) |
+            (crtc->mode.HDisplay + y -128));
         crtc->x = output->initial_x + x;
         crtc->y = output->initial_y + y;
     }

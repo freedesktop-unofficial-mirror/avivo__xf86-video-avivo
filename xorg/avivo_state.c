@@ -124,7 +124,8 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_X_LENGTH, state->crtc1_x_length);
     OUTREG(AVIVO_CRTC1_Y_LENGTH, state->crtc1_y_length);
     OUTREG(AVIVO_CRTC1_FB_HEIGHT, state->crtc1_fb_height);
-    OUTREG(AVIVO_CRTC1_OFFSET, state->crtc1_offset);
+    OUTREG(AVIVO_CRTC1_OFFSET_START, state->crtc1_offset_start);
+    OUTREG(AVIVO_CRTC1_OFFSET_END, state->crtc1_offset_end);
     OUTREG(AVIVO_CRTC1_EXPANSION_SOURCE, state->crtc1_expn_size);
     OUTREG(AVIVO_CRTC1_EXPANSION_CNTL, state->crtc1_expn_cntl);
     OUTREG(AVIVO_CRTC1_6594, state->crtc1_6594);
@@ -241,7 +242,8 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_x_length = INREG(AVIVO_CRTC1_X_LENGTH);
     state->crtc1_y_length = INREG(AVIVO_CRTC1_Y_LENGTH);
     state->crtc1_fb_height = INREG(AVIVO_CRTC1_FB_HEIGHT);
-    state->crtc1_offset = INREG(AVIVO_CRTC1_OFFSET);
+    state->crtc1_offset_start = INREG(AVIVO_CRTC1_OFFSET_START);
+    state->crtc1_offset_end = INREG(AVIVO_CRTC1_OFFSET_END);
     state->crtc1_expn_size = INREG(AVIVO_CRTC1_EXPANSION_SOURCE);
     state->crtc1_expn_cntl = INREG(AVIVO_CRTC1_EXPANSION_CNTL);
     state->crtc1_6594 = INREG(AVIVO_CRTC1_6594);
