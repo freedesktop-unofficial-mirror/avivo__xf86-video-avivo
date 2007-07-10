@@ -193,6 +193,8 @@ struct avivo_info
     Bool (*close_screen)(int, ScreenPtr);
     OptionInfoPtr options;
 
+    DisplayModePtr lfp_fixed_mode;
+
     unsigned long cursor_offset;
     int cursor_format, cursor_fg, cursor_bg;
     int cursor_width, cursor_height;

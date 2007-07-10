@@ -192,6 +192,30 @@ avivo_output_mode_fixup(xf86OutputPtr output,
     return TRUE;
 }
 
+static Bool
+avivo_output_lfp_mode_fixup(xf86OutputPtr output,
+                            DisplayModePtr mode,
+                            DisplayModePtr adjusted_mode)
+{
+    struct avivo_info *avivo = avivo_get_info(output->scrn);
+
+    if (avivo->lfp_fixed_mode) {
+        adjusted_mode->HDisplay = mode->HDisplay;
+        adjusted_mode->HSyncStart = avivo->lfp_fixed_mode->HSyncStart;
+        adjusted_mode->HSyncEnd = avivo->lfp_fixed_mode->HSyncEnd;
+        adjusted_mode->HTotal = avivo->lfp_fixed_mode->HTotal;
+        adjusted_mode->VDisplay = mode->VDisplay;
+        adjusted_mode->VSyncStart = avivo->lfp_fixed_mode->VSyncStart;
+        adjusted_mode->VSyncEnd = avivo->lfp_fixed_mode->VSyncEnd;
+        adjusted_mode->VTotal = avivo->lfp_fixed_mode->VTotal;
+        adjusted_mode->Clock = avivo->lfp_fixed_mode->Clock;
+
+        adjusted_mode->HDisplay = avivo->lfp_fixed_mode->HDisplay;
+        adjusted_mode->VDisplay = avivo->lfp_fixed_mode->VDisplay;
+    }
+    return TRUE;
+}
+
 static void
 avivo_output_prepare(xf86OutputPtr output)
 {
@@ -240,6 +264,18 @@ avivo_output_get_modes(xf86OutputPtr output)
     return modes;
 }
 
+DisplayModePtr
+avivo_output_lfp_get_modes(xf86OutputPtr output)
+{
+    struct avivo_info *avivo = avivo_get_info(output->scrn);
+    DisplayModePtr modes;
+   
+    modes = avivo_output_get_modes(output);
+    xf86DeleteMode(&avivo->lfp_fixed_mode, avivo->lfp_fixed_mode);
+    avivo->lfp_fixed_mode = xf86DuplicateMode(modes);
+    return modes;
+}
+
 static void
 avivo_output_destroy(xf86OutputPtr output)
 {
@@ -263,6 +299,20 @@ static const xf86OutputFuncsRec avivo_output_funcs = {
     .commit = avivo_output_commit,
     .detect = avivo_output_detect,
     .get_modes = avivo_output_get_modes,
+    .destroy = avivo_output_destroy
+};
+
+static const xf86OutputFuncsRec avivo_output_lfp_funcs = {
+    .dpms = avivo_output_dpms,
+    .save = NULL,
+    .restore = NULL,
+    .mode_valid = avivo_output_mode_valid,
+    .mode_fixup = avivo_output_lfp_mode_fixup,
+    .prepare = avivo_output_prepare,
+    .mode_set = avivo_output_mode_set,
+    .commit = avivo_output_commit,
+    .detect = avivo_output_detect,
+    .get_modes = avivo_output_lfp_get_modes,
     .destroy = avivo_output_destroy
 };
 
@@ -353,12 +403,17 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     }
     if (avivo_output->type == XF86ConnectorLFP) {
         avivo_output->output_offset = AVIVO_TMDS2_CNTL - AVIVO_TMDS1_CNTL;
+        /* allocate & initialize xf86Output */
+        output = xf86OutputCreate (screen_info,
+                                   &avivo_output_lfp_funcs,
+                                   xf86ConnectorGetName(type));
+    } else {
+        /* allocate & initialize xf86Output */
+        output = xf86OutputCreate (screen_info,
+                                   &avivo_output_funcs,
+                                   xf86ConnectorGetName(type));
     }
 
-    /* allocate & initialize xf86Output */
-    output = xf86OutputCreate (screen_info,
-                               &avivo_output_funcs,
-                               xf86ConnectorGetName(type));
     if (output == NULL) {
         xf86DestroyI2CBusRec(avivo_output->i2c, TRUE, TRUE);
         xfree(avivo_output);
