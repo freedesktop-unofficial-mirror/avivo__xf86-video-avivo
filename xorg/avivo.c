@@ -465,44 +465,6 @@ avivo_save_screen(ScreenPtr screen, int mode)
 }
 
 static Bool
-avivo_init_fb_manager(ScreenPtr screen,  BoxPtr fb_box)
-{
-    ScrnInfoPtr screen_info = xf86Screens[screen->myNum];
-    RegionRec screen_region;
-    RegionRec full_region;
-    BoxRec screen_box;
-    Bool ret;
-
-    screen_box.x1 = 0;
-    screen_box.y1 = 0;
-    screen_box.x2 = screen_info->displayWidth;
-    if (screen_info->virtualX > screen_info->virtualY)
-        screen_box.y2 = screen_info->virtualX;
-    else
-        screen_box.y2 = screen_info->virtualY;
-
-    if((fb_box->x1 >  screen_box.x1) || (fb_box->y1 >  screen_box.y1) ||
-       (fb_box->x2 <  screen_box.x2) || (fb_box->y2 <  screen_box.y2)) {
-        return FALSE;   
-    }
-
-    if (fb_box->y2 < fb_box->y1) return FALSE;
-    if (fb_box->x2 < fb_box->x2) return FALSE;
-
-    REGION_INIT(screen, &screen_region, &screen_box, 1); 
-    REGION_INIT(screen, &full_region, fb_box, 1); 
-
-    REGION_SUBTRACT(screen, &full_region, &full_region, &screen_region);
-
-    ret = xf86InitFBManagerRegion(screen, &full_region);
-
-    REGION_UNINIT(screen, &screen_region);
-    REGION_UNINIT(screen, &full_region);
-    
-    return ret;
-}
-    
-static Bool
 avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
@@ -518,17 +480,6 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
         screen_info->displayWidth = screen_info->virtualX;
     /* display width * bpp need to be a multiple of 256 */
     screen_info->displayWidth = (screen_info->displayWidth + 255) & (~0xFF);
-    /* fb memory box */
-    memset(&avivo->fb_memory_box, 0, sizeof(avivo->fb_memory_box));
-    avivo->fb_memory_box.x1 = 0;
-    avivo->fb_memory_box.x2 = screen_info->displayWidth;
-    avivo->fb_memory_box.y1 = 0;
-    avivo->fb_memory_box.y2 = screen_info->virtualY;
-    if (!avivo_init_fb_manager(screen, &avivo->fb_memory_box)) {
-        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
-                   "Couldn't init fb manager\n");
-        return FALSE;
-    }
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "padded display width %d\n", screen_info->displayWidth);
     /* mi layer */
