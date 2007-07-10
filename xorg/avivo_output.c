@@ -279,9 +279,10 @@ avivo_output_exist(ScrnInfoPtr screen_info, xf86ConnectorType type,
         if (avivo_output->number == number && avivo_output->type == type)
             return TRUE;
         /* TMDS2 is shared by LFP & DVI-I */
-        if (avivo_output->type == XF86ConnectorLFP && number == 1)
+        if (avivo_output->type == XF86ConnectorLFP && number >= 1)
             return TRUE;
-        if (type == XF86ConnectorLFP && avivo_output->number == 1) {
+        if (type == XF86ConnectorLFP && avivo_output->number >= 1) {
+            avivo_output->type = type;
             avivo_output->i2c->DriverPrivate.uval = ddc_reg;
             return TRUE;
         }
@@ -335,7 +336,7 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     avivo_output->type = type;
     avivo_output->number = number;
     avivo_output->output_offset = 0;
-    if (number >= 2) {
+    if (number >= 1) {
         switch (avivo_output->type) {
         case XF86ConnectorVGA:
             avivo_output->output_offset = AVIVO_DAC2_CNTL - AVIVO_DAC1_CNTL;
