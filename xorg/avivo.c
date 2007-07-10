@@ -342,20 +342,33 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     Gamma gzeros = { 0.0, 0.0, 0.0 };
     rgb rzeros = { 0, 0, 0 };
 
+    /* for time being no force option so we refuse to initialize on
+     * unprobed hw
+     */
     if (flags & PROBE_DETECT)
         return FALSE;
 
+    /* load sub module needed by avivo */
     if (!xf86LoadSubModule(screen_info, "fb"))
         FatalError("Couldn't load fb\n");
     if (!xf86LoadSubModule(screen_info, "ramdac"))
         FatalError("Couldn't load ramdac\n");
 
+#ifdef WITH_VGAHW
+    /* vga hw support enabled, use vga to restore state on VT switch */
+    xf86LoadSubModule(screen_info, "vgahw");
+    vgaHWGetHWRec (screen_info);
+    vgaHWGetIOBase(VGAHWPTR(screen_info));
+#endif
+
+    /* initialize private structure */
     avivo = avivo_get_info(screen_info);
     avivo->entity = xf86GetEntityInfo(screen_info->entityList[0]);
     avivo->device = xf86GetDevFromEntity(screen_info->entityList[0],
                                          screen_info->entityInstanceList[0]);
 
 #ifndef PCIACCESS
+    /* get PCI informations */
     avivo->pci_info = xf86GetPciInfoForEntity(avivo->entity->index);
     avivo->pci_tag = pciTag(avivo->pci_info->bus, avivo->pci_info->device,
                             avivo->pci_info->func);
@@ -368,7 +381,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
             avivo_map_ctrl_mem(screen_info);
         }
     }
-
     for (i = 0; i < 6; i++) {
         if (avivo->pci_info->size[i] >= 26) {
             avivo->fb_addr = avivo->pci_info->memBase[i] & 0xfe000000;
@@ -385,10 +397,14 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
                "Frame buffer memory at %p[size = %d, 0x%08X]\n",
                (void *)avivo->fb_addr, avivo->fb_size, avivo->fb_size);
 
+    /* now we got PCI informations we can check which chipset family we
+     * have to deal with
+     */
     avivo_get_chipset(avivo);
     screen_info->chipset = "avivo";
     screen_info->monitor = screen_info->confScreen->monitor;
 
+    /* set screen color depth */
     if (!xf86SetDepthBpp(screen_info, 0, 0, 0, Support32bppFb))
         return FALSE;
     xf86PrintDepthBpp(screen_info);
@@ -403,19 +419,6 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     default:
         FatalError("Unsupported screen depth: %d\n", xf86GetDepth());
     }
-    /* color weight */
-    if (!xf86SetWeight(screen_info, rzeros, rzeros))
-        return FALSE;
-    /* visual init */
-    if (!xf86SetDefaultVisual(screen_info, -1))
-        return FALSE;
-    /* TODO: gamma correction */
-    xf86SetGamma(screen_info, gzeros);
-    /* Set display resolution */
-    xf86SetDpi(screen_info, 100, 100);
-
-    if (!avivo_crtc_create(screen_info))
-        return FALSE;
 
     /* options */
     xf86CollectOptions(screen_info, NULL);
@@ -426,6 +429,9 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     xf86ProcessOptions(screen_info->scrnIndex, screen_info->options,
                        avivo->options);
 
+    /* create crtrc & output */
+    if (!avivo_crtc_create(screen_info))
+        return FALSE;
     avivo_output_setup(screen_info);
     if (!xf86InitialConfiguration(screen_info, FALSE)) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR, "No valid modes.\n");
@@ -443,11 +449,17 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     }
     screen_info->currentMode = screen_info->modes;
 
-#ifdef WITH_VGAHW
-    xf86LoadSubModule(screen_info, "vgahw");
-    vgaHWGetHWRec (screen_info);
-    vgaHWGetIOBase(VGAHWPTR(screen_info));
-#endif
+    /* color weight */
+    if (!xf86SetWeight(screen_info, rzeros, rzeros))
+        return FALSE;
+    /* visual init */
+    if (!xf86SetDefaultVisual(screen_info, -1))
+        return FALSE;
+    /* TODO: gamma correction */
+    xf86SetGamma(screen_info, gzeros);
+    /* Set display resolution */
+    xf86SetDpi(screen_info, 100, 100);
+
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "pre-initialization successfull\n");
     return TRUE;
