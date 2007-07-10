@@ -485,6 +485,25 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     VisualPtr visual;
     int i;
 
+
+#ifndef PCIACCESS
+    /* Map MMIO space first, then the framebuffer. */
+    for (i = 0; i < 6; i++) {
+        if (avivo->pci_info->size[i] == 15 || avivo->pci_info->size[i] == 16) {
+            avivo->ctrl_addr = avivo->pci_info->memBase[i] & 0xffffff00;
+            avivo->ctrl_size = (1 << avivo->pci_info->size[i]);
+            avivo_map_ctrl_mem(screen_info);
+        }
+    }
+    for (i = 0; i < 6; i++) {
+        if (avivo->pci_info->size[i] >= 26) {
+            avivo->fb_addr = avivo->pci_info->memBase[i] & 0xfe000000;
+            avivo->fb_size = INREG(RADEON_CONFIG_MEMSIZE);
+            screen_info->videoRam = avivo->fb_size / 1024;
+            avivo_map_fb_mem(screen_info);
+        }
+    }
+#endif
     avivo_save_state(screen_info);
     avivo_setup_gpu_memory_map(screen_info);
     /* display width is the higher resolution from width & height */
@@ -635,8 +654,9 @@ avivo_switch_mode(int index, DisplayModePtr mode, int flags)
                mode->HSkew);
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "      vdisp %d, vtotal %d, vss %d, vse %d, vsc %d\n",
-               mode->VDisplay, mode->VTotal, mode->VSyncStart, mode->VSyncEnd,               mode->VScan);
-
+               mode->VDisplay, mode->VTotal, mode->VSyncStart, mode->VSyncEnd, 
+               mode->VScan);
+ 
     return xf86SetSingleMode (screen_info, mode, RR_Rotate_0);
 }
 
@@ -662,6 +682,7 @@ avivo_free_screen(int index, int flags)
 {
     ScrnInfoPtr screen_info = xf86Screens[index];
 
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO, "free screen\n");
 #ifdef WITH_VGAHW
     vgaHWFreeHWRec(screen_info);
 #endif
@@ -674,6 +695,7 @@ avivo_close_screen(int index, ScreenPtr screen)
     ScrnInfoPtr screen_info = xf86Screens[index];
     struct avivo_info *avivo = avivo_get_info(screen_info);
 
+    xf86DrvMsg(screen_info->scrnIndex, X_INFO, "close screen\n");
     if (screen_info->vtSema == TRUE) {
         avivo_leave_vt(index, 0);
     }
