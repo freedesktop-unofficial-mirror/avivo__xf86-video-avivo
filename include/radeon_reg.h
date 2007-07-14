@@ -3254,7 +3254,8 @@
 #define AVIVO_CRTC1_SCAN_ENABLE				0x6100
 #	define AVIVO_CRTC_SCAN_EN					(1 << 0)
 #define AVIVO_CRTC1_FB_FORMAT				0x6104
-#	define AVIVO_CRTC_FORMAT_ARGB16				(1 << 0)
+#	define AVIVO_CRTC_FORMAT_ARGB15				(1 << 0)
+#	define AVIVO_CRTC_FORMAT_ARGB16				((1 << 0) | (1 << 8))
 #	define AVIVO_CRTC_FORMAT_ARGB32				(1 << 1)
 #define AVIVO_CRTC1_FB_LOCATION				0x6110
 #define AVIVO_CRTC1_FB_END					0x6118

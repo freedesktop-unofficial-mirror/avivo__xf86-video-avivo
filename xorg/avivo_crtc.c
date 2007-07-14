@@ -224,7 +224,10 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     avivo_crtc->fb_pitch = adjusted_mode->CrtcHDisplay;
     avivo_crtc->fb_offset = 0;
     avivo_crtc->fb_length = avivo_crtc->fb_pitch * avivo_crtc->fb_height * 4;
-    switch (crtc->scrn->depth) {
+    switch (crtc->scrn->bitsPerPixel) {
+    case 15:
+        avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB15;
+        break;
     case 16:
         avivo_crtc->fb_format = AVIVO_CRTC_FORMAT_ARGB16;
         break;
