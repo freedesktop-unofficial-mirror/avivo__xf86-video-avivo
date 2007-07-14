@@ -187,6 +187,11 @@ struct avivo_info
     int master_data;
     int is_atom_bios;
     int bpp;
+
+    Bool fb_use_shadow;
+    void *fb_shadow;
+    Bool (*create_screen_resources)(ScreenPtr);
+
     unsigned long ctrl_addr, fb_addr;
     int ctrl_size, fb_size;
     void *ctrl_base, *fb_base;

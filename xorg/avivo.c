@@ -40,6 +40,7 @@
 #include "xf86str.h"
 #include "xf86RandR12.h"
 #include "xf86fbman.h"
+#include "shadow.h"
 
 #ifdef WITH_VGAHW
 #include "vgaHW.h"
@@ -99,11 +100,22 @@ _X_EXPORT DriverRec avivo_driver = {
 
 enum avivo_option_type {
     OPTION_LAYOUT,
+    OPTION_SHADOW_FB,
 };
 
 static const OptionInfoRec avivo_options[] = {
     { OPTION_LAYOUT,       "MonitorLayout",     OPTV_STRING,    { 0 },  FALSE },
+    { OPTION_SHADOW_FB,    "ShadowFB",         OPTV_BOOLEAN,    { 0 },  FALSE },
     { -1,                  NULL,                OPTV_NONE,      { 0 },  FALSE }
+};
+
+static const char *shadow_symboles[] = {
+    "shadowAdd",
+    "shadowInit",
+    "shadowSetup",
+    "shadowUpdatePacked",
+    "shadowUpdatePackedWeak",
+    NULL
 };
 
 /* Module loader interface */
@@ -213,6 +225,7 @@ avivo_setup(pointer module, pointer options, int *err_major, int *err_minor)
     if (!inited) {
         inited = TRUE;
         xf86AddDriver(&avivo_driver, module, 1);
+        LoaderRefSymLists(shadow_symboles, NULL);
         return (pointer) TRUE;
     }
 
@@ -428,6 +441,9 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     memcpy(avivo->options, avivo_options, sizeof(avivo_options));
     xf86ProcessOptions(screen_info->scrnIndex, screen_info->options,
                        avivo->options);
+    /* use shadow framebuffer by default */
+    avivo->fb_use_shadow = xf86ReturnOptValBool(avivo->options,
+                                                OPTION_SHADOW_FB, TRUE);
 
     /* create crtrc & output */
     if (!avivo_crtc_create(screen_info))
@@ -460,6 +476,15 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
     /* Set display resolution */
     xf86SetDpi(screen_info, 100, 100);
 
+    /* load shadow if needed */
+    if (avivo->fb_use_shadow) {
+        xf86DrvMsg(screen_info->scrnIndex, X_INFO,
+                   "using shadow framebuffer\n");
+        if (!xf86LoadSubModule(screen_info, "shadow"))
+            return FALSE;
+        xf86LoaderReqSymLists(shadow_symboles, NULL);
+    }
+
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "pre-initialization successfull\n");
     return TRUE;
@@ -476,6 +501,63 @@ avivo_save_screen(ScreenPtr screen, int mode)
     return TRUE;
 }
 
+static void *
+avivo_window_linear(ScreenPtr screen, CARD32 row, CARD32 offset, int mode,
+                    CARD32 *size, void *closure)
+{
+    ScrnInfoPtr screen_info = xf86Screens[screen->myNum];
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    int stride;
+#if 0
+    if (!screen_info->vtSema)
+        return NULL;
+#endif
+    stride = (screen_info->displayWidth * screen_info->bitsPerPixel) / 8;
+    *size = stride;
+
+    return ((CARD8 *)avivo->fb_base + screen_info->fbOffset +
+            row * stride + offset);
+}
+
+static Bool
+avivo_create_screen_resources(ScreenPtr screen)
+{
+    PixmapPtr pixmap;
+    ScrnInfoPtr screen_info = xf86Screens[screen->myNum];
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    Bool ret;
+
+    screen->CreateScreenResources = avivo->create_screen_resources;
+    ret = screen->CreateScreenResources(screen);
+    screen->CreateScreenResources = avivo_create_screen_resources;
+    if (!ret)
+        return FALSE;
+
+    pixmap = screen->GetScreenPixmap(screen);
+
+    if (!shadowAdd(screen, pixmap, shadowUpdatePackedWeak(),
+                   avivo_window_linear, 0, NULL))
+        return FALSE;
+
+    return TRUE;
+}
+
+static Bool
+avivo_shadow_init(ScreenPtr screen)
+{
+    ScrnInfoPtr screen_info = xf86Screens[screen->myNum];
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+     
+    if (!shadowSetup(screen)) {
+        return FALSE;
+    }
+     
+    avivo->create_screen_resources = screen->CreateScreenResources;
+    screen->CreateScreenResources = avivo_create_screen_resources;
+     
+    return TRUE;
+}
+
 static Bool
 avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
 {
@@ -483,6 +565,7 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     struct avivo_info *avivo = avivo_get_info(screen_info);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(screen_info);
     VisualPtr visual;
+    void *fbstart;
     int i;
 
 
@@ -531,9 +614,23 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
                    "Couldn't set pixmap depth\n");
         return FALSE;
     }
+    if (avivo->fb_use_shadow) {
+        avivo->fb_shadow = xcalloc(1,
+                                   screen_info->virtualX *
+                                   screen_info->virtualY *
+                                   screen_info->bitsPerPixel / 8);
+        if (avivo->fb_shadow == NULL) {
+            xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                       "Failed to allocate shadow framebuffer\n");
+            return FALSE;
+        }
+        fbstart = avivo->fb_shadow;
+    } else {
+        fbstart = avivo->fb_base + screen_info->fbOffset;
+    }
     ErrorF("VirtualX,Y %d, %d\n",
            screen_info->virtualX, screen_info->virtualY);
-    if (!fbScreenInit(screen, avivo->fb_base + screen_info->fbOffset,
+    if (!fbScreenInit(screen, fbstart,
                       screen_info->virtualX, screen_info->virtualY,
                       screen_info->xDpi, screen_info->yDpi,
                       screen_info->displayWidth, screen_info->bitsPerPixel)) {
@@ -556,6 +653,12 @@ avivo_screen_init(int index, ScreenPtr screen, int argc, char **argv)
     /* must be after RGB ordering fixed */
     fbPictureInit(screen, 0, 0);
     xf86SetBlackWhitePixels(screen);
+
+    if (avivo->fb_use_shadow && !avivo_shadow_init(screen)) {
+        xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
+                   "shadow framebuffer initialization failed\n");
+        return FALSE;
+    }
 
     for (i = 0; i < xf86_config->num_crtc; i++) {
         xf86CrtcPtr crtc = xf86_config->crtc[i];
@@ -712,6 +815,11 @@ avivo_close_screen(int index, ScreenPtr screen)
     vgaHWUnmapMem(screen_info);
 #endif
     screen_info->vtSema = FALSE;
+
+    if (avivo->fb_shadow) {
+        xfree(avivo->fb_shadow);
+        avivo->fb_shadow = NULL;
+    }
 
     screen->CloseScreen = avivo->close_screen;
     return screen->CloseScreen(index, screen);
