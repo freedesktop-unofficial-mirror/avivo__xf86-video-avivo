@@ -147,6 +147,8 @@ static void usage(void)
     printf("                              or 'mmap' to get it from memory\n");
     printf("         output <output> <enable|disable> - turns the specified\n");
     printf("                                            output on or off\n");
+    printf("         i2c-monitor        - do something\n");
+    printf("         i2c-monitor <gpio_in> <gpio_out> - do something\n");
     exit(-1);
 }
 
@@ -306,8 +308,11 @@ void radeon_i2c(void)
 	printf("\n");
 }
 
-#define GPIO_IN  0x7E5C
-#define GPIO_OUT 0x7E58
+#define DEFAULT_GPIO_IN  0x7E5C
+#define DEFAULT_GPIO_OUT 0x7E58
+
+static int GPIO_IN;
+static int GPIO_OUT;
 
 static void AVIVOI2CGetBits(I2CBusPtr b, int *Clock, int *data)
 {
@@ -331,14 +336,18 @@ static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
     val = GET_REG(GPIO_OUT);
 }
 
-
-void radeon_i2c_monitor(void)
+void radeon_i2c_monitor(int gpio_in, int gpio_out)
 {
     I2CBusPtr i2cbus;
 	I2CByte wbuf[64];
 	I2CByte rbuf[64];
     int i;
     I2CDevPtr dev;
+
+    GPIO_IN = gpio_in;
+    GPIO_OUT = gpio_out;
+
+    printf("GPIO_IN = 0x%X, GPIO_OUT = 0x%X\n", GPIO_IN, GPIO_OUT);
 
     i2cbus = xf86CreateI2CBusRec();
     if (!i2cbus) {
@@ -379,6 +388,10 @@ void radeon_i2c_monitor(void)
     printf("\n");
 }
 
+void radeon_i2c_monitor_default(void)
+{
+    radeon_i2c_monitor(DEFAULT_GPIO_IN, DEFAULT_GPIO_OUT);
+}
 
 void radeon_output_set(char *output, char *status)
 {
@@ -1741,7 +1754,7 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[1], "i2c-monitor") == 0) {
-            radeon_i2c_monitor();
+            radeon_i2c_monitor_default();
             return 0;
         }
     }
@@ -1774,6 +1787,20 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[1], "output") == 0) {
             radeon_output_set(argv[2], argv[3]);
+            return 0;
+        }
+        if (strcmp(argv[1], "i2c-monitor") == 0) {
+            int gpioin = strtol(argv[2], (char **)NULL, 16);
+            int gpioout = strtol(argv[3], (char **)NULL, 16);
+            if (gpioin < 0) {
+                fprintf(stderr, "GPIO_IN address < 0\n");
+                return 1;
+            }
+            if (gpioout < 0) {
+                fprintf(stderr, "GPIO_OUT address < 0\n");
+                return 1;
+            }
+            radeon_i2c_monitor(gpioin, gpioout);
             return 0;
         }
     }
