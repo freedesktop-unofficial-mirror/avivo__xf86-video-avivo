@@ -327,7 +327,8 @@ static void AVIVOI2CGetBits(I2CBusPtr b, int *Clock, int *data)
         *Clock = (val & (1<<18)) != 0;
         *data  = (val & (1<<19)) != 0;
     }
-    printf("IN 0x%08X -> clock = %d, data = %d\n", val, *Clock, *data);
+    if (debug_i2c)
+        printf("IN 0x%08lX -> clock = %d, data = %d\n", val, *Clock, *data);
 }
 
 static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
@@ -342,10 +343,55 @@ static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
         val |= (Clock ? 0:(1<<18));
         val |= (data ? 0:(1<<19));
     }
-    printf("OUT 0x%08X (Clock = %d, data = %d)\n", val, Clock, data);
+    if (debug_i2c)
+        printf("OUT 0x%08lX (Clock = %d, data = %d)\n", val, Clock, data);
     SET_REG(GPIO_OUT, val);
     /* read back to improve reliability on some cards. */
     val = GET_REG(GPIO_OUT);
+}
+
+void i2c_initialize(void)
+{
+    int tmp;
+
+    tmp = GET_REG(GPIO_OUT - 0x8);
+    SET_REG(GPIO_OUT - 0x8, tmp);
+    tmp = GET_REG(GPIO_OUT - 0x8) | 0x101;
+    SET_REG(GPIO_OUT - 0x8, tmp);
+    tmp = GET_REG(GPIO_OUT) & (~0x100);
+    SET_REG(GPIO_OUT, tmp);
+    tmp = GET_REG(GPIO_OUT) & (~0x101);
+    SET_REG(GPIO_OUT, 0x0);
+    tmp = GET_REG(GPIO_OUT - 0x4) & (~0x100);
+    SET_REG(GPIO_OUT - 0x4, tmp);
+    tmp = GET_REG(GPIO_OUT - 0x4) & (~0x101);
+    SET_REG(GPIO_OUT - 0x4, 0x0);
+    tmp = GET_REG(GPIO_OUT) & (~0x100);
+    SET_REG(GPIO_OUT, tmp);
+    tmp = GET_REG(GPIO_OUT) & (~0x101);
+    SET_REG(GPIO_OUT, 0x0);
+}
+
+void i2c_initialize_7e30(void)
+{
+    int tmp;
+
+    tmp = GET_REG(GPIO_OUT - 0x8);
+    SET_REG(GPIO_OUT - 0x8, tmp);
+    tmp = GET_REG(GPIO_OUT - 0x8) | 0xC0000;
+    SET_REG(GPIO_OUT - 0x8, tmp);
+    tmp = GET_REG(GPIO_OUT) & (~0x80000);
+    SET_REG(GPIO_OUT, tmp);
+    tmp = GET_REG(GPIO_OUT) & (~0xC0000);
+    SET_REG(GPIO_OUT, 0x0);
+    tmp = GET_REG(GPIO_OUT - 0x4) & (~0x80000);
+    SET_REG(GPIO_OUT - 0x4, tmp);
+    tmp = GET_REG(GPIO_OUT - 0x4) & (~0xC0000);
+    SET_REG(GPIO_OUT - 0x4, 0x0);
+    tmp = GET_REG(GPIO_OUT) & (~0x80000);
+    SET_REG(GPIO_OUT, tmp);
+    tmp = GET_REG(GPIO_OUT) & (~0xC0000);
+    SET_REG(GPIO_OUT, 0x0);
 }
 
 void radeon_i2c_monitor(int gpio_in, int gpio_out)
@@ -360,7 +406,11 @@ void radeon_i2c_monitor(int gpio_in, int gpio_out)
     GPIO_OUT = gpio_out;
 
     printf("GPIO_IN = 0x%X, GPIO_OUT = 0x%X\n", GPIO_IN, GPIO_OUT);
-
+    if (GPIO_IN != 0x7E3C) {
+        i2c_initialize();
+    } else {
+        i2c_initialize_7e30();
+    }
     i2cbus = xf86CreateI2CBusRec();
     if (!i2cbus) {
         return;
