@@ -324,9 +324,10 @@ static void AVIVOI2CGetBits(I2CBusPtr b, int *Clock, int *data)
         *Clock = (val & (1<<0)) != 0;
         *data  = (val & (1<<8)) != 0;
     } else {
-        *Clock = (val & (1<<2)) != 0;
-        *data  = (val & (1<<3)) != 0;
+        *Clock = (val & (1<<18)) != 0;
+        *data  = (val & (1<<19)) != 0;
     }
+    printf("IN 0x%08X -> clock = %d, data = %d\n",  *Clock, *data);
 }
 
 static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
@@ -338,9 +339,10 @@ static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
         val |= (Clock ? 0:(1<<0));
         val |= (data ? 0:(1<<8));
     } else {
-        val |= (Clock ? 0:(1<<2));
-        val |= (data ? 0:(1<<3));
+        val |= (Clock ? 0:(1<<18));
+        val |= (data ? 0:(1<<19));
     }
+    printf("OUT 0x%08X (Clock = %d, data = %d)\n", val, Clock, data);
     SET_REG(GPIO_OUT, val);
     /* read back to improve reliability on some cards. */
     val = GET_REG(GPIO_OUT);
