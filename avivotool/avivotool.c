@@ -327,7 +327,7 @@ static void AVIVOI2CGetBits(I2CBusPtr b, int *Clock, int *data)
         *Clock = (val & (1<<18)) != 0;
         *data  = (val & (1<<19)) != 0;
     }
-    printf("IN 0x%08X -> clock = %d, data = %d\n",  *Clock, *data);
+    printf("IN 0x%08X -> clock = %d, data = %d\n", val, *Clock, *data);
 }
 
 static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
