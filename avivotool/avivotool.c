@@ -294,8 +294,8 @@ void _i2c_write_read(unsigned char *write_buf, int num_write,
 void radeon_i2c(void)
 {
 	int i, j;
-	unsigned char wbuf[64];
-	unsigned char rbuf[64];
+	unsigned char wbuf[128];
+	unsigned char rbuf[128];
 	unsigned int rsize = 15;
 
 	for (i = 0; i < 1; i++) {
@@ -339,9 +339,9 @@ static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
 void radeon_i2c_monitor(int gpio_in, int gpio_out)
 {
     I2CBusPtr i2cbus;
-	I2CByte wbuf[64];
-	I2CByte rbuf[64];
-    int i;
+	I2CByte wbuf[128];
+	I2CByte rbuf[128];
+    int i, j;
     I2CDevPtr dev;
 
     GPIO_IN = gpio_in;
@@ -381,9 +381,12 @@ void radeon_i2c_monitor(int gpio_in, int gpio_out)
     }
 
     wbuf[0] = 0x0;
-    xf86I2CWriteRead(dev, wbuf, 1, rbuf, 12);
-    for (i=0; i < 12; i++) {
-        printf("%02X", rbuf[i]);
+    xf86I2CWriteRead(dev, wbuf, 1, rbuf, 128);
+    for (j=0; j < 8; j++) {
+        for (i=0; i < 16; i++) {
+            printf("%02X", rbuf[i + j * 16]);
+        }
+        printf("\n");
     }
     printf("\n");
 }
