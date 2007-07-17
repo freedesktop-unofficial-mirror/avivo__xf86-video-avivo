@@ -184,7 +184,7 @@ struct avivo_info
 #endif
     unsigned char *vbios;
     int rom_header;
-    int master_data;
+    int master_offset;
     int is_atom_bios;
     int bpp;
 
@@ -231,6 +231,11 @@ void avivo_set_mc(ScrnInfoPtr screen_info,
 struct avivo_info *avivo_get_info(ScrnInfoPtr screen_info);
 
 /*
+ * avivo bios functions
+ */
+DisplayModePtr avivo_bios_get_lfp_timing(ScrnInfoPtr screen_info);
+
+/*
  * avivo state handling
  */
 void avivo_wait_idle(struct avivo_info *avivo);
@@ -249,11 +254,18 @@ Bool avivo_crtc_create(ScrnInfoPtr screen_info);
  */
 Bool avivo_output_exist(ScrnInfoPtr screen_info, xf86ConnectorType type,
                         int number, unsigned long ddc_reg);
-
 Bool avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
                        int number, unsigned long ddc_reg);
-
 Bool avivo_output_setup(ScrnInfoPtr screen_info);
+DisplayModePtr avivo_output_get_modes(xf86OutputPtr output);
+
+/*
+ * avivo lfp output handling
+ */
+Bool avivo_output_lfp_mode_fixup(xf86OutputPtr output,
+                                 DisplayModePtr mode,
+                                 DisplayModePtr adjusted_mode);
+DisplayModePtr avivo_output_lfp_get_modes(xf86OutputPtr output);
 
 /*
  * avivo cursor handling

@@ -192,28 +192,6 @@ avivo_output_mode_fixup(xf86OutputPtr output,
     return TRUE;
 }
 
-static Bool
-avivo_output_lfp_mode_fixup(xf86OutputPtr output,
-                            DisplayModePtr mode,
-                            DisplayModePtr adjusted_mode)
-{
-    struct avivo_info *avivo = avivo_get_info(output->scrn);
-
-    if (avivo->lfp_fixed_mode) {
-        adjusted_mode->HDisplay = avivo->lfp_fixed_mode->HDisplay;
-        adjusted_mode->HSyncStart = avivo->lfp_fixed_mode->HSyncStart;
-        adjusted_mode->HSyncEnd = avivo->lfp_fixed_mode->HSyncEnd;
-        adjusted_mode->HTotal = avivo->lfp_fixed_mode->HTotal;
-        adjusted_mode->VDisplay = avivo->lfp_fixed_mode->VDisplay;
-        adjusted_mode->VSyncStart = avivo->lfp_fixed_mode->VSyncStart;
-        adjusted_mode->VSyncEnd = avivo->lfp_fixed_mode->VSyncEnd;
-        adjusted_mode->VTotal = avivo->lfp_fixed_mode->VTotal;
-        adjusted_mode->Clock = avivo->lfp_fixed_mode->Clock;
-        xf86SetModeCrtc(adjusted_mode, 0);
-    }
-    return TRUE;
-}
-
 static void
 avivo_output_prepare(xf86OutputPtr output)
 {
@@ -259,18 +237,6 @@ avivo_output_get_modes(xf86OutputPtr output)
     edid_mon = xf86OutputGetEDID(output, avivo_output->i2c);
     xf86OutputSetEDID(output, edid_mon);
     modes = xf86OutputGetEDIDModes(output);
-    return modes;
-}
-
-DisplayModePtr
-avivo_output_lfp_get_modes(xf86OutputPtr output)
-{
-    struct avivo_info *avivo = avivo_get_info(output->scrn);
-    DisplayModePtr modes;
-   
-    modes = avivo_output_get_modes(output);
-    xf86DeleteMode(&avivo->lfp_fixed_mode, avivo->lfp_fixed_mode);
-    avivo->lfp_fixed_mode = xf86DuplicateMode(modes);
     return modes;
 }
 

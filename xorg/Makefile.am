@@ -37,5 +37,6 @@ avivo_drv_la_SOURCES = \
 					   avivo_cursor.c \
 					   avivo_crtc.c \
 					   avivo_output.c \
+					   avivo_output_lfp.c \
 					   avivo_i2c.c \
 					   avivo.c
