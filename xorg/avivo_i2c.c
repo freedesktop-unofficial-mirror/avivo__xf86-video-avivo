@@ -28,3 +28,59 @@
 #include "avivo.h"
 #include "radeon_reg.h"
 #include <stdint.h>
+
+void
+avivo_i2c_gpio0_get_bits(I2CBusPtr b, int *Clock, int *data)
+{
+    ScrnInfoPtr screen_info = xf86Screens[b->scrnIndex]; 
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    unsigned long  val;
+
+    /* Get the result */
+    val = INREG(b->DriverPrivate.uval + 0xC);
+    *Clock = (val & (1<<19)) != 0;
+    *data  = (val & (1<<18)) != 0;
+}
+
+void 
+avivo_i2c_gpio0_put_bits(I2CBusPtr b, int Clock, int data)
+{
+    ScrnInfoPtr screen_info = xf86Screens[b->scrnIndex]; 
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    unsigned long  val;
+
+    val = 0;
+    val |= (Clock ? 0:(1<<19));
+    val |= (data ? 0:(1<<18));
+    OUTREG(b->DriverPrivate.uval + 0x8, val);
+    /* read back to improve reliability on some cards. */
+    val = INREG(b->DriverPrivate.uval + 0x8);
+}
+
+void
+avivo_i2c_gpio123_get_bits(I2CBusPtr b, int *Clock, int *data)
+{
+    ScrnInfoPtr screen_info = xf86Screens[b->scrnIndex]; 
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    unsigned long  val;
+
+    /* Get the result */
+    val = INREG(b->DriverPrivate.uval + 0xC);
+    *Clock = (val & (1<<0)) != 0;
+    *data  = (val & (1<<8)) != 0;
+}
+
+void 
+avivo_i2c_gpio123_put_bits(I2CBusPtr b, int Clock, int data)
+{
+    ScrnInfoPtr screen_info = xf86Screens[b->scrnIndex]; 
+    struct avivo_info *avivo = avivo_get_info(screen_info);
+    unsigned long  val;
+
+    val = 0;
+    val |= (Clock ? 0:(1<<0));
+    val |= (data ? 0:(1<<8));
+    OUTREG(b->DriverPrivate.uval + 0x8, val);
+    /* read back to improve reliability on some cards. */
+    val = INREG(b->DriverPrivate.uval + 0x8);
+}
