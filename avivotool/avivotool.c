@@ -1588,6 +1588,7 @@ static void radeon_rom_atom_connectors(unsigned char *bios, int master)
 
     for (i = 0; i < 8; i++) {
         if (tmp & (1 << i)) {
+            int gpio;
             int portinfo = BIOS16(offset + 6 + i * 2);
 
             crtc = (portinfo >> 8) & 0xf;
@@ -1596,16 +1597,17 @@ static void radeon_rom_atom_connectors(unsigned char *bios, int master)
 
             tmp0 = BIOS16(master + 24);
             if (1 /* crtc */) {
-                int gpio = BIOS16(tmp0 + 4 + 27 * crtc) * 4;
+                gpio = BIOS16(tmp0 + 4 + 27 * crtc) * 4;
                 switch(gpio)
                 {
                 case RADEON_GPIO_MONID: ddc = 1; break;
                 case RADEON_GPIO_DVI_DDC: ddc = 2; break;
                 case RADEON_GPIO_VGA_DDC: ddc = 3; break;
                 case RADEON_GPIO_CRT2_DDC: ddc = 4; break;
-                case AVIVO_GPIO_CONNECTOR_0: ddc = 5; break;
-                case AVIVO_GPIO_CONNECTOR_1: ddc = 6; break;
-                case AVIVO_GPIO_LVDS: ddc = 7; break;
+                case AVIVO_GPIO_0: ddc = 7; break;
+                case AVIVO_GPIO_1: ddc = 5; break;
+                case AVIVO_GPIO_2: ddc = 6; break;
+                case AVIVO_GPIO_3: ddc = 7; break;
                 default: ddc = 0; break;
                 }
             }
@@ -1619,6 +1621,7 @@ static void radeon_rom_atom_connectors(unsigned char *bios, int master)
             /* On AVIVO cards, the DAC is unset for TMDS */
             if (dac >= 0 || (i != 3 && i != 7))
                 printf(", DAC: %s", radeon_valname(ldac_type_name, dac));
+            printf(", GPIO: 0x%04X", gpio);
             if (i == 3)
                 printf(" TMDS: Internal\n");
             else if (i == 7)

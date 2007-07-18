@@ -3390,9 +3390,10 @@
 #	define AVIVO_LVDS_BACKLIGHT_LEVEL_SHIFT		8
 
 /* The BIOS says so, anyway ... */
-#define AVIVO_GPIO_CONNECTOR_0				0x7e40
-#define AVIVO_GPIO_CONNECTOR_1				0x7e50
-#define AVIVO_GPIO_LVDS						0x7e60
+#define AVIVO_GPIO_0                        0x7e30
+#define AVIVO_GPIO_1                        0x7e40
+#define AVIVO_GPIO_2                        0x7e50
+#define AVIVO_GPIO_3                        0x7e60
 
 #define AVIVO_TMDS_STATUS					0x7e9c
 #	define AVIVO_TMDS1_CONNECTED				(1 << 0)

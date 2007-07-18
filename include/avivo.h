@@ -69,6 +69,7 @@ struct avivo_crtc_private {
 struct avivo_output_private {
     xf86ConnectorType type;
     I2CBusPtr         i2c;
+    unsigned long     gpio;
     unsigned long     output_offset;
     int               number;
     char              *name;
@@ -282,5 +283,13 @@ FBLinearPtr avivo_xf86AllocateOffscreenLinear(ScreenPtr screen, int length,
         MoveLinearCallbackProcPtr moveCB,
         RemoveLinearCallbackProcPtr removeCB,
         pointer priv_data);
+
+/*
+ * avivo i2c 
+ */
+void avivo_i2c_gpio0_get_bits(I2CBusPtr b, int *Clock, int *data);
+void avivo_i2c_gpio0_put_bits(I2CBusPtr b, int Clock, int data);
+void avivo_i2c_gpio123_get_bits(I2CBusPtr b, int *Clock, int *data);
+void avivo_i2c_gpio123_put_bits(I2CBusPtr b, int Clock, int data);
 
 #endif /* _AVIVO_H_ */
