@@ -324,8 +324,8 @@ static void AVIVOI2CGetBits(I2CBusPtr b, int *Clock, int *data)
         *Clock = (val & (1<<0)) != 0;
         *data  = (val & (1<<8)) != 0;
     } else {
-        *Clock = (val & (1<<18)) != 0;
-        *data  = (val & (1<<19)) != 0;
+        *Clock = (val & (1<<19)) != 0;
+        *data  = (val & (1<<18)) != 0;
     }
     if (debug_i2c)
         printf("IN 0x%08lX -> clock = %d, data = %d\n", val, *Clock, *data);
@@ -340,8 +340,8 @@ static void AVIVOI2CPutBits(I2CBusPtr b, int Clock, int data)
         val |= (Clock ? 0:(1<<0));
         val |= (data ? 0:(1<<8));
     } else {
-        val |= (Clock ? 0:(1<<18));
-        val |= (data ? 0:(1<<19));
+        val |= (Clock ? 0:(1<<19));
+        val |= (data ? 0:(1<<18));
     }
     if (debug_i2c)
         printf("OUT 0x%08lX (Clock = %d, data = %d)\n", val, Clock, data);
