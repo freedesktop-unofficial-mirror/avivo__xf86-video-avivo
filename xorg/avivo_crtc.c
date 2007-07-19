@@ -121,7 +121,7 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
 	double c;
 	int div1, div2, clock;
 	int sdiv1, sdiv2, smul, sclock;
-	int tdiv1, tdiv2, tmul, tclock;
+	int mul;
 
 	c = (((double)mode->Clock) * 40.0) / 1080000.0;
 	clock = mode->Clock;
@@ -130,17 +130,15 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
 	smul  = 0;
     for (div1 = 2; div1 <= 6; div1++) {
         for (div2 = div1 + 1; div2 < (div1 + 14); div2++) {
-            tmul = ceil(c * div1 * div2);
-            tdiv1 = div1;
-            tdiv2 = div2;
-            tclock = (tmul * 1080000) / (40 * tdiv1 * tdiv2);
-            if ((tclock - clock) >= 0 &&
-                fabsl(sclock - clock) > fabsl(tclock - clock) &&
-                tmul < 256 && (tdiv1 * tdiv2) > (sdiv1 * sdiv2)) {
-                sdiv1  = tdiv1;
-                sdiv2  = tdiv2;
-                smul   = tmul;
-                sclock = tclock;
+            mul = ceil(c * div1 * div2);
+            clock = (mul * 1080000) / (40 * div1 * div2);
+            if ((div1 * div2) > 20 && (clock - mode->Clock) >= 0 &&
+                fabsl(sclock - mode->Clock) >= fabsl(clock - mode->Clock) &&
+                mul < 256 && (div1 * div2) > (sdiv1 * sdiv2)) {
+                sdiv1  = div1;
+                sdiv2  = div2;
+                smul   = mul;
+                sclock = clock;
             }
         }
     }
