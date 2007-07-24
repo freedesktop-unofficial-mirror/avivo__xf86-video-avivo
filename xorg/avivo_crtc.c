@@ -172,6 +172,7 @@ avivo_crtc_set_pll(xf86CrtcPtr crtc, DisplayModePtr mode)
     }
     OUTREG(AVIVO_CRTC_PLL_SOURCE, (0 << AVIVO_CRTC1_PLL_SOURCE_SHIFT)	
                                   | (1 << AVIVO_CRTC2_PLL_SOURCE_SHIFT));
+    OUTREG(0x454, INREG(0x454) | 0x2);
     avivo_wait_idle(avivo);
 }
 

@@ -73,6 +73,8 @@ struct avivo_output_private {
     unsigned long     output_offset;
     int               number;
     char              *name;
+    void (*setup)(xf86OutputPtr output);
+    void (*dpms)(xf86OutputPtr output, int mode);
 };
 
 struct avivo_state
