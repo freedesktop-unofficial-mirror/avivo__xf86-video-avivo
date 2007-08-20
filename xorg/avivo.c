@@ -398,6 +398,10 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
         if (avivo->pci_info->size[i] >= 26) {
             avivo->fb_addr = avivo->pci_info->memBase[i] & 0xfe000000;
             avivo->fb_size = INREG(RADEON_CONFIG_MEMSIZE);
+            /* FIXME: we can't map more than 256Mo better solution would be
+             * to get aperture size */
+            if (avivo->fb_size > 0x10000000)
+                avivo->fb_size = 0x10000000;
             screen_info->videoRam = avivo->fb_size / 1024;
             avivo_map_fb_mem(screen_info);
         }
