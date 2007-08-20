@@ -78,6 +78,7 @@ avivo_output_tmds1_setup(xf86OutputPtr output)
 {
     struct avivo_output_private *avivo_output = output->driver_private;
     struct avivo_info *avivo = avivo_get_info(output->scrn);
+    unsigned int tmp;
 
     if (output->crtc) {
         struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
@@ -88,11 +89,18 @@ avivo_output_tmds1_setup(xf86OutputPtr output)
                    avivo_crtc->crtc_number);
         OUTREG(AVIVO_TMDS1_CRTC_SOURCE, avivo_crtc->crtc_number);
     }
-    OUTREG(AVIVO_TMDS1_MYSTERY1, AVIVO_TMDS_MYSTERY1_EN);
-    OUTREG(AVIVO_TMDS1_MYSTERY2, AVIVO_TMDS_MYSTERY2_EN);
-    OUTREG(AVIVO_TMDS1_MYSTERY3, 0x30630011);
-    OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1f1f);
-    OUTREG(AVIVO_TMDS1_CNTL, AVIVO_TMDS_EN);
+    tmp = INREG(AVIVO_TMDS1_MYSTERY3);
+    tmp = (tmp & ~0x3) | 1;
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1F);
+    OUTREG(AVIVO_TMDS1_CNTL, 0x1001);
+    OUTREG(0x78D0, 0x1);
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp | 0x3);
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x1);
+    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x101);
+    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x1);
 }
 
 static void
@@ -100,6 +108,7 @@ avivo_output_tmds2_setup(xf86OutputPtr output)
 {
     struct avivo_output_private *avivo_output = output->driver_private;
     struct avivo_info *avivo = avivo_get_info(output->scrn);
+    unsigned int tmp;
 
     xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "SETUP TMDS2\n");
     if (output->crtc) {
@@ -111,16 +120,18 @@ avivo_output_tmds2_setup(xf86OutputPtr output)
                    avivo_crtc->crtc_number);
         OUTREG(AVIVO_TMDS2_CRTC_SOURCE, avivo_crtc->crtc_number);
     }
-    OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x1f3f);
-    OUTREG(AVIVO_TMDS2_MYSTERY1, AVIVO_TMDS_MYSTERY1_EN);
-    OUTREG(AVIVO_TMDS2_MYSTERY2, AVIVO_TMDS_MYSTERY2_EN);
-    if (avivo_output->type == XF86ConnectorLFP) {
-        OUTREG(AVIVO_TMDS2_MYSTERY3, 0x00630011);
-        OUTREG(AVIVO_TMDS2_CNTL, AVIVO_TMDS_EN | (1 << 24));
-    } else {
-        OUTREG(AVIVO_TMDS2_MYSTERY3, 0x30630011);
-        OUTREG(AVIVO_TMDS2_CNTL, AVIVO_TMDS_EN);
-    }
+    tmp = INREG(AVIVO_TMDS1_MYSTERY3);
+    tmp = (tmp & ~0x3) | 1;
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1E1F);
+    OUTREG(AVIVO_TMDS1_CNTL, 0x1001);
+    OUTREG(0x78D0, 0x1);
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp | 0x3);
+    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x1);
+    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x101);
+    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x1);
 }
 
 static void
@@ -165,7 +176,7 @@ avivo_output_tmds1_dpms(xf86OutputPtr output, int mode)
     switch(mode) {
     case DPMSModeOn:
         OUTREG(AVIVO_TMDS1_CLOCK_ENABLE, 1);
-        OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x3E);
+        OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1F);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
@@ -184,7 +195,7 @@ avivo_output_tmds2_dpms(xf86OutputPtr output, int mode)
     switch(mode) {
     case DPMSModeOn:
         OUTREG(AVIVO_TMDS2_CLOCK_ENABLE, 1);
-        OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x3E);
+        OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x1F);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
@@ -221,7 +232,7 @@ avivo_output_lvds_dpms(xf86OutputPtr output, int mode)
         break;
     }
 }
-#if 1
+
 static void
 avivo_output_dpms(xf86OutputPtr output, int mode)
 {
@@ -254,119 +265,7 @@ avivo_output_dpms(xf86OutputPtr output, int mode)
     tmp = INREG(0x0028);
     OUTREG(0x0028, tmp & (~0x100));
 }
-#else
-static void
-avivo_output_dpms(xf86OutputPtr output, int mode)
-{
-    ScrnInfoPtr screen_info = output->scrn;
-    struct avivo_output_private *avivo_output = output->driver_private;
-    struct avivo_info *avivo = avivo_get_info(output->scrn);
-    int crtc = 0;
 
-    if (output->crtc) {
-        struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
-        crtc = avivo_crtc->crtc_number;
-        xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
-                   "%s connector associated to crtc(%d)\n",
-                   xf86ConnectorGetName(avivo_output->type), crtc);
-    }
-
-    switch (avivo_output->type) {
-    case XF86ConnectorVGA:
-    {
-        int value1, value2, value3;
-
-		value1 = 0;
-		value2 = 0;
-		value3 = 0;
-        switch(mode) {
-        case DPMSModeOn:
-            value3 = AVIVO_DAC_EN;
-            if (!avivo_output->output_offset)
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable DAC1\n");
-            else
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable DAC2\n");
-            break;
-        case DPMSModeStandby:
-        case DPMSModeSuspend:
-        case DPMSModeOff:
-            value1 = AVIVO_DAC_MYSTERY1_DIS;
-            value2 = AVIVO_DAC_MYSTERY2_DIS;
-            if (!avivo_output->output_offset)
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable DAC1\n");
-            else
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable DAC2\n");
-            break;
-        }
-        if (output->crtc) {
-            OUTREG(AVIVO_DAC1_CRTC_SOURCE + avivo_output->output_offset, crtc);
-        }
-        OUTREG(AVIVO_DAC1_MYSTERY1 + avivo_output->output_offset, value1);
-        OUTREG(AVIVO_DAC1_MYSTERY2 + avivo_output->output_offset, value2);
-        OUTREG(AVIVO_DAC1_CNTL + avivo_output->output_offset, value3);
-        break;
-    }
-    case XF86ConnectorLFP:
-    case XF86ConnectorDVI_I:
-    case XF86ConnectorDVI_D:
-    case XF86ConnectorDVI_A:
-    {
-        int value1, value2, value3, value4, value5;
-
-        value1 = 0;
-        value2 = 0;
-        value3 = 0x10000011;
-        value4 = 0;
-        value5 = 0x00001010;
-        switch(mode) {
-        case DPMSModeOn:
-            value1 = AVIVO_TMDS_MYSTERY1_EN;
-            value2 = AVIVO_TMDS_MYSTERY2_EN;
-            value4 = 0x00001f1f;
-            if (avivo_output->number == 2)
-                value4 |= 0x00000020;
-            value5 |= AVIVO_TMDS_EN;
-            if (!avivo_output->output_offset)
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable TMDS1\n");
-            else
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "enable TMDS2\n");
-            break;
-        case DPMSModeStandby:
-        case DPMSModeSuspend:
-        case DPMSModeOff:
-            value1 = 0x04000000;
-            value2 = 0;
-            value4 = 0x00060000;
-            if (!avivo_output->output_offset)
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable TMDS1\n");
-            else
-                xf86DrvMsg(screen_info->scrnIndex, X_INFO, "disable TMDS2\n");
-            break;
-        }
-        if (output->crtc) {
-            OUTREG(AVIVO_TMDS1_CRTC_SOURCE + avivo_output->output_offset,
-                   crtc);
-        }
-        if (avivo_output->output_offset) {
-            value3 |= 0x00630000;
-            /* This needs to be set on TMDS, and unset on LVDS. */
-            value3 |= INREG(AVIVO_TMDS2_MYSTERY3) & (1 << 29);
-            /* This needs to be set on LVDS, and unset on TMDS.  Luckily, the
-             * BIOS appears to set it up for us, so just carry it over. */
-            value5 |= INREG(AVIVO_TMDS2_CNTL) & (1 << 24);
-        }
-        OUTREG(AVIVO_TMDS1_MYSTERY1 + avivo_output->output_offset, value1);
-        OUTREG(AVIVO_TMDS1_MYSTERY2 + avivo_output->output_offset, value2);
-        OUTREG(AVIVO_TMDS1_MYSTERY3 + avivo_output->output_offset, value3);
-        OUTREG(AVIVO_TMDS1_CLOCK_CNTL + avivo_output->output_offset, value4);
-        OUTREG(AVIVO_TMDS1_CNTL + avivo_output->output_offset, value5);
-        break;
-    }
-    default:
-        break;
-    }
-}
-#endif
 static int
 avivo_output_mode_valid(xf86OutputPtr output, DisplayModePtr pMode)
 {
