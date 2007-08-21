@@ -93,7 +93,7 @@ avivo_output_tmds1_setup(xf86OutputPtr output)
     tmp = (tmp & ~0x3) | 1;
     OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
     OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1F);
-    OUTREG(AVIVO_TMDS1_CNTL, 0x1001);
+    OUTREG(AVIVO_TMDS1_CNTL, (INREG(AVIVO_TMDS1_CNTL) | 0x1));
     OUTREG(0x78D0, 0x1);
     OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
     OUTREG(AVIVO_TMDS1_MYSTERY3, tmp | 0x3);
@@ -124,7 +124,7 @@ avivo_output_tmds2_setup(xf86OutputPtr output)
     tmp = (tmp & ~0x3) | 1;
     OUTREG(AVIVO_TMDS2_MYSTERY3, tmp);
     OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x1E1F);
-    OUTREG(AVIVO_TMDS2_CNTL, 0x1001);
+    OUTREG(AVIVO_TMDS2_CNTL, (INREG(AVIVO_TMDS2_CNTL) | 0x1));
     OUTREG(0x7AD0, 0x1);
     OUTREG(AVIVO_TMDS2_MYSTERY3, tmp);
     OUTREG(AVIVO_TMDS2_MYSTERY3, tmp | 0x3);
