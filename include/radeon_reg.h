@@ -3345,21 +3345,44 @@
  * appear inversed: 7800 and 7a80 enable/disable the same physical
  * connector; ditto 7a00 and 7880.  O brave new world!
  */
-#define AVIVO_TMDS1_CNTL					0x7880
+/* TMDS_CNTL only lower bit of each half bytes matters.
+ *     UNK0 seems to have no effect on LVDS but kill the feed of DVI connector
+ *     UNK1 really unknow: so far no visible change from setting it or not
+ *     UNK2 really unknow: so far no visible change from setting it or not
+ *     UNK3 really unknow: so far no visible change from setting it or not
+ *     UNK4 seems to switch red & blue encoding
+ *     UNK5 is the fun bits on some card people will see their desktop
+ *          tiled 4 times but for most cards this will give wrong pictures
+ *     UNK6 seems to kill the feed LVDS & DVI
+ */
+#define AVIVO_TMDS1_CNTL                    0x7880
+#   define AVIVO_TMDS_CNTL_UNK0                 (1 << 0)
+#   define AVIVO_TMDS_CNTL_UNK1                 (1 << 4)
+#   define AVIVO_TMDS_CNTL_UNK2                 (1 << 8)
+#   define AVIVO_TMDS_CNTL_UNK3                 (1 << 12)
+#   define AVIVO_TMDS_CNTL_UNK4                 (1 << 16)
+#   define AVIVO_TMDS_CNTL_UNK5                 (1 << 24)
+#   define AVIVO_TMDS_CNTL_UNK6                 (1 << 28)
 #define AVIVO_TMDS1_CRTC_SOURCE				0x7884
-/* (1 << 4), (1 << 8), and (1 << 12) are all set by fglrx, but
- * clearing them seems to have no effect.  Clearing _EN kills the feed
- * instantly. */
-#	define AVIVO_TMDS_EN						((1 << 0) | (1 << 8))
 /* 78a8 appears to be some kind of (reasonably tolerant) clock?
  * 78d0 definitely hits the transmitter, definitely clock. */
+/* MYSTERY1 This appears to control dithering? */
 #define AVIVO_TMDS1_MYSTERY1				0x7894
-/* This appears to control dithering? */
-#	define AVIVO_TMDS_MYSTERY1_EN				((1 << 8) | (1 << 12))
-#define AVIVO_TMDS1_MYSTERY2				0x78d8
-#	define AVIVO_TMDS_MYSTERY2_EN				((1 << 24) | (1 << 16) | (1 << 0))
-#define AVIVO_TMDS1_CLOCK_ENABLE			0x7900
-#define AVIVO_TMDS1_CLOCK_CNTL				0x7904
+#   define AVIVO_TMDS_MYSTERY1_UNK0             (1 << 0)
+#   define AVIVO_TMDS_MYSTERY1_UNK1             (1 << 4)
+#   define AVIVO_TMDS_MYSTERY1_UNK2             (1 << 8)
+#   define AVIVO_TMDS_MYSTERY1_UNK3             (1 << 12)
+#   define AVIVO_TMDS_MYSTERY1_UNK4             (1 << 16)
+#   define AVIVO_TMDS_MYSTERY1_UNK5             (1 << 20)
+#   define AVIVO_TMDS_MYSTERY1_UNK6             (1 << 24)
+#   define AVIVO_TMDS_MYSTERY1_UNK7             (1 << 26)
+#   define AVIVO_TMDS_MYSTERY1_UNK8_SHIFT       28
+#   define AVIVO_TMDS_MYSTERY1_UNK8_MASK        (0xF << 28)
+#   define AVIVO_TMDS_MYSTERY1_EN               ((1 << 8) | (1 << 12))
+#define AVIVO_TMDS1_MYSTERY2                0x78d8
+#   define AVIVO_TMDS_MYSTERY2_EN               ((1 << 24) | (1 << 16) | (1 << 0))
+#define AVIVO_TMDS1_CLOCK_ENABLE            0x7900
+#define AVIVO_TMDS1_CLOCK_CNTL              0x7904
 /* I don't know any of the bits here, only that enabling (1 << 5)
  * without (1 << 4) makes things go utterly mental ... seems to be
  * the transmitter clock again. */
