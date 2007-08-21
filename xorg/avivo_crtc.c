@@ -261,9 +261,6 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            ((mode->HDisplay + x -128) << 16) | (mode->VDisplay + y - 128));
     OUTREG(AVIVO_CRTC1_OFFSET_START + avivo_crtc->crtc_offset, (x << 16) | y);
 
-    /* set PLL TODO: there is likely PLL registers we miss for having
-     * different PLL for each CRTC for instance.
-     */
     avivo_crtc_set_pll(crtc, adjusted_mode);
 
     /* finaly set the mode
