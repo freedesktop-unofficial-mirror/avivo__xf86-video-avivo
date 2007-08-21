@@ -309,20 +309,46 @@ avivo_output_commit(xf86OutputPtr output)
     output->funcs->dpms(output, DPMSModeOn);
 }
 
-static Bool
-avivo_output_detect_ddc(xf86OutputPtr output)
+static xf86OutputStatus
+avivo_output_detect_ddc_dac(xf86OutputPtr output)
 {
     struct avivo_output_private *avivo_output = output->driver_private;
+    xf86MonPtr edid_mon;
 
-    return xf86I2CProbeAddress(avivo_output->i2c, 0x00A0);
+    if (!xf86I2CProbeAddress(avivo_output->i2c, 0x00A0))
+        return XF86OutputStatusDisconnected;
+    edid_mon = xf86OutputGetEDID(output, avivo_output->i2c);
+    if (edid_mon->features.input_type) {
+        xfree(edid_mon);
+        return XF86OutputStatusDisconnected;
+    }
+    if (edid_mon->features.input_dfp) {
+        xfree(edid_mon);
+        return XF86OutputStatusDisconnected;
+    }
+    xfree(edid_mon);
+    return XF86OutputStatusConnected;
 }
 
 static xf86OutputStatus
-avivo_output_detect(xf86OutputPtr output)
+avivo_output_detect_ddc_tmds(xf86OutputPtr output)
 {
-    if (avivo_output_detect_ddc(output))
+    struct avivo_output_private *avivo_output = output->driver_private;
+    xf86MonPtr edid_mon;
+
+    if (!xf86I2CProbeAddress(avivo_output->i2c, 0x00A0))
+        return XF86OutputStatusDisconnected;
+    edid_mon = xf86OutputGetEDID(output, avivo_output->i2c);
+    if (edid_mon->features.input_type) {
+        xfree(edid_mon);
         return XF86OutputStatusConnected;
-    return XF86OutputStatusUnknown;
+    }
+    if (edid_mon->features.input_dfp) {
+        xfree(edid_mon);
+        return XF86OutputStatusConnected;
+    }
+    xfree(edid_mon);
+    return XF86OutputStatusDisconnected;
 }
 
 DisplayModePtr
@@ -350,7 +376,7 @@ avivo_output_destroy(xf86OutputPtr output)
     xfree(avivo_output);
 }
 
-static const xf86OutputFuncsRec avivo_output_funcs = {
+static const xf86OutputFuncsRec avivo_output_dac_funcs = {
     .dpms = avivo_output_dpms,
     .save = NULL,
     .restore = NULL,
@@ -359,7 +385,21 @@ static const xf86OutputFuncsRec avivo_output_funcs = {
     .prepare = avivo_output_prepare,
     .mode_set = avivo_output_mode_set,
     .commit = avivo_output_commit,
-    .detect = avivo_output_detect,
+    .detect = avivo_output_detect_ddc_dac,
+    .get_modes = avivo_output_get_modes,
+    .destroy = avivo_output_destroy
+};
+
+static const xf86OutputFuncsRec avivo_output_tmds_funcs = {
+    .dpms = avivo_output_dpms,
+    .save = NULL,
+    .restore = NULL,
+    .mode_valid = avivo_output_mode_valid,
+    .mode_fixup = avivo_output_mode_fixup,
+    .prepare = avivo_output_prepare,
+    .mode_set = avivo_output_mode_set,
+    .commit = avivo_output_commit,
+    .detect = avivo_output_detect_ddc_tmds,
     .get_modes = avivo_output_get_modes,
     .destroy = avivo_output_destroy
 };
@@ -373,7 +413,7 @@ static const xf86OutputFuncsRec avivo_output_lfp_funcs = {
     .prepare = avivo_output_prepare,
     .mode_set = avivo_output_mode_set,
     .commit = avivo_output_commit,
-    .detect = avivo_output_detect,
+    .detect = avivo_output_detect_ddc_tmds,
     .get_modes = avivo_output_lfp_get_modes,
     .destroy = avivo_output_destroy
 };
@@ -453,22 +493,6 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
     avivo_output->gpio = ddc_reg;
     avivo_output->type = type;
     avivo_output->number = number;
-    avivo_output->output_offset = 0;
-    if (number >= 1) {
-        switch (avivo_output->type) {
-        case XF86ConnectorVGA:
-            avivo_output->output_offset = AVIVO_DAC2_CNTL - AVIVO_DAC1_CNTL;
-            break;
-        case XF86ConnectorLFP:
-        case XF86ConnectorDVI_I:
-        case XF86ConnectorDVI_D:
-        case XF86ConnectorDVI_A:
-            avivo_output->output_offset = AVIVO_TMDS2_CNTL - AVIVO_TMDS1_CNTL;
-            break;
-        default:
-            break;
-        }
-    }
     switch (avivo_output->type) {
     case XF86ConnectorVGA:
         if (!number) {
@@ -478,10 +502,16 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
             avivo_output->setup = avivo_output_dac2_setup;
             avivo_output->dpms = avivo_output_dac2_dpms;
         }
+        output = xf86OutputCreate (screen_info,
+                                   &avivo_output_dac_funcs,
+                                   xf86ConnectorGetName(type));
         break;
     case XF86ConnectorLFP:
         avivo_output->setup = avivo_output_tmds2_setup;
         avivo_output->dpms = avivo_output_lvds_dpms;
+        output = xf86OutputCreate (screen_info,
+                                   &avivo_output_lfp_funcs,
+                                   xf86ConnectorGetName(type));
         break;
     case XF86ConnectorDVI_I:
     case XF86ConnectorDVI_D:
@@ -493,22 +523,13 @@ avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
             avivo_output->setup = avivo_output_tmds2_setup;
             avivo_output->dpms = avivo_output_tmds2_dpms;
         }
+        output = xf86OutputCreate (screen_info,
+                                   &avivo_output_tmds_funcs,
+                                   xf86ConnectorGetName(type));
         break;
     default:
         avivo_output->setup = NULL;
         break;
-    }
-    if (avivo_output->type == XF86ConnectorLFP) {
-        avivo_output->output_offset = AVIVO_TMDS2_CNTL - AVIVO_TMDS1_CNTL;
-        /* allocate & initialize xf86Output */
-        output = xf86OutputCreate (screen_info,
-                                   &avivo_output_lfp_funcs,
-                                   xf86ConnectorGetName(type));
-    } else {
-        /* allocate & initialize xf86Output */
-        output = xf86OutputCreate (screen_info,
-                                   &avivo_output_funcs,
-                                   xf86ConnectorGetName(type));
     }
 
     if (output == NULL) {

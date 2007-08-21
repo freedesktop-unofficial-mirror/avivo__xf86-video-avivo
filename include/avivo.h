@@ -70,7 +70,6 @@ struct avivo_output_private {
     xf86ConnectorType type;
     I2CBusPtr         i2c;
     unsigned long     gpio;
-    unsigned long     output_offset;
     int               number;
     char              *name;
     void (*setup)(xf86OutputPtr output);
