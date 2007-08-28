@@ -316,8 +316,11 @@ avivo_output_detect_ddc_dac(xf86OutputPtr output)
     xf86MonPtr edid_mon;
 
     if (!xf86I2CProbeAddress(avivo_output->i2c, 0x00A0))
-        return XF86OutputStatusDisconnected;
+        return XF86OutputStatusUnknown;
     edid_mon = xf86OutputGetEDID(output, avivo_output->i2c);
+    if (edid_mon == NULL) {
+        return XF86OutputStatusUnknown;
+    }
     if (edid_mon->features.input_type) {
         xfree(edid_mon);
         return XF86OutputStatusDisconnected;
@@ -337,8 +340,11 @@ avivo_output_detect_ddc_tmds(xf86OutputPtr output)
     xf86MonPtr edid_mon;
 
     if (!xf86I2CProbeAddress(avivo_output->i2c, 0x00A0))
-        return XF86OutputStatusDisconnected;
+        return XF86OutputStatusUnknown;
     edid_mon = xf86OutputGetEDID(output, avivo_output->i2c);
+    if (edid_mon == NULL) {
+        return XF86OutputStatusUnknown;
+    }
     if (edid_mon->features.input_type) {
         xfree(edid_mon);
         return XF86OutputStatusConnected;
@@ -349,6 +355,12 @@ avivo_output_detect_ddc_tmds(xf86OutputPtr output)
     }
     xfree(edid_mon);
     return XF86OutputStatusDisconnected;
+}
+
+static xf86OutputStatus
+avivo_output_detect_ddc_lfp(xf86OutputPtr output)
+{
+    return XF86OutputStatusConnected;
 }
 
 DisplayModePtr
@@ -413,7 +425,7 @@ static const xf86OutputFuncsRec avivo_output_lfp_funcs = {
     .prepare = avivo_output_prepare,
     .mode_set = avivo_output_mode_set,
     .commit = avivo_output_commit,
-    .detect = avivo_output_detect_ddc_tmds,
+    .detect = avivo_output_detect_ddc_lfp,
     .get_modes = avivo_output_lfp_get_modes,
     .destroy = avivo_output_destroy
 };
