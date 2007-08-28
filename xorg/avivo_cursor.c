@@ -155,7 +155,6 @@ void
 avivo_cursor_init(ScreenPtr screen)
 {
     ScrnInfoPtr screen_info = xf86Screens[screen->myNum];
-    struct avivo_info *avivo = avivo_get_info(screen_info);
     xf86CursorInfoPtr cursor;
 
     cursor = xcalloc(1, sizeof(*cursor));

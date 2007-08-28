@@ -631,10 +631,18 @@ avivo_get_chipset(struct avivo_info *avivo)
     int i;
 
     for (i = 0; i < sizeof(chipset_family) / sizeof(chipset_family[0]); i++) {
+#ifdef PCIACCESS
+        if (chipset_family[i].pci_id == avivo->pci_info->device_id) {
+#else
         if (chipset_family[i].pci_id == avivo->pci_info->chipType) {
+#endif /*PCIACCESS*/
             avivo->chipset = chipset_family[i].family;
             return;
         }
     }
+#ifdef PCIACCESS
+    FatalError("Unknown chipset for %x!\n", avivo->pci_info->device_id);
+#else
     FatalError("Unknown chipset for %x!\n", avivo->pci_info->device);
+#endif /*PCIACCESS*/
 }

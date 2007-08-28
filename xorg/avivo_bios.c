@@ -59,7 +59,7 @@ RADEONGetBIOSInfo(ScrnInfoPtr screen_info)
     unsigned short dptr;
 
 #ifdef PCIACCESS
-    if (!(avivo->vbios = xalloc(avivo->pci_avivo->rom_size))) {
+    if (!(avivo->vbios = xalloc(avivo->pci_info->rom_size))) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
                    "Cannot allocate space for hold Video BIOS!\n");
         return 1;

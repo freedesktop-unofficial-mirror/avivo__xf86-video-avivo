@@ -136,7 +136,7 @@ enum avivo_chip_type {
 };
 
 #ifdef PCIACCESS
-extern const struct pci_id_match *avivo_device_match;
+extern const struct pci_id_match avivo_device_match[];
 #endif
 extern SymTabRec avivo_chips[];
 extern PciChipsets avivo_pci_chips[];

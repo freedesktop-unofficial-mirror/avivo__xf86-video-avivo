@@ -44,10 +44,8 @@ AH_TOP([#include "xorg-server.h"])
 AC_ARG_WITH(xorg-module-dir, [  --with-xorg-module-dir=DIR ],
                              [ moduledir="$withval" ],
                              [ moduledir="$libdir/xorg/modules" ])
-AC_ARG_ENABLE(pciaccess,     AS_HELP_STRING([--enable-pciaccess],
-                             [Enable use of libpciaccess (default: disabled)]),
-			     [PCIACCESS=$enableval], [PCIACCESS=no])
 AC_SUBST(moduledir)
+
 
 # Checks for extensions
 m4_pattern_forbid([XORG_DRIVER_CHECK_EXT])dnl
@@ -56,16 +54,24 @@ XORG_DRIVER_CHECK_EXT(DPMSExtension, xextproto)
 # Checks for pkg-config packages
 PKG_CHECK_MODULES(XORG, xorg-server >= 1.2.99.901 xproto $REQUIRED_MODULES)
 sdkdir=$(pkg-config --variable=sdkdir xorg-server)
-PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.7.0])
+
+PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
+save_CFLAGS=$CFLAGS
+CFLAGS=$XORG_CFLAGS
+AC_CHECK_DECL(XSERVER_LIBPCIACCESS,
+             [XSERVER_LIBPCIACCESS=yes],[XSERVER_LIBPCIACCESS=no],
+             [#include "xorg-server.h"])
+CFLAGS=$save_CFLAGS
+if test x$XSERVER_LIBPCIACCESS = xyes ; then
+    AC_DEFINE(PCIACCESS, 1, [Define to 1 if libpciaccess is available])
+    AC_SUBST([PCIACCESS_CFLAGS])
+    AC_SUBST([PCIACCESS_LIBS])
+fi
 
 CFLAGS="$CFLAGS $XORG_CFLAGS -Wall"
 INCLUDES="$XORG_INCS -I${sdkdir} "'-I$(top_srcdir)/include'
 AC_SUBST([CFLAGS])
 AC_SUBST([INCLUDES])
-
-PKG_CHECK_MODULES(PCIACCESS, pciaccess)
-AC_SUBST([PCIACCESS_CFLAGS])
-AC_SUBST([PCIACCESS_LIBS])
 
 # Checks for libraries.
 

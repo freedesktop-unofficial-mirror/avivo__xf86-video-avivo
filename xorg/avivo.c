@@ -140,6 +140,7 @@ static XF86ModuleVersionInfo avivo_version = {
  */
 _X_EXPORT XF86ModuleData avivoModuleData = { &avivo_version, avivo_setup, NULL };
 
+#ifndef PCIACCESS
 static int
 avivo_map_ctrl_mem(ScrnInfoPtr screen_info)
 {
@@ -148,14 +149,10 @@ avivo_map_ctrl_mem(ScrnInfoPtr screen_info)
     if (avivo->ctrl_base)
         return 1;
 
-#ifdef PCIACCESS
-    return 0;
-#else
     avivo->ctrl_base = xf86MapPciMem(screen_info->scrnIndex,
                                      VIDMEM_MMIO | VIDMEM_READSIDEEFFECT,
                                      avivo->pci_tag, avivo->ctrl_addr,
                                      avivo->ctrl_size);
-#endif
     if (!avivo->ctrl_base) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
                    "Couldn't map control memory at %p", (void *)avivo->ctrl_addr);
@@ -172,13 +169,9 @@ avivo_map_fb_mem(ScrnInfoPtr screen_info)
     if (avivo->fb_base)
         return 0;
 
-#ifdef PCIACCESS
-    return 0;
-#else
     avivo->fb_base = xf86MapPciMem(screen_info->scrnIndex, VIDMEM_FRAMEBUFFER,
                                    avivo->pci_tag, avivo->fb_addr,
                                    avivo->fb_size);
-#endif
     if (!avivo->fb_base) {
         xf86DrvMsg(screen_info->scrnIndex, X_ERROR,
                    "Couldn't map fb memory at %p", (void *)avivo->fb_addr);
@@ -189,6 +182,7 @@ avivo_map_fb_mem(ScrnInfoPtr screen_info)
 
     return 1;
 }
+#endif /*PCIACCESS*/
 
 static void
 avivo_unmap_ctrl_mem(ScrnInfoPtr screen_info)
@@ -276,9 +270,9 @@ avivo_pci_probe(DriverPtr drv, int entity_num, struct pci_device *dev,
     ScrnInfoPtr screen_info;
     struct avivo_info *avivo;
     
-    pScrn = xf86ConfigPciEntity(NULL, 0, entity_num, NULL, 
-                                NULL, NULL, NULL, NULL, NULL);
-    if (pScrn) {
+    screen_info = xf86ConfigPciEntity(NULL, 0, entity_num, NULL, 
+                                      NULL, NULL, NULL, NULL, NULL);
+    if (screen_info) {
         avivo = avivo_get_info(screen_info);
         fill_in_screen(screen_info);
         avivo->pci_info = dev;
@@ -307,7 +301,7 @@ avivo_old_probe(DriverPtr drv, int flags)
     if (num_sections <= 0)
         return FALSE;
 
-#ifndef PCIACCESS
+/*#ifndef PCIACCESS*/
     used_sections = xf86MatchPciInstances(AVIVO_NAME, PCI_VENDOR_ATI,
                                           avivo_chips, avivo_pci_chips, 
                                           sections, num_sections, drv,
@@ -331,7 +325,7 @@ avivo_old_probe(DriverPtr drv, int flags)
 
         xfree(used_chips);
     }
-#endif
+/*#endif*/
 
     xfree(sections);
 
@@ -406,6 +400,82 @@ avivo_preinit(ScrnInfoPtr screen_info, int flags)
             avivo_map_fb_mem(screen_info);
         }
     }
+#else /*PCIACCESS*/
+    /* get PCI informations */
+    avivo->pci_info = xf86GetPciInfoForEntity(avivo->entity->index);
+
+    if (pci_device_probe (avivo->pci_info)) {
+        FatalError("failed to probe PCI device\n");
+    }
+
+    /*
+     * Map MMIO space first, then the framebuffer.
+     */
+
+    /*so first the MMIO space ...*/
+    for (i = 0; i < 6; i++) {
+        /*
+         * the mmio space is the one pointed to by the BAR
+         * that has 15 or 16 bits length (usually 64K size, 16 bits).
+         */
+        if (avivo->pci_info->regions[i].size == 0x10000/*sizeof(16bits)*/
+            ||avivo->pci_info->regions[i].size == 0x8000/*sizeof(15bits)*/) {
+            if (!avivo->pci_info->regions[i].memory) {
+                if (pci_device_map_region(avivo->pci_info,
+                                          i,
+                                          1/*write_enable*/)) {
+
+                    FatalError("Could not map pci region %d,"
+                               " device %#x, vendor %#x\n",
+                               i,
+                               avivo->pci_info->device_id,
+                               avivo->pci_info->vendor_id);
+                }
+            }
+            avivo->ctrl_addr = avivo->pci_info->regions[i].base_addr ;
+            avivo->ctrl_size = avivo->pci_info->regions[i].size ;
+            avivo->ctrl_base = avivo->pci_info->regions[i].memory;
+        }
+    }
+    /*...now, map the framebuffer memory*/
+    for (i = 0; i < 6; i++) {
+        /*
+         * the framebuffer buffer is the one pointed to by
+         * the BAR having a size >= 26 bits
+         */
+        if (avivo->pci_info->regions[i].size >= 0x4000000/*size(26bits)*/) {
+            if (!avivo->pci_info->regions[i].memory) {
+                if (pci_device_map_region(avivo->pci_info,
+                                          i,
+                                          1/*write_enable*/)) {
+
+                    FatalError("Could not map pci region %d,"
+                               " device %#x, vendor %#x\n",
+                               i,
+                               avivo->pci_info->device_id,
+                               avivo->pci_info->vendor_id);
+                }
+            }
+            avivo->fb_addr = avivo->pci_info->regions[i].base_addr;
+            avivo->fb_base = avivo->pci_info->regions[i].memory ;
+            avivo->fb_size = INREG(RADEON_CONFIG_MEMSIZE);
+            /*
+             * fb memory size should be the minum of bar size
+             * and the result of INREG(RADEON_CONFIG_MEMSIZE);
+             * Normally both should be the same, but who knows
+             * what some card manufacturers do sometimes ...
+             */
+            if (avivo->pci_info->regions[i].size < avivo->fb_size)
+                avivo->fb_size = avivo->pci_info->regions[i].size ;
+
+            /* FIXME: we can't map more than 256Mo better solution would be
+             * to get aperture size */
+            if (avivo->fb_size > 0x10000000)
+                avivo->fb_size = 0x10000000;
+            screen_info->videoRam = avivo->fb_size / 1024;
+        }
+    }
+
 #endif
     xf86DrvMsg(screen_info->scrnIndex, X_INFO,
                "Control memory at %p[size = %d, 0x%08X]\n",
