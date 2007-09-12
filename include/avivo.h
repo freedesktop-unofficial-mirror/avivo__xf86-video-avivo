@@ -110,7 +110,7 @@ struct avivo_state
     int crtc1_v_sync_pol;
     int crtc1_cntl;
     int crtc1_mode;
-    int crtc1_60c0_mystery;
+    int crtc1_stereo_status;
     int crtc1_scan_enable;
     int crtc1_fb_format;
     int crtc1_fb_location;

@@ -3247,7 +3247,7 @@
 #	define AVIVO_CRTC_EN						(1 << 0)
 #define AVIVO_CRTC1_MODE					0x6084
 #       define AVIVO_CRTC_MODE_TEXT				(1 << 8)
-#define AVIVO_CRTC1_60c0_MYSTERY			0x60c0
+#define AVIVO_CRTC1_STEREO_STATUS			0x60c0
 
 /* These all appear to control the scanout from the framebuffer.
  * Flicking SCAN_ENABLE low results in a black screen -- aside from
