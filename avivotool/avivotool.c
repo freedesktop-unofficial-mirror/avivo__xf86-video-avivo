@@ -466,7 +466,7 @@ void radeon_output_set(char *output, char *status)
         if (on) {
             SET_REG(AVIVO_TMDSA_TRANSMITTER_CONTROL, 0x10000011);
             SET_REG(AVIVO_TMDSA_CLOCK_CNTL, 0x0000001f);
-            SET_REG(AVIVO_TMDSA_CNTL, 0x00001010 | AVIVO_TMDS_CNTL_UNK0);
+            SET_REG(AVIVO_TMDSA_CNTL, 0x00001010 | AVIVO_TMDSA_CNTL_ENABLE);
         }
         else {
             SET_REG(AVIVO_TMDSA_CNTL, 0x00001010);
@@ -480,7 +480,7 @@ void radeon_output_set(char *output, char *status)
         if (on) {
             SET_REG(AVIVO_LVTMA_TRANSMITTER_CONTROL, 0x30000011);
             SET_REG(AVIVO_LVTMA_CLOCK_CNTL, 0x0000003e);
-            SET_REG(AVIVO_LVTMA_CNTL, 0x00001010 | AVIVO_TMDS_CNTL_UNK0);
+            SET_REG(AVIVO_LVTMA_CNTL, 0x00001010 | AVIVO_TMDSA_CNTL_ENABLE);
         }
         else {
             SET_REG(AVIVO_LVTMA_CNTL, 0x1010);
@@ -901,9 +901,9 @@ void radeon_cmd_regs(const char *type)
             show_dac1 = 1;
         if (GET_REG(AVIVO_DAC2_CNTL) & AVIVO_DAC_EN)
             show_dac2 = 1;
-        if (GET_REG(AVIVO_TMDSA_CNTL) & AVIVO_TMDS_CNTL_UNK0)
+        if (GET_REG(AVIVO_TMDSA_CNTL) & AVIVO_TMDSA_CNTL_ENABLE)
             show_tmds1 = 1;
-        if (GET_REG(AVIVO_LVTMA_CNTL) & AVIVO_TMDS_CNTL_UNK0)
+        if (GET_REG(AVIVO_LVTMA_CNTL) & AVIVO_TMDSA_CNTL_ENABLE)
             show_tmds2 = 1;
         if (GET_REG(AVIVO_LVDS_EN) & AVIVO_LVDS_EN)
             show_lvds = 1;

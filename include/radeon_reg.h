@@ -3368,13 +3368,13 @@
  *     UNK6 seems to kill the feed LVDS & DVI
  */
 #define AVIVO_TMDSA_CNTL                    0x7880
-#   define AVIVO_TMDS_CNTL_UNK0                 (1 << 0)
-#   define AVIVO_TMDS_CNTL_UNK1                 (1 << 4)
-#   define AVIVO_TMDS_CNTL_UNK2                 (1 << 8)
-#   define AVIVO_TMDS_CNTL_UNK3                 (1 << 12)
-#   define AVIVO_TMDS_CNTL_UNK4                 (1 << 16)
-#   define AVIVO_TMDS_CNTL_UNK5                 (1 << 24)
-#   define AVIVO_TMDS_CNTL_UNK6                 (1 << 28)
+#   define AVIVO_TMDSA_CNTL_ENABLE               (1 << 0)
+#   define AVIVO_TMDSA_CNTL_HPD_MASK             (1 << 4)
+#   define AVIVO_TMDSA_CNTL_HPD_SELECT           (1 << 8)
+#   define AVIVO_TMDSA_CNTL_SYNC_PHASE           (1 << 12)
+#   define AVIVO_TMDSA_CNTL_PIXEL_ENCODING       (1 << 16)
+#   define AVIVO_TMDSA_CNTL_DUAL_LINK_ENABLE     (1 << 24)
+#   define AVIVO_TMDSA_CNTL_SWAP                 (1 << 28)
 #define AVIVO_TMDSA_CRTC_SOURCE				0x7884
 /* 78a8 appears to be some kind of (reasonably tolerant) clock?
  * 78d0 definitely hits the transmitter, definitely clock. */
@@ -3421,6 +3421,14 @@
 #	define AVIVO_TMDSA_TRANSMITTER_CONTROL_INPUT_TEST_CLK_SEL	(1 << 31)
 
 #define AVIVO_LVTMA_CNTL					0x7a80
+#define AVIVO_TMDSA_CNTL                    0x7880
+#   define AVIVO_LVTMA_CNTL_ENABLE               (1 << 0)
+#   define AVIVO_LVTMA_CNTL_HPD_MASK             (1 << 4)
+#   define AVIVO_LVTMA_CNTL_HPD_SELECT           (1 << 8)
+#   define AVIVO_LVTMA_CNTL_SYNC_PHASE           (1 << 12)
+#   define AVIVO_LVTMA_CNTL_PIXEL_ENCODING       (1 << 16)
+#   define AVIVO_LVTMA_CNTL_DUAL_LINK_ENABLE     (1 << 24)
+#   define AVIVO_LVTMA_CNTL_SWAP                 (1 << 28)
 #define AVIVO_LVTMA_CRTC_SOURCE				0x7a84
 #define AVIVO_LVTMA_BIT_DEPTH_CONTROL                   0x7a94
 #   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TRUNCATE_EN           (1 << 0)
