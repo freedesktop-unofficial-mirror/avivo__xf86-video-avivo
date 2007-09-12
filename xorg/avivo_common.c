@@ -84,7 +84,6 @@ avivo_get_info(ScrnInfoPtr screen_info)
 
     if (!screen_info->driverPrivate) {
         screen_info->driverPrivate = xcalloc(sizeof(struct avivo_info), 1);
-        memset(screen_info->driverPrivate, 0, sizeof(struct avivo_info));
     }
 
     avivo = screen_info->driverPrivate;
