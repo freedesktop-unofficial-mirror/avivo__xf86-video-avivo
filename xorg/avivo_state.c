@@ -114,7 +114,6 @@ avivo_restore_state(ScrnInfoPtr screen_info)
 #endif
     OUTREG(AVIVO_CRTC1_V_SYNC_POL, state->crtc1_v_sync_pol);
     OUTREG(AVIVO_CRTC1_CNTL, state->crtc1_cntl);
-    OUTREG(AVIVO_CRTC1_MODE, state->crtc1_mode);
     OUTREG(AVIVO_CRTC1_SCAN_ENABLE, state->crtc1_scan_enable);
     OUTREG(AVIVO_CRTC1_FB_FORMAT, state->crtc1_fb_format);
     OUTREG(AVIVO_CRTC1_FB_LOCATION, state->crtc1_fb_location);
@@ -148,7 +147,7 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC2_V_SYNC_WID, state->crtc2_v_sync_wid);
     OUTREG(AVIVO_CRTC2_V_SYNC_POL, state->crtc2_v_sync_pol);
     OUTREG(AVIVO_CRTC2_CNTL, state->crtc2_cntl);
-    OUTREG(AVIVO_CRTC2_MODE, state->crtc2_mode);
+    OUTREG(AVIVO_CRTC2_BLANK_STATUS, state->crtc2_blank_status);
     OUTREG(AVIVO_CRTC2_SCAN_ENABLE, state->crtc2_scan_enable);
     OUTREG(AVIVO_CRTC2_FB_FORMAT, state->crtc2_fb_format);
     OUTREG(AVIVO_CRTC2_FB_LOCATION, state->crtc2_fb_location);
@@ -231,7 +230,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc1_v_sync_wid = INREG(AVIVO_CRTC1_V_SYNC_WID);
     state->crtc1_v_sync_pol = INREG(AVIVO_CRTC1_V_SYNC_POL);
     state->crtc1_cntl = INREG(AVIVO_CRTC1_CNTL);
-    state->crtc1_mode = INREG(AVIVO_CRTC1_MODE);
+    state->crtc1_blank_status = INREG(AVIVO_CRTC1_BLANK_STATUS);
     state->crtc1_stereo_status = INREG(AVIVO_CRTC1_STEREO_STATUS);
     state->crtc1_scan_enable = INREG(AVIVO_CRTC1_SCAN_ENABLE);
     state->crtc1_fb_format = INREG(AVIVO_CRTC1_FB_FORMAT);
@@ -265,7 +264,7 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->crtc2_v_sync_wid = INREG(AVIVO_CRTC2_V_SYNC_WID);
     state->crtc2_v_sync_pol = INREG(AVIVO_CRTC2_V_SYNC_POL);
     state->crtc2_cntl = INREG(AVIVO_CRTC2_CNTL);
-    state->crtc2_mode = INREG(AVIVO_CRTC2_MODE);
+    state->crtc2_blank_status = INREG(AVIVO_CRTC2_BLANK_STATUS);
     state->crtc2_scan_enable = INREG(AVIVO_CRTC2_SCAN_ENABLE);
     state->crtc2_fb_format = INREG(AVIVO_CRTC2_FB_FORMAT);
     state->crtc2_fb_location = INREG(AVIVO_CRTC2_FB_LOCATION);
