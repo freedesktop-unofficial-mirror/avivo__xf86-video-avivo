@@ -3379,18 +3379,15 @@
 /* 78a8 appears to be some kind of (reasonably tolerant) clock?
  * 78d0 definitely hits the transmitter, definitely clock. */
 /* MYSTERY1 This appears to control dithering? */
-#define AVIVO_TMDSA_MYSTERY1				0x7894
-#   define AVIVO_TMDS_MYSTERY1_UNK0             (1 << 0)
-#   define AVIVO_TMDS_MYSTERY1_UNK1             (1 << 4)
-#   define AVIVO_TMDS_MYSTERY1_UNK2             (1 << 8)
-#   define AVIVO_TMDS_MYSTERY1_UNK3             (1 << 12)
-#   define AVIVO_TMDS_MYSTERY1_UNK4             (1 << 16)
-#   define AVIVO_TMDS_MYSTERY1_UNK5             (1 << 20)
-#   define AVIVO_TMDS_MYSTERY1_UNK6             (1 << 24)
-#   define AVIVO_TMDS_MYSTERY1_UNK7             (1 << 26)
-#   define AVIVO_TMDS_MYSTERY1_UNK8_SHIFT       28
-#   define AVIVO_TMDS_MYSTERY1_UNK8_MASK        (0xF << 28)
-#   define AVIVO_TMDS_MYSTERY1_EN               ((1 << 8) | (1 << 12))
+#define AVIVO_TMDSA_BIT_DEPTH_CONTROL		0x7894
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_TRUNCATE_EN           (1 << 0)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_TRUNCATE_DEPTH        (1 << 4)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_SPATIAL_DITHER_EN     (1 << 8)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_SPATIAL_DITHER_DEPTH  (1 << 12)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_TEMPORAL_DITHER_EN    (1 << 16)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_TEMPORAL_DITHER_DEPTH (1 << 20)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_TEMPORAL_LEVEL        (1 << 24)
+#   define AVIVO_TMDS_BIT_DEPTH_CONTROL_TEMPORAL_DITHER_RESET (1 << 26)
 #define AVIVO_TMDSA_MYSTERY2                0x78d8
 #   define AVIVO_TMDS_MYSTERY2_EN               ((1 << 24) | (1 << 16) | (1 << 0))
 #define AVIVO_TMDSA_CLOCK_ENABLE            0x7900
@@ -3411,7 +3408,15 @@
 
 #define AVIVO_LVTMA_CNTL					0x7a80
 #define AVIVO_LVTMA_CRTC_SOURCE				0x7a84
-#define AVIVO_LVTMA_MYSTERY1				0x7a94
+#define AVIVO_LVTMA_BIT_DEPTH_CONTROL                   0x7a94
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TRUNCATE_EN           (1 << 0)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TRUNCATE_DEPTH        (1 << 4)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_SPATIAL_DITHER_EN     (1 << 8)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_SPATIAL_DITHER_DEPTH  (1 << 12)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TEMPORAL_DITHER_EN    (1 << 16)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TEMPORAL_DITHER_DEPTH (1 << 20)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TEMPORAL_LEVEL        (1 << 24)
+#   define AVIVO_LVTMA_BIT_DEPTH_CONTROL_TEMPORAL_DITHER_RESET (1 << 26)
 #define AVIVO_LVTMA_MYSTERY2				0x7ad8
 #define AVIVO_LVTMA_CLOCK_ENABLE			0x7b00
 #define AVIVO_LVTMA_CLOCK_CNTL				0x7b04

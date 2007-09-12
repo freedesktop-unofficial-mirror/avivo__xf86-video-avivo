@@ -464,34 +464,30 @@ void radeon_output_set(char *output, char *status)
 
     if (strcmp(output, "tmds1") == 0) {
         if (on) {
-            SET_REG(AVIVO_TMDS1_MYSTERY1, AVIVO_TMDS_MYSTERY1_EN);
-            SET_REG(AVIVO_TMDS1_MYSTERY2, AVIVO_TMDS_MYSTERY2_EN);
-            SET_REG(AVIVO_TMDS1_MYSTERY3, 0x10000011);
-            SET_REG(AVIVO_TMDS1_CLOCK_CNTL, 0x0000001f);
-            SET_REG(AVIVO_TMDS1_CNTL, 0x00001010 | AVIVO_TMDS_CNTL_UNK0);
+            SET_REG(AVIVO_TMDSA_MYSTERY3, 0x10000011);
+            SET_REG(AVIVO_TMDSA_CLOCK_CNTL, 0x0000001f);
+            SET_REG(AVIVO_TMDSA_CNTL, 0x00001010 | AVIVO_TMDS_CNTL_UNK0);
         }
         else {
-            SET_REG(AVIVO_TMDS1_CNTL, 0x00001010);
-            SET_REG(AVIVO_TMDS1_MYSTERY1, 0x04000000);
-            SET_REG(AVIVO_TMDS1_MYSTERY2, 0x00000000);
-            SET_REG(AVIVO_TMDS1_MYSTERY3, 0x10000011);
-            SET_REG(AVIVO_TMDS1_CLOCK_CNTL, 0x00060000);
+            SET_REG(AVIVO_TMDSA_CNTL, 0x00001010);
+            SET_REG(AVIVO_TMDSA_BIT_DEPTH_CONTROL, 0x04000000);
+            SET_REG(AVIVO_TMDSA_MYSTERY2, 0x00000000);
+            SET_REG(AVIVO_TMDSA_MYSTERY3, 0x10000011);
+            SET_REG(AVIVO_TMDSA_CLOCK_CNTL, 0x00060000);
         }
     }
     else if (strcmp(output, "tmds2") == 0) {
         if (on) {
-            SET_REG(AVIVO_TMDS2_MYSTERY1, AVIVO_TMDS_MYSTERY1_EN);
-            SET_REG(AVIVO_TMDS2_MYSTERY2, AVIVO_TMDS_MYSTERY2_EN);
-            SET_REG(AVIVO_TMDS2_MYSTERY3, 0x30000011);
-            SET_REG(AVIVO_TMDS2_CLOCK_CNTL, 0x0000003e);
-            SET_REG(AVIVO_TMDS2_CNTL, 0x00001010 | AVIVO_TMDS_CNTL_UNK0);
+            SET_REG(AVIVO_LVTMA_MYSTERY3, 0x30000011);
+            SET_REG(AVIVO_LVTMA_CLOCK_CNTL, 0x0000003e);
+            SET_REG(AVIVO_LVTMA_CNTL, 0x00001010 | AVIVO_TMDS_CNTL_UNK0);
         }
         else {
-            SET_REG(AVIVO_TMDS2_CNTL, 0x1010);
-            SET_REG(AVIVO_TMDS2_MYSTERY1, 0x04000000);
-            SET_REG(AVIVO_TMDS2_MYSTERY2, 0x00000000);
-            SET_REG(AVIVO_TMDS2_MYSTERY3, 0x10000011);
-            SET_REG(AVIVO_TMDS2_CLOCK_CNTL, 0x00060000);
+            SET_REG(AVIVO_LVTMA_CNTL, 0x1010);
+            SET_REG(AVIVO_LVTMA_BIT_DEPTH_CONTROL, 0x04000000);
+            SET_REG(AVIVO_LVTMA_MYSTERY2, 0x00000000);
+            SET_REG(AVIVO_LVTMA_MYSTERY3, 0x10000011);
+            SET_REG(AVIVO_LVTMA_CLOCK_CNTL, 0x00060000);
         }
     }
     else if (strcmp(output, "dac1") == 0) {
@@ -796,18 +792,18 @@ static struct {
     REGLIST(AVIVO_DAC2_CNTL),
     REGLIST(AVIVO_DAC2_MYSTERY1),
     REGLIST(AVIVO_DAC2_MYSTERY2),
-    REGLIST(AVIVO_TMDS1_CNTL),
-    REGLIST(AVIVO_TMDS1_CLOCK_ENABLE),
-    REGLIST(AVIVO_TMDS1_CLOCK_CNTL),
-    REGLIST(AVIVO_TMDS1_MYSTERY1),
-    REGLIST(AVIVO_TMDS1_MYSTERY2),
-    REGLIST(AVIVO_TMDS1_MYSTERY3),
-    REGLIST(AVIVO_TMDS2_CNTL),
-    REGLIST(AVIVO_TMDS2_CLOCK_ENABLE),
-    REGLIST(AVIVO_TMDS2_CLOCK_CNTL),
-    REGLIST(AVIVO_TMDS2_MYSTERY1),
-    REGLIST(AVIVO_TMDS2_MYSTERY2),
-    REGLIST(AVIVO_TMDS2_MYSTERY3),
+    REGLIST(AVIVO_TMDSA_CNTL),
+    REGLIST(AVIVO_TMDSA_CLOCK_ENABLE),
+    REGLIST(AVIVO_TMDSA_CLOCK_CNTL),
+    REGLIST(AVIVO_TMDSA_BIT_DEPTH_CONTROL),
+    REGLIST(AVIVO_TMDSA_MYSTERY2),
+    REGLIST(AVIVO_TMDSA_MYSTERY3),
+    REGLIST(AVIVO_LVTMA_CNTL),
+    REGLIST(AVIVO_LVTMA_CLOCK_ENABLE),
+    REGLIST(AVIVO_LVTMA_CLOCK_CNTL),
+    REGLIST(AVIVO_LVTMA_BIT_DEPTH_CONTROL),
+    REGLIST(AVIVO_LVTMA_MYSTERY2),
+    REGLIST(AVIVO_LVTMA_MYSTERY3),
     REGLIST(AVIVO_TMDS_STATUS),
     REGLIST(AVIVO_LVDS_CNTL),
     REGLIST(AVIVO_LVDS_BACKLIGHT_CNTL),
@@ -905,9 +901,9 @@ void radeon_cmd_regs(const char *type)
             show_dac1 = 1;
         if (GET_REG(AVIVO_DAC2_CNTL) & AVIVO_DAC_EN)
             show_dac2 = 1;
-        if (GET_REG(AVIVO_TMDS1_CNTL) & AVIVO_TMDS_CNTL_UNK0)
+        if (GET_REG(AVIVO_TMDSA_CNTL) & AVIVO_TMDS_CNTL_UNK0)
             show_tmds1 = 1;
-        if (GET_REG(AVIVO_TMDS2_CNTL) & AVIVO_TMDS_CNTL_UNK0)
+        if (GET_REG(AVIVO_LVTMA_CNTL) & AVIVO_TMDS_CNTL_UNK0)
             show_tmds2 = 1;
         if (GET_REG(AVIVO_LVDS_EN) & AVIVO_LVDS_EN)
             show_lvds = 1;
@@ -1167,45 +1163,45 @@ void radeon_cmd_regs(const char *type)
     }
 
     if (show_tmds1) {
-        printf("\nTMDS1:\n");
-        SHOW_REG_BITS(AVIVO_TMDS1_CNTL,
+        printf("\nTMDSA:\n");
+        SHOW_REG_BITS(AVIVO_TMDSA_CNTL,
                       0, 0, "Enable",
                       0, 0, NULL);
         SHOW_REG_BITS(AVIVO_TMDS_STATUS,
-                      0, 0, "TMDS1 connected",
+                      0, 0, "TMDSA connected",
                       0, 0, NULL);
-        SHOW_REG(AVIVO_TMDS1_CLOCK_ENABLE);
-        SHOW_REG(AVIVO_TMDS1_CLOCK_CNTL);
-        SHOW_REG(AVIVO_TMDS1_MYSTERY1);
-        SHOW_REG(AVIVO_TMDS1_MYSTERY2);
-        SHOW_REG(AVIVO_TMDS1_MYSTERY3);
+        SHOW_REG(AVIVO_TMDSA_CLOCK_ENABLE);
+        SHOW_REG(AVIVO_TMDSA_CLOCK_CNTL);
+        SHOW_REG(AVIVO_TMDSA_BIT_DEPTH_CONTROL);
+        SHOW_REG(AVIVO_TMDSA_MYSTERY2);
+        SHOW_REG(AVIVO_TMDSA_MYSTERY3);
     }
     else {
         if (!shut_up)
-            printf("\nTMDS1 disabled (%spresent)\n",
+            printf("\nTMDSA disabled (%spresent)\n",
                    (GET_REG(AVIVO_TMDS_STATUS) &
-                    AVIVO_TMDS1_CONNECTED) ? "" : "not ");
+                    AVIVO_TMDSA_CONNECTED) ? "" : "not ");
     }
 
     if (show_tmds2) {
-        printf("\nTMDS2:\n");
-        SHOW_REG_BITS(AVIVO_TMDS2_CNTL,
+        printf("\nLVTMA:\n");
+        SHOW_REG_BITS(AVIVO_LVTMA_CNTL,
                       0, 0, "Enable",
                       0, 0, NULL);
         SHOW_REG_BITS(AVIVO_TMDS_STATUS,
-                      8, 8, "TMDS2 connected",
+                      8, 8, "LVTMA connected",
                       0, 0, NULL);
-        SHOW_REG(AVIVO_TMDS2_CLOCK_ENABLE);
-        SHOW_REG(AVIVO_TMDS2_CLOCK_CNTL);
-        SHOW_REG(AVIVO_TMDS2_MYSTERY1);
-        SHOW_REG(AVIVO_TMDS2_MYSTERY2);
-        SHOW_REG(AVIVO_TMDS2_MYSTERY3);
+        SHOW_REG(AVIVO_LVTMA_CLOCK_ENABLE);
+        SHOW_REG(AVIVO_LVTMA_CLOCK_CNTL);
+        SHOW_REG(AVIVO_LVTMA_BIT_DEPTH_CONTROL);
+        SHOW_REG(AVIVO_LVTMA_MYSTERY2);
+        SHOW_REG(AVIVO_LVTMA_MYSTERY3);
     }
     else {
         if (!shut_up)
-            printf("\nTMDS2 disabled (%spresent)\n",
+            printf("\nLVTMA disabled (%spresent)\n",
                    (GET_REG(AVIVO_TMDS_STATUS) &
-                    AVIVO_TMDS2_CONNECTED) ? "" : "not ");
+                    AVIVO_LVTMA_CONNECTED) ? "" : "not ");
     }
 
     if (show_lvds) {
