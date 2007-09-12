@@ -539,7 +539,7 @@ void radeon_output_set(char *output, char *status)
             SET_REG(AVIVO_CRTC1_V_SYNC_POL, 0x00000000);
             SET_REG(AVIVO_CRTC1_FB_FORMAT, AVIVO_CRTC_FORMAT_ARGB32);
             SET_REG(AVIVO_CRTC1_MODE, 0x00000000);
-            SET_REG(AVIVO_CRTC1_CNTL, 0x00010101);
+            SET_REG(AVIVO_CRTC1_CNTL, AVIVO_CRTC_EN);
             SET_REG(AVIVO_CRTC1_SCAN_ENABLE, AVIVO_CRTC_SCAN_EN);
         }
         else {
