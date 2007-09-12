@@ -115,7 +115,6 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_CRTC1_V_SYNC_POL, state->crtc1_v_sync_pol);
     OUTREG(AVIVO_CRTC1_CNTL, state->crtc1_cntl);
     OUTREG(AVIVO_CRTC1_MODE, state->crtc1_mode);
-    OUTREG(AVIVO_CRTC1_STEREO_STATUS, state->crtc1_stereo_status);
     OUTREG(AVIVO_CRTC1_SCAN_ENABLE, state->crtc1_scan_enable);
     OUTREG(AVIVO_CRTC1_FB_FORMAT, state->crtc1_fb_format);
     OUTREG(AVIVO_CRTC1_FB_LOCATION, state->crtc1_fb_location);
