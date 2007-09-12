@@ -161,19 +161,19 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     OUTREG(AVIVO_DAC1_CNTL, state->dac1_cntl);
     OUTREG(AVIVO_DAC1_MYSTERY1, state->dac1_mystery1);
     OUTREG(AVIVO_DAC1_MYSTERY2, state->dac1_mystery2);
-    OUTREG(AVIVO_TMDS1_CNTL, state->tmds1_cntl);
-    OUTREG(AVIVO_TMDS1_MYSTERY1, state->tmds1_mystery1);
-    OUTREG(AVIVO_TMDS1_MYSTERY2, state->tmds1_mystery2);
-    OUTREG(AVIVO_TMDS1_CLOCK_CNTL, state->tmds1_clock_cntl);
-    OUTREG(AVIVO_TMDS1_MYSTERY3, state->tmds1_mystery3);
+    OUTREG(AVIVO_TMDSA_CNTL, state->tmds1_cntl);
+    OUTREG(AVIVO_TMDSA_MYSTERY1, state->tmds1_mystery1);
+    OUTREG(AVIVO_TMDSA_MYSTERY2, state->tmds1_mystery2);
+    OUTREG(AVIVO_TMDSA_CLOCK_CNTL, state->tmds1_clock_cntl);
+    OUTREG(AVIVO_TMDSA_MYSTERY3, state->tmds1_mystery3);
     OUTREG(AVIVO_DAC2_CNTL, state->dac2_cntl);
     OUTREG(AVIVO_DAC2_MYSTERY1, state->dac2_mystery1);
     OUTREG(AVIVO_DAC2_MYSTERY2, state->dac2_mystery2);
-    OUTREG(AVIVO_TMDS2_CNTL, state->tmds2_cntl);
-    OUTREG(AVIVO_TMDS2_MYSTERY1, state->tmds2_mystery1);
-    OUTREG(AVIVO_TMDS2_MYSTERY2, state->tmds2_mystery2);
-    OUTREG(AVIVO_TMDS2_CLOCK_CNTL, state->tmds2_clock_cntl);
-    OUTREG(AVIVO_TMDS2_MYSTERY3, state->tmds2_mystery3);
+    OUTREG(AVIVO_LVTMA_CNTL, state->tmds2_cntl);
+    OUTREG(AVIVO_LVTMA_MYSTERY1, state->tmds2_mystery1);
+    OUTREG(AVIVO_LVTMA_MYSTERY2, state->tmds2_mystery2);
+    OUTREG(AVIVO_LVTMA_CLOCK_CNTL, state->tmds2_clock_cntl);
+    OUTREG(AVIVO_LVTMA_MYSTERY3, state->tmds2_mystery3);
 #ifdef WITH_VGAHW
     vgaHWPtr hwp = VGAHWPTR(screen_info);
     vgaHWUnlock(hwp);
@@ -279,19 +279,19 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->dac1_mystery1 = INREG(AVIVO_DAC1_MYSTERY1);
     state->dac1_mystery2 = INREG(AVIVO_DAC1_MYSTERY2);
 
-    state->tmds1_cntl = INREG(AVIVO_TMDS1_CNTL);
-    state->tmds1_mystery1 = INREG(AVIVO_TMDS1_MYSTERY1);
-    state->tmds1_mystery2 = INREG(AVIVO_TMDS1_MYSTERY2);
-    state->tmds1_clock_cntl = INREG(AVIVO_TMDS1_CLOCK_CNTL);
-    state->tmds1_mystery3 = INREG(AVIVO_TMDS1_MYSTERY3);
+    state->tmds1_cntl = INREG(AVIVO_TMDSA_CNTL);
+    state->tmds1_mystery1 = INREG(AVIVO_TMDSA_MYSTERY1);
+    state->tmds1_mystery2 = INREG(AVIVO_TMDSA_MYSTERY2);
+    state->tmds1_clock_cntl = INREG(AVIVO_TMDSA_CLOCK_CNTL);
+    state->tmds1_mystery3 = INREG(AVIVO_TMDSA_MYSTERY3);
 
     state->dac2_cntl = INREG(AVIVO_DAC2_CNTL);
     state->dac2_mystery1 = INREG(AVIVO_DAC2_MYSTERY1);
     state->dac2_mystery2 = INREG(AVIVO_DAC2_MYSTERY2);
 
-    state->tmds2_cntl = INREG(AVIVO_TMDS2_CNTL);
-    state->tmds2_mystery1 = INREG(AVIVO_TMDS2_MYSTERY1);
-    state->tmds2_mystery2 = INREG(AVIVO_TMDS2_MYSTERY2);
-    state->tmds2_clock_cntl = INREG(AVIVO_TMDS2_CLOCK_CNTL);
-    state->tmds2_mystery3 = INREG(AVIVO_TMDS2_MYSTERY3);
+    state->tmds2_cntl = INREG(AVIVO_LVTMA_CNTL);
+    state->tmds2_mystery1 = INREG(AVIVO_LVTMA_MYSTERY1);
+    state->tmds2_mystery2 = INREG(AVIVO_LVTMA_MYSTERY2);
+    state->tmds2_clock_cntl = INREG(AVIVO_LVTMA_CLOCK_CNTL);
+    state->tmds2_mystery3 = INREG(AVIVO_LVTMA_MYSTERY3);
 }

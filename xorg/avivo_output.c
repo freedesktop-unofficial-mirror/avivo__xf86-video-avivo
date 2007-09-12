@@ -84,23 +84,23 @@ avivo_output_tmds1_setup(xf86OutputPtr output)
         struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
 
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
-                   "(TMDS1) %s connector associated to crtc(%d)\n",
+                   "(TMDSA) %s connector associated to crtc(%d)\n",
                    xf86ConnectorGetName(avivo_output->type),
                    avivo_crtc->crtc_number);
-        OUTREG(AVIVO_TMDS1_CRTC_SOURCE, avivo_crtc->crtc_number);
+        OUTREG(AVIVO_TMDSA_CRTC_SOURCE, avivo_crtc->crtc_number);
     }
-    tmp = INREG(AVIVO_TMDS1_MYSTERY3);
+    tmp = INREG(AVIVO_TMDSA_MYSTERY3);
     tmp = (tmp & ~0x3) | 1;
-    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
-    OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1F);
-    OUTREG(AVIVO_TMDS1_CNTL, (INREG(AVIVO_TMDS1_CNTL) | 0x1));
+    OUTREG(AVIVO_TMDSA_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDSA_CLOCK_CNTL, 0x1F);
+    OUTREG(AVIVO_TMDSA_CNTL, (INREG(AVIVO_TMDSA_CNTL) | 0x1));
     OUTREG(0x78D0, 0x1);
-    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
-    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp | 0x3);
-    OUTREG(AVIVO_TMDS1_MYSTERY3, tmp);
-    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x1);
-    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x101);
-    OUTREG(AVIVO_TMDS1_MYSTERY2, 0x1);
+    OUTREG(AVIVO_TMDSA_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDSA_MYSTERY3, tmp | 0x3);
+    OUTREG(AVIVO_TMDSA_MYSTERY3, tmp);
+    OUTREG(AVIVO_TMDSA_MYSTERY2, 0x1);
+    OUTREG(AVIVO_TMDSA_MYSTERY2, 0x101);
+    OUTREG(AVIVO_TMDSA_MYSTERY2, 0x1);
 }
 
 static void
@@ -110,28 +110,28 @@ avivo_output_tmds2_setup(xf86OutputPtr output)
     struct avivo_info *avivo = avivo_get_info(output->scrn);
     unsigned int tmp;
 
-    xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "SETUP TMDS2\n");
+    xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "SETUP LVTMA\n");
     if (output->crtc) {
         struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
 
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
-                   "(TMDS2) %s connector associated to crtc(%d)\n",
+                   "(LVTMA) %s connector associated to crtc(%d)\n",
                    xf86ConnectorGetName(avivo_output->type),
                    avivo_crtc->crtc_number);
-        OUTREG(AVIVO_TMDS2_CRTC_SOURCE, avivo_crtc->crtc_number);
+        OUTREG(AVIVO_LVTMA_CRTC_SOURCE, avivo_crtc->crtc_number);
     }
-    tmp = INREG(AVIVO_TMDS2_MYSTERY3);
+    tmp = INREG(AVIVO_LVTMA_MYSTERY3);
     tmp = (tmp & ~0x3) | 1;
-    OUTREG(AVIVO_TMDS2_MYSTERY3, tmp);
-    OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x1E1F);
-    OUTREG(AVIVO_TMDS2_CNTL, (INREG(AVIVO_TMDS2_CNTL) | 0x1));
+    OUTREG(AVIVO_LVTMA_MYSTERY3, tmp);
+    OUTREG(AVIVO_LVTMA_CLOCK_CNTL, 0x1E1F);
+    OUTREG(AVIVO_LVTMA_CNTL, (INREG(AVIVO_LVTMA_CNTL) | 0x1));
     OUTREG(0x7AD0, 0x1);
-    OUTREG(AVIVO_TMDS2_MYSTERY3, tmp);
-    OUTREG(AVIVO_TMDS2_MYSTERY3, tmp | 0x3);
-    OUTREG(AVIVO_TMDS2_MYSTERY3, tmp);
-    OUTREG(AVIVO_TMDS2_MYSTERY2, 0x1);
-    OUTREG(AVIVO_TMDS2_MYSTERY2, 0x101);
-    OUTREG(AVIVO_TMDS2_MYSTERY2, 0x1);
+    OUTREG(AVIVO_LVTMA_MYSTERY3, tmp);
+    OUTREG(AVIVO_LVTMA_MYSTERY3, tmp | 0x3);
+    OUTREG(AVIVO_LVTMA_MYSTERY3, tmp);
+    OUTREG(AVIVO_LVTMA_MYSTERY2, 0x1);
+    OUTREG(AVIVO_LVTMA_MYSTERY2, 0x101);
+    OUTREG(AVIVO_LVTMA_MYSTERY2, 0x1);
 }
 
 static void
@@ -175,14 +175,14 @@ avivo_output_tmds1_dpms(xf86OutputPtr output, int mode)
 
     switch(mode) {
     case DPMSModeOn:
-        OUTREG(AVIVO_TMDS1_CLOCK_ENABLE, 1);
-        OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0x1F);
+        OUTREG(AVIVO_TMDSA_CLOCK_ENABLE, 1);
+        OUTREG(AVIVO_TMDSA_CLOCK_CNTL, 0x1F);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
     case DPMSModeOff:
-        OUTREG(AVIVO_TMDS1_CLOCK_CNTL, 0);
-        OUTREG(AVIVO_TMDS1_CLOCK_ENABLE, 0);
+        OUTREG(AVIVO_TMDSA_CLOCK_CNTL, 0);
+        OUTREG(AVIVO_TMDSA_CLOCK_ENABLE, 0);
         break;
     }
 }
@@ -194,14 +194,14 @@ avivo_output_tmds2_dpms(xf86OutputPtr output, int mode)
 
     switch(mode) {
     case DPMSModeOn:
-        OUTREG(AVIVO_TMDS2_CLOCK_ENABLE, 1);
-        OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x1F);
+        OUTREG(AVIVO_LVTMA_CLOCK_ENABLE, 1);
+        OUTREG(AVIVO_LVTMA_CLOCK_CNTL, 0x1F);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
     case DPMSModeOff:
-        OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0);
-        OUTREG(AVIVO_TMDS2_CLOCK_ENABLE, 0);
+        OUTREG(AVIVO_LVTMA_CLOCK_CNTL, 0);
+        OUTREG(AVIVO_LVTMA_CLOCK_ENABLE, 0);
         break;
     }
 }
@@ -214,21 +214,21 @@ avivo_output_lvds_dpms(xf86OutputPtr output, int mode)
 
     switch(mode) {
     case DPMSModeOn:
-        xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "ENABLE TMDS2\n");
+        xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "ENABLE LVTMA\n");
         OUTREG(AVIVO_LVDS_CNTL, AVIVO_LVDS_EN | AVIVO_LVDS_MYSTERY);
-        OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0x1E1E);
+        OUTREG(AVIVO_LVTMA_CLOCK_CNTL, 0x1E1E);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
     case DPMSModeOff:
-        xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "DISABLE TMDS2\n");
+        xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "DISABLE LVTMA\n");
         OUTREG(AVIVO_LVDS_CNTL, AVIVO_LVDS_MYSTERY);
         do {
             tmp = INREG(0x7AF4);
             usleep(100);
         } while (tmp != 0x800);
-        OUTREG(AVIVO_TMDS2_CLOCK_CNTL, 0);
-        OUTREG(AVIVO_TMDS2_CLOCK_ENABLE, 0);
+        OUTREG(AVIVO_LVTMA_CLOCK_CNTL, 0);
+        OUTREG(AVIVO_LVTMA_CLOCK_ENABLE, 0);
         break;
     }
 }
@@ -442,7 +442,7 @@ avivo_output_exist(ScrnInfoPtr screen_info, xf86ConnectorType type,
         struct avivo_output_private *avivo_output = output->driver_private;
         if (avivo_output->number == number && avivo_output->type == type)
             return TRUE;
-        /* TMDS2 is shared by LFP & DVI-I */
+        /* LVTMA is shared by LFP & DVI-I */
         if (avivo_output->type == XF86ConnectorLFP && number >= 1)
             return TRUE;
         if (type == XF86ConnectorLFP && avivo_output->number >= 1) {

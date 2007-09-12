@@ -3367,7 +3367,7 @@
  *          tiled 4 times but for most cards this will give wrong pictures
  *     UNK6 seems to kill the feed LVDS & DVI
  */
-#define AVIVO_TMDS1_CNTL                    0x7880
+#define AVIVO_TMDSA_CNTL                    0x7880
 #   define AVIVO_TMDS_CNTL_UNK0                 (1 << 0)
 #   define AVIVO_TMDS_CNTL_UNK1                 (1 << 4)
 #   define AVIVO_TMDS_CNTL_UNK2                 (1 << 8)
@@ -3375,11 +3375,11 @@
 #   define AVIVO_TMDS_CNTL_UNK4                 (1 << 16)
 #   define AVIVO_TMDS_CNTL_UNK5                 (1 << 24)
 #   define AVIVO_TMDS_CNTL_UNK6                 (1 << 28)
-#define AVIVO_TMDS1_CRTC_SOURCE				0x7884
+#define AVIVO_TMDSA_CRTC_SOURCE				0x7884
 /* 78a8 appears to be some kind of (reasonably tolerant) clock?
  * 78d0 definitely hits the transmitter, definitely clock. */
 /* MYSTERY1 This appears to control dithering? */
-#define AVIVO_TMDS1_MYSTERY1				0x7894
+#define AVIVO_TMDSA_MYSTERY1				0x7894
 #   define AVIVO_TMDS_MYSTERY1_UNK0             (1 << 0)
 #   define AVIVO_TMDS_MYSTERY1_UNK1             (1 << 4)
 #   define AVIVO_TMDS_MYSTERY1_UNK2             (1 << 8)
@@ -3391,17 +3391,17 @@
 #   define AVIVO_TMDS_MYSTERY1_UNK8_SHIFT       28
 #   define AVIVO_TMDS_MYSTERY1_UNK8_MASK        (0xF << 28)
 #   define AVIVO_TMDS_MYSTERY1_EN               ((1 << 8) | (1 << 12))
-#define AVIVO_TMDS1_MYSTERY2                0x78d8
+#define AVIVO_TMDSA_MYSTERY2                0x78d8
 #   define AVIVO_TMDS_MYSTERY2_EN               ((1 << 24) | (1 << 16) | (1 << 0))
-#define AVIVO_TMDS1_CLOCK_ENABLE            0x7900
-#define AVIVO_TMDS1_CLOCK_CNTL              0x7904
+#define AVIVO_TMDSA_CLOCK_ENABLE            0x7900
+#define AVIVO_TMDSA_CLOCK_CNTL              0x7904
 /* I don't know any of the bits here, only that enabling (1 << 5)
  * without (1 << 4) makes things go utterly mental ... seems to be
  * the transmitter clock again. */
 /* 790c is a clock?
  * 7910 appears to be some kind of control field, again.  (1 << 25)
  * must be enabled to get a signal on my monitor. */
-#define AVIVO_TMDS1_MYSTERY3				0x7910
+#define AVIVO_TMDSA_MYSTERY3				0x7910
 #	define AVIVO_TMDS_MYSTERY3_24				(1 << 24)
 #	define AVIVO_TMDS_MYSTERY3_25				(1 << 25)
 #	define AVIVO_TMDS_MYSTERY3_4				(1 << 4)
@@ -3409,13 +3409,13 @@
 #	define AVIVO_TMDS_MYSTERY3_2				(1 << 2)
 #	define AVIVO_TMDS_MYSTERY3_1				(1 << 1)
 
-#define AVIVO_TMDS2_CNTL					0x7a80
-#define AVIVO_TMDS2_CRTC_SOURCE				0x7a84
-#define AVIVO_TMDS2_MYSTERY1				0x7a94
-#define AVIVO_TMDS2_MYSTERY2				0x7ad8
-#define AVIVO_TMDS2_CLOCK_ENABLE			0x7b00
-#define AVIVO_TMDS2_CLOCK_CNTL				0x7b04
-#define AVIVO_TMDS2_MYSTERY3				0x7b10
+#define AVIVO_LVTMA_CNTL					0x7a80
+#define AVIVO_LVTMA_CRTC_SOURCE				0x7a84
+#define AVIVO_LVTMA_MYSTERY1				0x7a94
+#define AVIVO_LVTMA_MYSTERY2				0x7ad8
+#define AVIVO_LVTMA_CLOCK_ENABLE			0x7b00
+#define AVIVO_LVTMA_CLOCK_CNTL				0x7b04
+#define AVIVO_LVTMA_MYSTERY3				0x7b10
 
 #define AVIVO_LVDS_CNTL						0x7af0
 #	define AVIVO_LVDS_EN					    ((1 << 4))
@@ -3432,8 +3432,8 @@
 #define AVIVO_GPIO_3                        0x7e60
 
 #define AVIVO_TMDS_STATUS					0x7e9c
-#	define AVIVO_TMDS1_CONNECTED				(1 << 0)
-#	define AVIVO_TMDS2_CONNECTED				(1 << 8)
+#	define AVIVO_TMDSA_CONNECTED				(1 << 0)
+#	define AVIVO_LVTMA_CONNECTED				(1 << 8)
 
 /* Cursor registers. */
 #define AVIVO_CURSOR1_CNTL					0x6400
