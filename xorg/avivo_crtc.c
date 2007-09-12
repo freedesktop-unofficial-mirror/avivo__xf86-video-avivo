@@ -53,7 +53,7 @@ avivo_crtc_enable(xf86CrtcPtr crtc, int enable)
 
     if (enable) {
         scan_enable = AVIVO_CRTC_SCAN_EN;
-        cntl = 0x00010101;
+        cntl = AVIVO_CRTC_EN;
     } else {
         scan_enable = 0;
         cntl = 0;
