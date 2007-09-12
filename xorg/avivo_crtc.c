@@ -186,6 +186,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     struct avivo_crtc_private *avivo_crtc = crtc->driver_private;
     struct avivo_info *avivo = avivo_get_info(crtc->scrn);
     unsigned long fb_location = avivo_crtc->fb_offset + avivo->fb_addr;
+    int regval;
 
     /* compute mode value
      * TODO: hsync & vsync pol likely not handled properly
@@ -240,8 +241,11 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
     /* TODO: find out what this regs truely are for.
      * last guess: Switch from text to graphics mode.
      */
-    OUTREG(AVIVO_VGA_MYSTERY0, 0x00010600);
-    OUTREG(AVIVO_VGA_MYSTERY1, 0x00000400);
+
+    regval = (AVIVO_VGA1_CONTROL_SYNC_POLARITY_SELECT | AVIVO_VGA1_CONTROL_OVERSCAN_TIMING_SELECT | AVIVO_VGA1_CONTROL_OVERSCAN_COLOR_EN);
+    OUTREG(AVIVO_VGA1_CONTROL, regval);
+    regval = (AVIVO_VGA2_CONTROL_OVERSCAN_TIMING_SELECT);
+    OUTREG(AVIVO_VGA2_CONTROL, regval);
 
     /* setup fb format and location
      */

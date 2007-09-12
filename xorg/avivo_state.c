@@ -76,8 +76,8 @@ avivo_restore_state(ScrnInfoPtr screen_info)
     avivo_set_mc(screen_info, AVIVO_MC_MEMORY_MAP, state->mc_memory_map);
     OUTREG(AVIVO_VGA_MEMORY_BASE, state->vga_memory_base);
     OUTREG(AVIVO_VGA_FB_START, state->vga_fb_start);
-    OUTREG(AVIVO_VGA_MYSTERY0, state->vga_mystery0);
-    OUTREG(AVIVO_VGA_MYSTERY1, state->vga_mystery1);
+    OUTREG(AVIVO_VGA1_CONTROL, state->vga_mystery0);
+    OUTREG(AVIVO_VGA2_CONTROL, state->vga_mystery1);
 
     OUTREG(AVIVO_PLL1_POST_DIV_CNTL, state->pll1_post_div_cntl);
     OUTREG(AVIVO_PLL1_POST_DIV, state->pll1_post_div);
@@ -202,8 +202,8 @@ avivo_save_state(ScrnInfoPtr screen_info)
     state->mc_memory_map = avivo_get_mc(screen_info, AVIVO_MC_MEMORY_MAP);
     state->vga_memory_base = INREG(AVIVO_VGA_MEMORY_BASE);
     state->vga_fb_start = INREG(AVIVO_VGA_FB_START);
-    state->vga_mystery0 = INREG(AVIVO_VGA_MYSTERY0);
-    state->vga_mystery1 = INREG(AVIVO_VGA_MYSTERY1);
+    state->vga_mystery0 = INREG(AVIVO_VGA1_CONTROL);
+    state->vga_mystery1 = INREG(AVIVO_VGA2_CONTROL);
 
     state->pll1_post_div_cntl = INREG(AVIVO_PLL1_POST_DIV_CNTL);
     state->pll1_post_div = INREG(AVIVO_PLL1_POST_DIV);
