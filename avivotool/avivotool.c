@@ -538,9 +538,7 @@ void radeon_output_set(char *output, char *status)
             SET_REG(AVIVO_CRTC1_V_SYNC_WID, (3 << 16));
             SET_REG(AVIVO_CRTC1_V_SYNC_POL, 0x00000000);
             SET_REG(AVIVO_CRTC1_FB_FORMAT, AVIVO_CRTC_FORMAT_ARGB32);
-            SET_REG(AVIVO_CRTC1_MODE, 0x00000000);
-            SET_REG(0x000060c0, 0x00000000);
-            SET_REG(AVIVO_CRTC1_CNTL, 0x00010101);
+            SET_REG(AVIVO_CRTC1_CNTL, AVIVO_CRTC_EN);
             SET_REG(AVIVO_CRTC1_SCAN_ENABLE, AVIVO_CRTC_SCAN_EN);
         }
         else {
@@ -757,7 +755,7 @@ static struct {
     REGLIST(AVIVO_CRTC1_V_SYNC_WID),
     REGLIST(AVIVO_CRTC1_V_SYNC_POL),
     REGLIST(AVIVO_CRTC1_CNTL),
-    REGLIST(AVIVO_CRTC1_MODE),
+    REGLIST(AVIVO_CRTC1_BLANK_STATUS),
     REGLIST(AVIVO_CRTC1_SCAN_ENABLE),
     REGLIST(AVIVO_CRTC1_FB_FORMAT),
     REGLIST(AVIVO_CRTC1_FB_LOCATION),
@@ -778,7 +776,7 @@ static struct {
     REGLIST(AVIVO_CRTC2_V_SYNC_WID),
     REGLIST(AVIVO_CRTC2_V_SYNC_POL),
     REGLIST(AVIVO_CRTC2_CNTL),
-    REGLIST(AVIVO_CRTC2_MODE),
+    REGLIST(AVIVO_CRTC2_BLANK_STATUS),
     REGLIST(AVIVO_CRTC2_SCAN_ENABLE),
     REGLIST(AVIVO_CRTC2_FB_FORMAT),
     REGLIST(AVIVO_CRTC2_FB_LOCATION),
@@ -1037,8 +1035,8 @@ void radeon_cmd_regs(const char *type)
                       8, 8, "Mystery bit #1",
                       16, 16, "Mystery bit #2",
                       0, 0, NULL);
-        SHOW_REG_BITS(AVIVO_CRTC1_MODE,
-                      8, 8, "Text mode",
+        SHOW_REG_BITS(AVIVO_CRTC1_BLANK_STATUS,
+                      8, 8, "Blank status",
                       0, 0, NULL);
         SHOW_REG_DECIMAL(AVIVO_CRTC1_H_TOTAL);
         SHOW_REG_BITS(AVIVO_CRTC1_H_BLANK,
@@ -1099,8 +1097,8 @@ void radeon_cmd_regs(const char *type)
                       8, 8, "Mystery bit #1",
                       16, 16, "Mystery bit #2",
                       0, 0, NULL);
-        SHOW_REG_BITS(AVIVO_CRTC2_MODE,
-                      8, 8, "Text mode",
+        SHOW_REG_BITS(AVIVO_CRTC2_BLANK_STATUS,
+                      8, 8, "Blank status",
                       0, 0, NULL);
         SHOW_REG_DECIMAL(AVIVO_CRTC2_H_TOTAL);
         SHOW_REG_BITS(AVIVO_CRTC2_H_BLANK,

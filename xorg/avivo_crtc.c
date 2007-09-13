@@ -53,7 +53,7 @@ avivo_crtc_enable(xf86CrtcPtr crtc, int enable)
 
     if (enable) {
         scan_enable = AVIVO_CRTC_SCAN_EN;
-        cntl = 0x00010101;
+        cntl = AVIVO_CRTC_EN;
     } else {
         scan_enable = 0;
         cntl = 0;
@@ -254,8 +254,6 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            avivo_crtc->fb_format);
     OUTREG(AVIVO_CRTC1_FB_END + avivo_crtc->crtc_offset,
            fb_location + avivo_crtc->fb_length);
-    OUTREG(AVIVO_CRTC1_MODE + avivo_crtc->crtc_offset, 0);
-    OUTREG(AVIVO_CRTC1_60c0_MYSTERY + avivo_crtc->crtc_offset, 0);
     /* avivo can only shift offset by 4 pixel in x if you program somethings
      * not multiple of 4 you gonna drive the GPU crazy and likely won't
      * be able to restore it without cold reboot (vbe post not enough)

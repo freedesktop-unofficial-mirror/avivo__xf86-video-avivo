@@ -84,7 +84,7 @@
 #       define RADEON_AGP_APER_SIZE_8MB     (0x3e << 0)
 #       define RADEON_AGP_APER_SIZE_4MB     (0x3f << 0)
 #       define RADEON_AGP_APER_SIZE_MASK    (0x3f << 0)
-#define RADEON_STATUS_PCI_CONFIG            0x06
+#define RADEON_STATUS_BLANK_CONFIG          0x06
 #       define RADEON_CAP_LIST              0x100000
 #define RADEON_CAPABILITIES_PTR_PCI_CONFIG  0x34 /* offset in PCI config*/
 #       define RADEON_CAP_PTR_MASK          0xfc /* mask off reserved bits of CAP_PTR */
@@ -3245,9 +3245,8 @@
 #define AVIVO_CRTC1_V_SYNC_POL				0x602c
 #define AVIVO_CRTC1_CNTL					0x6080
 #	define AVIVO_CRTC_EN						(1 << 0)
-#define AVIVO_CRTC1_MODE					0x6084
-#       define AVIVO_CRTC_MODE_TEXT				(1 << 8)
-#define AVIVO_CRTC1_60c0_MYSTERY			0x60c0
+#define AVIVO_CRTC1_BLANK_STATUS			0x6084
+#define AVIVO_CRTC1_STEREO_STATUS			0x60c0
 
 /* These all appear to control the scanout from the framebuffer.
  * Flicking SCAN_ENABLE low results in a black screen -- aside from
@@ -3313,7 +3312,7 @@
 #define AVIVO_CRTC2_V_SYNC_WID				0x6828
 #define AVIVO_CRTC2_V_SYNC_POL				0x682c
 #define AVIVO_CRTC2_CNTL					0x6880
-#define AVIVO_CRTC2_MODE					0x6884
+#define AVIVO_CRTC2_BLANK_STATUS			0x6884
 
 #define AVIVO_CRTC2_SCAN_ENABLE				0x6900
 #define AVIVO_CRTC2_FB_FORMAT				0x6904
