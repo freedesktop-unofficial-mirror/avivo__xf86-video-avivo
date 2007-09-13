@@ -493,7 +493,7 @@ Bool
 avivo_output_init(ScrnInfoPtr screen_info, xf86ConnectorType type,
                   int number, unsigned long ddc_reg)
 {
-    xf86OutputPtr output;
+    xf86OutputPtr output = {0,};
     struct avivo_output_private *avivo_output;
     int name_size;
 
