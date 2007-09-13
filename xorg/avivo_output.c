@@ -242,7 +242,11 @@ avivo_output_lvds_dpms(xf86OutputPtr output, int mode)
     switch(mode) {
     case DPMSModeOn:
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "ENABLE LVTMA\n");
-        OUTREG(AVIVO_LVDS_CNTL, AVIVO_LVDS_EN | AVIVO_LVDS_MYSTERY);
+        OUTREG(AVIVO_LVTMA_PWRSEQ_CNTL,
+            AVIVO_LVTMA_PWRSEQ_EN |
+            AVIVO_LVTMA_PWRSEQ_PLL_ENABLE_MASK |
+            AVIVO_LVTMA_PWRSEQ_PLL_RESET_MASK |
+            AVIVO_LVTMA_PWRSEQ_TARGET_STATE);
 	OUTREG(AVIVO_LVTMA_TRANSMITTER_ENABLE, (AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKC0EN | 
 						AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD00EN | 
 						AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD01EN | 
@@ -256,7 +260,10 @@ avivo_output_lvds_dpms(xf86OutputPtr output, int mode)
     case DPMSModeSuspend:
     case DPMSModeOff:
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "DISABLE LVTMA\n");
-        OUTREG(AVIVO_LVDS_CNTL, AVIVO_LVDS_MYSTERY);
+        OUTREG(AVIVO_LVTMA_PWRSEQ_CNTL,
+            AVIVO_LVTMA_PWRSEQ_EN |
+            AVIVO_LVTMA_PWRSEQ_PLL_ENABLE_MASK |
+            AVIVO_LVTMA_PWRSEQ_PLL_RESET_MASK);
         do {
             tmp = INREG(AVIVO_LVTMA_PWRSEQ_STATE);
             usleep(100);

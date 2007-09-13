@@ -3492,9 +3492,21 @@
 #       define AVIVO_LVTMA_TRANSMITTER_CONTROL_USE_CLK_DATA     (1 << 29)
 #	define AVIVO_LVTMA_TRANSMITTER_CONTROL_INPUT_TEST_CLK_SEL	(1 << 31)
 
-#define AVIVO_LVDS_CNTL						0x7af0
-#	define AVIVO_LVDS_EN					    ((1 << 4))
-#	define AVIVO_LVDS_MYSTERY					((1 << 0) | (1 << 2) | (1 << 3))
+#define AVIVO_LVTMA_PWRSEQ_CNTL						0x7af0
+#	define AVIVO_LVTMA_PWRSEQ_EN					    (1 << 0)
+#	define AVIVO_LVTMA_PWRSEQ_PLL_ENABLE_MASK			    (1 << 2)
+#	define AVIVO_LVTMA_PWRSEQ_PLL_RESET_MASK			    (1 << 3)
+#	define AVIVO_LVTMA_PWRSEQ_TARGET_STATE				    (1 << 4)
+#	define AVIVO_LVTMA_SYNCEN					    (1 << 8)
+#	define AVIVO_LVTMA_SYNCEN_OVRD					    (1 << 9)
+#	define AVIVO_LVTMA_SYNCEN_POL					    (1 << 10)
+#	define AVIVO_LVTMA_DIGON					    (1 << 16)
+#	define AVIVO_LVTMA_DIGON_OVRD					    (1 << 17)
+#	define AVIVO_LVTMA_DIGON_POL					    (1 << 18)
+#	define AVIVO_LVTMA_BLON						    (1 << 24)
+#	define AVIVO_LVTMA_BLON_OVRD					    (1 << 25)
+#	define AVIVO_LVTMA_BLON_POL					    (1 << 26)
+
 #define AVIVO_LVTMA_PWRSEQ_STATE                        0x7af4
 #       define AVIVO_LVTMA_PWRSEQ_STATE_TARGET_STATE_R          (1 << 0)
 #       define AVIVO_LVTMA_PWRSEQ_STATE_DIGON                   (1 << 1)

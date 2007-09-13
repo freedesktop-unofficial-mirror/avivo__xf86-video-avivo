@@ -548,10 +548,10 @@ void radeon_output_set(char *output, char *status)
     }
     else if (strcmp(output, "lvds") == 0) {
         if (on)
-            SET_REG(AVIVO_LVDS_CNTL, GET_REG(AVIVO_LVDS_CNTL) | AVIVO_LVDS_EN);
+            SET_REG(AVIVO_LVTMA_PWRSEQ_CNTL, GET_REG(AVIVO_LVTMA_PWRSEQ_CNTL) | AVIVO_LVTMA_PWRSEQ_EN);
         else
-            SET_REG(AVIVO_LVDS_CNTL, GET_REG(AVIVO_LVDS_CNTL) &
-                                      ~(AVIVO_LVDS_EN));
+            SET_REG(AVIVO_LVTMA_PWRSEQ_CNTL, GET_REG(AVIVO_LVTMA_PWRSEQ_CNTL) &
+                                      ~(AVIVO_LVTMA_PWRSEQ_EN));
     }
     else if (strcmp(output, "cur1") == 0) {
         if (on) {
@@ -802,7 +802,7 @@ static struct {
     REGLIST(AVIVO_LVTMA_DATA_SYNCHRONIZATION),
     REGLIST(AVIVO_LVTMA_TRANSMITTER_CONTROL),
     REGLIST(AVIVO_TMDS_STATUS),
-    REGLIST(AVIVO_LVDS_CNTL),
+    REGLIST(AVIVO_LVTMA_PWRSEQ_CNTL),
     REGLIST(AVIVO_LVDS_BACKLIGHT_CNTL),
     REGLIST(AVIVO_CURSOR1_CNTL),
     REGLIST(AVIVO_CURSOR1_POSITION),
@@ -902,7 +902,7 @@ void radeon_cmd_regs(const char *type)
             show_tmds1 = 1;
         if (GET_REG(AVIVO_LVTMA_CNTL) & AVIVO_TMDSA_CNTL_ENABLE)
             show_tmds2 = 1;
-        if (GET_REG(AVIVO_LVDS_EN) & AVIVO_LVDS_EN)
+        if (GET_REG(AVIVO_LVTMA_PWRSEQ_EN) & AVIVO_LVTMA_PWRSEQ_EN)
             show_lvds = 1;
         if (GET_REG(AVIVO_CURSOR1_CNTL) & AVIVO_CURSOR_EN)
             show_cur1 = 1;
@@ -1203,7 +1203,7 @@ void radeon_cmd_regs(const char *type)
 
     if (show_lvds) {
         printf("\nLVDS:\n");
-        SHOW_REG_BITS(AVIVO_LVDS_CNTL,
+        SHOW_REG_BITS(AVIVO_LVTMA_PWRSEQ_CNTL,
                       0, 0, "Enable",
                       4, 4, "Enable #2",
                       0, 0, NULL);
