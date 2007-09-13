@@ -3471,6 +3471,14 @@
 #define AVIVO_LVDS_CNTL						0x7af0
 #	define AVIVO_LVDS_EN					    ((1 << 4))
 #	define AVIVO_LVDS_MYSTERY					((1 << 0) | (1 << 2) | (1 << 3))
+#define AVIVO_LVTMA_PWRSEQ_STATE                        0x7af4
+#       define AVIVO_LVTMA_PWRSEQ_STATE_TARGET_STATE_R          (1 << 0)
+#       define AVIVO_LVTMA_PWRSEQ_STATE_DIGON                   (1 << 1)
+#       define AVIVO_LVTMA_PWRSEQ_STATE_SYNCEN                  (1 << 2)
+#       define AVIVO_LVTMA_PWRSEQ_STATE_BLON                    (1 << 3)
+#       define AVIVO_LVTMA_PWRSEQ_STATE_DONE                    (1 << 4)
+#       define AVIVO_LVTMA_PWRSEQ_STATE                         (8)
+
 #define AVIVO_LVDS_BACKLIGHT_CNTL			0x7af8
 #	define AVIVO_LVDS_BACKLIGHT_CNTL_EN			(1 << 0)
 #	define AVIVO_LVDS_BACKLIGHT_LEVEL_MASK		0x0000ff00

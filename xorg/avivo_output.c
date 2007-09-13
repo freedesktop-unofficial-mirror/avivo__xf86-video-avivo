@@ -242,9 +242,9 @@ avivo_output_lvds_dpms(xf86OutputPtr output, int mode)
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO, "DISABLE LVTMA\n");
         OUTREG(AVIVO_LVDS_CNTL, AVIVO_LVDS_MYSTERY);
         do {
-            tmp = INREG(0x7AF4);
+            tmp = INREG(AVIVO_LVTMA_PWRSEQ_STATE);
             usleep(100);
-        } while (tmp != 0x800);
+        } while (tmp != 0x8 << AVIVO_LVTMA_PWRSEQ_STATE);
         OUTREG(AVIVO_LVTMA_CLOCK_CNTL, 0);
         OUTREG(AVIVO_LVTMA_CLOCK_ENABLE, 0);
         break;
