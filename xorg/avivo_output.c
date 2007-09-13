@@ -141,8 +141,7 @@ avivo_output_tmds2_setup(xf86OutputPtr output)
 					    AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD11EN | 
 					    AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD12EN));
 
-    /* FIXME: This is wrong, surely? Or are we assuming that the TMDS is set up properly? */
-    OUTREG(AVIVO_LVTMA_CNTL, (INREG(AVIVO_TMDSA_CNTL) | AVIVO_LVTMA_CNTL_ENABLE));
+    OUTREG(AVIVO_LVTMA_CNTL, (INREG(AVIVO_LVTMA_CNTL) | AVIVO_LVTMA_CNTL_ENABLE));
     OUTREG(AVIVO_LVTMA_DCBALANCER_CONTROL, AVIVO_LVTMA_DCBALANCER_CONTROL_EN);
 
     /* FIXME: Bonghits? Make really sure we reenable the PLLs*/
