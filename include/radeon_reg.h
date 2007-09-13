@@ -3397,7 +3397,20 @@
 #   define AVIVO_TMDSA_DATA_SYNCHRONIZATION_DSYNSEL           (1 << 0)
 #   define AVIVO_TMDSA_DATA_SYNCHRONIZATION_PFREQCHG          (1 << 8)
 #define AVIVO_TMDSA_CLOCK_ENABLE            0x7900
-#define AVIVO_TMDSA_CLOCK_CNTL              0x7904
+#define AVIVO_TMDSA_TRANSMITTER_ENABLE              0x7904
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_TX0_ENABLE          (1 << 0)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKC0EN             (1 << 1)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKD00EN            (1 << 2)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKD01EN            (1 << 3)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKD02EN            (1 << 4)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_TX1_ENABLE          (1 << 8)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKD10EN            (1 << 10)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKD11EN            (1 << 11)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKD12EN            (1 << 12)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_TX_ENABLE_HPD_MASK  (1 << 16)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKCEN_HPD_MASK     (1 << 17)
+#   define AVIVO_TMDSA_TRANSMITTER_ENABLE_LNKDEN_HPD_MASK     (1 << 18)
+
 /* I don't know any of the bits here, only that enabling (1 << 5)
  * without (1 << 4) makes things go utterly mental ... seems to be
  * the transmitter clock again. */
@@ -3450,7 +3463,19 @@
 #   define AVIVO_LVTMA_DATA_SYNCHRONIZATION_DSYNSEL           (1 << 0)
 #   define AVIVO_LVTMA_DATA_SYNCHRONIZATION_PFREQCHG          (1 << 8)
 #define AVIVO_LVTMA_CLOCK_ENABLE			0x7b00
-#define AVIVO_LVTMA_CLOCK_CNTL				0x7b04
+
+#define AVIVO_LVTMA_TRANSMITTER_ENABLE              0x7b04
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKC0EN             (1 << 1)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD00EN            (1 << 2)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD01EN            (1 << 3)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD02EN            (1 << 4)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD03EN            (1 << 5)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKC1EN             (1 << 9)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD10EN            (1 << 10)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD11EN            (1 << 11)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKD12EN            (1 << 12)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKCEN_HPD_MASK     (1 << 17)
+#   define AVIVO_LVTMA_TRANSMITTER_ENABLE_LNKDEN_HPD_MASK     (1 << 18)
 
 #define AVIVO_LVTMA_TRANSMITTER_CONTROL			        0x7b10
 #	define AVIVO_LVTMA_TRANSMITTER_CONTROL_PLL_ENABLE	(1 << 0)
