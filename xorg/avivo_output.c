@@ -261,7 +261,7 @@ avivo_output_lvds_dpms(xf86OutputPtr output, int mode)
         do {
             tmp = INREG(AVIVO_LVTMA_PWRSEQ_STATE);
             usleep(100);
-        } while (tmp != 0x8 << AVIVO_LVTMA_PWRSEQ_STATE);
+        } while (tmp != 0x8 << AVIVO_LVTMA_PWRSEQ_STATE_STATUS);
         OUTREG(AVIVO_LVTMA_TRANSMITTER_ENABLE, 0);
         OUTREG(AVIVO_LVTMA_CLOCK_ENABLE, 0);
         break;
