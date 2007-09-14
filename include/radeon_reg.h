@@ -3513,7 +3513,7 @@
 #       define AVIVO_LVTMA_PWRSEQ_STATE_SYNCEN                  (1 << 2)
 #       define AVIVO_LVTMA_PWRSEQ_STATE_BLON                    (1 << 3)
 #       define AVIVO_LVTMA_PWRSEQ_STATE_DONE                    (1 << 4)
-#       define AVIVO_LVTMA_PWRSEQ_STATE_STATUS                  (8)
+#       define AVIVO_LVTMA_PWRSEQ_STATE_STATUS_SHIFT            (8)
 
 #define AVIVO_LVDS_BACKLIGHT_CNTL			0x7af8
 #	define AVIVO_LVDS_BACKLIGHT_CNTL_EN			(1 << 0)
