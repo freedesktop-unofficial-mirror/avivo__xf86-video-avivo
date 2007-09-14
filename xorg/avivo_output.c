@@ -43,14 +43,14 @@ avivo_output_dac1_setup(xf86OutputPtr output)
         struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
 
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
-                   "(DAC1) %s connector associated to crtc(%d)\n",
+                   "(DACA) %s connector associated to crtc(%d)\n",
                    xf86ConnectorGetName(avivo_output->type),
                    avivo_crtc->crtc_number);
-        OUTREG(AVIVO_DAC1_CRTC_SOURCE, avivo_crtc->crtc_number);
+        OUTREG(AVIVO_DACA_CRTC_SOURCE, avivo_crtc->crtc_number);
     }
-    OUTREG(AVIVO_DAC1_MYSTERY1, 0);
-    OUTREG(AVIVO_DAC1_MYSTERY2, 0);
-    OUTREG(AVIVO_DAC1_CNTL, AVIVO_DAC_EN);
+    OUTREG(AVIVO_DACA_FORCE_OUTPUT_CNTL, 0);
+    OUTREG(AVIVO_DACA_POWERDOWN, 0);
+    OUTREG(AVIVO_DACA_CNTL, AVIVO_DAC_EN);
 }
 
 static void
@@ -63,14 +63,14 @@ avivo_output_dac2_setup(xf86OutputPtr output)
         struct avivo_crtc_private *avivo_crtc = output->crtc->driver_private;
 
         xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
-                   "(DAC2) %s connector associated to crtc(%d)\n",
+                   "(DACB) %s connector associated to crtc(%d)\n",
                    xf86ConnectorGetName(avivo_output->type),
                    avivo_crtc->crtc_number);
-        OUTREG(AVIVO_DAC2_CRTC_SOURCE, avivo_crtc->crtc_number);
+        OUTREG(AVIVO_DACB_CRTC_SOURCE, avivo_crtc->crtc_number);
     }
-    OUTREG(AVIVO_DAC2_MYSTERY1, 0);
-    OUTREG(AVIVO_DAC2_MYSTERY2, 0);
-    OUTREG(AVIVO_DAC2_CNTL, AVIVO_DAC_EN);
+    OUTREG(AVIVO_DACB_FORCE_OUTPUT_CNTL, 0);
+    OUTREG(AVIVO_DACB_POWERDOWN, 0);
+    OUTREG(AVIVO_DACB_CNTL, AVIVO_DAC_EN);
 }
 
 static void
@@ -165,12 +165,12 @@ avivo_output_dac1_dpms(xf86OutputPtr output, int mode)
 
     switch(mode) {
     case DPMSModeOn:
-        OUTREG(AVIVO_DAC1_CNTL, AVIVO_DAC_EN);
+        OUTREG(AVIVO_DACA_CNTL, AVIVO_DAC_EN);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
     case DPMSModeOff:
-        OUTREG(AVIVO_DAC1_CNTL, 0);
+        OUTREG(AVIVO_DACA_CNTL, 0);
         break;
     }
 }
@@ -182,12 +182,12 @@ avivo_output_dac2_dpms(xf86OutputPtr output, int mode)
 
     switch(mode) {
     case DPMSModeOn:
-        OUTREG(AVIVO_DAC2_CNTL, AVIVO_DAC_EN);
+        OUTREG(AVIVO_DACB_CNTL, AVIVO_DAC_EN);
         break;
     case DPMSModeStandby:
     case DPMSModeSuspend:
     case DPMSModeOff:
-        OUTREG(AVIVO_DAC2_CNTL, 0);
+        OUTREG(AVIVO_DACB_CNTL, 0);
         break;
     }
 }

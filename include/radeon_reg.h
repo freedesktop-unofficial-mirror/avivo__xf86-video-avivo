@@ -3339,18 +3339,36 @@
 #define AVIVO_CRTC2_65C0					0x6dc0
 #define AVIVO_CRTC2_65C8					0x6dc8
 
-#define AVIVO_DAC1_CNTL						0x7800
-#define AVIVO_DAC1_CRTC_SOURCE				0x7804
+#define AVIVO_DACA_CNTL						0x7800
+#define AVIVO_DACA_CRTC_SOURCE				0x7804
 #	define AVIVO_DAC_EN							(1 << 0)
-#define AVIVO_DAC1_MYSTERY1					0x783c
-#	define AVIVO_DAC_MYSTERY1_DIS				((1 << 0) | (1 << 8) | (1 << 9) | (1 << 10))
-#define AVIVO_DAC1_MYSTERY2					0x7850
-#	define AVIVO_DAC_MYSTERY2_DIS				((1 << 0) | (1 << 8) | (1 << 16) | (1 << 24))
+#define AVIVO_DACA_FORCE_OUTPUT_CNTL				0x783c
+# define AVIVO_DACA_FORCE_OUTPUT_CNTL_FORCE_DATA_EN             (1 << 0)
+# define AVIVO_DACA_FORCE_OUTPUT_CNTL_DATA_SEL_SHIFT            (8)
+# define AVIVO_DACA_FORCE_OUTPUT_CNTL_DATA_SEL_BLUE             (1 << 0)
+# define AVIVO_DACA_FORCE_OUTPUT_CNTL_DATA_SEL_GREEN            (1 << 1)
+# define AVIVO_DACA_FORCE_OUTPUT_CNTL_DATA_SEL_RED              (1 << 2)
+# define AVIVO_DACA_FORCE_OUTPUT_CNTL_DATA_ON_BLANKB_ONLY       (1 << 24)
+#define AVIVO_DACA_POWERDOWN					0x7850
+# define AVIVO_DACA_POWERDOWN_POWERDOWN                         (1 << 0)
+# define AVIVO_DACA_POWERDOWN_BLUE                              (1 << 8)
+# define AVIVO_DACA_POWERDOWN_GREEN                             (1 << 16)
+# define AVIVO_DACA_POWERDOWN_RED                               (1 << 24)
 
-#define AVIVO_DAC2_CNTL						0x7a00
-#define AVIVO_DAC2_CRTC_SOURCE				0x7a04
-#define AVIVO_DAC2_MYSTERY1					0x7a3c
-#define AVIVO_DAC2_MYSTERY2					0x7a50
+#define AVIVO_DACB_CNTL						0x7a00
+#define AVIVO_DACB_CRTC_SOURCE				0x7a04
+#define AVIVO_DACB_FORCE_OUTPUT_CNTL				0x7a3c
+# define AVIVO_DACB_FORCE_OUTPUT_CNTL_FORCE_DATA_EN             (1 << 0)
+# define AVIVO_DACB_FORCE_OUTPUT_CNTL_DATA_SEL_SHIFT            (8)
+# define AVIVO_DACB_FORCE_OUTPUT_CNTL_DATA_SEL_BLUE             (1 << 0)
+# define AVIVO_DACB_FORCE_OUTPUT_CNTL_DATA_SEL_GREEN            (1 << 1)
+# define AVIVO_DACB_FORCE_OUTPUT_CNTL_DATA_SEL_RED              (1 << 2)
+# define AVIVO_DACB_FORCE_OUTPUT_CNTL_DATA_ON_BLANKB_ONLY       (1 << 24)
+#define AVIVO_DACB_POWERDOWN					0x7a50
+# define AVIVO_DACB_POWERDOWN_POWERDOWN                         (1 << 0)
+# define AVIVO_DACB_POWERDOWN_BLUE                              (1 << 8)
+# define AVIVO_DACB_POWERDOWN_GREEN                             (1 << 16)
+# define AVIVO_DACB_POWERDOWN_RED                               (1 << 24)
 
 /* Frustratingly, at least on my R580, the DAC and TMDS orders
  * appear inversed: 7800 and 7a80 enable/disable the same physical
