@@ -254,6 +254,7 @@ avivo_crtc_mode_set(xf86CrtcPtr crtc,
            avivo_crtc->fb_format);
     OUTREG(AVIVO_CRTC1_FB_END + avivo_crtc->crtc_offset,
            fb_location + avivo_crtc->fb_length);
+    OUTREG(AVIVO_CRTC1_BLANK_STATUS + avivo_crtc->crtc_offset, 0);
     /* avivo can only shift offset by 4 pixel in x if you program somethings
      * not multiple of 4 you gonna drive the GPU crazy and likely won't
      * be able to restore it without cold reboot (vbe post not enough)
