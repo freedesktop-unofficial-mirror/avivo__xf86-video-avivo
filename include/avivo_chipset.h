@@ -60,6 +60,7 @@
 #define PCI_CHIP_M58_7102              0x7102
 #define PCI_CHIP_M58_7101              0x7101
 #define PCI_CHIP_M58_7284              0x7284
+#define PCI_CHIP_M64_7188              0x7188
 #define PCI_CHIP_RS690_791E            0x791E
 #define PCI_CHIP_RS690M_791F           0x791F
 #define PCI_CHIP_R580_7288             0x7288
@@ -124,6 +125,7 @@ enum avivo_chip_type {
     CHIP_FAMILY_M54,
     CHIP_FAMILY_M56,
     CHIP_FAMILY_M58,
+    CHIP_FAMILY_M64,
     CHIP_FAMILY_RS690,
     CHIP_FAMILY_RS690M,
     CHIP_FAMILY_RS600,

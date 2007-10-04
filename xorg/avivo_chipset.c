@@ -356,6 +356,10 @@ const struct pci_id_match avivo_device_match[] = {
         PCI_VENDOR_ATI, 0x7244, PCI_MATCH_ANY, PCI_MATCH_ANY,
         0x00030000, 0x00ffffff, 0
     },
+    {
+        PCI_VENDOR_ATI, 0x7188, PCI_MATCH_ANY, PCI_MATCH_ANY,
+        0x00030000, 0x00ffffff, 0
+    },
 
     { 0, 0, 0 },
 };
@@ -394,6 +398,7 @@ SymTabRec avivo_chips[] = {
     { PCI_CHIP_M58_7102, "M58 (ATI Mobility Radeon X1800)" },
     { PCI_CHIP_M58_7101, "M58 (ATI Mobility Radeon X1800 XT)" },
     { PCI_CHIP_M58_7284, "M58 (ATI Mobility Radeon X1900)" },
+    { PCI_CHIP_M64_7188, "M64-S (ATI Mobility Radeon X2300)" },
     { PCI_CHIP_RS690_791E, "RS690 (ATI Radeon X1200 Series)" },
     { PCI_CHIP_RS690M_791F, "RS690M (ATI Radeon X1200 Series)" },
     { PCI_CHIP_R580_7288, "R580 (ATI Radeon X1950 GT)" },
@@ -480,6 +485,7 @@ PciChipsets avivo_pci_chips[] = {
     { PCI_CHIP_M58_7102, PCI_CHIP_M58_7102, RES_SHARED_VGA },
     { PCI_CHIP_M58_7101, PCI_CHIP_M58_7101, RES_SHARED_VGA },
     { PCI_CHIP_M58_7284, PCI_CHIP_M58_7284, RES_SHARED_VGA },
+    { PCI_CHIP_M64_7188, PCI_CHIP_M64_7188, RES_SHARED_VGA },
     { PCI_CHIP_RS690_791E, PCI_CHIP_RS690_791E, RES_SHARED_VGA },
     { PCI_CHIP_RS690M_791F, PCI_CHIP_RS690M_791F, RES_SHARED_VGA },
     { PCI_CHIP_R580_7288, PCI_CHIP_R580_7288, RES_SHARED_VGA },
@@ -571,6 +577,7 @@ static struct avivo_chipset_family chipset_family[] = {
     { PCI_CHIP_M58_7102, CHIP_FAMILY_M58 },
     { PCI_CHIP_M58_7101, CHIP_FAMILY_M58 },
     { PCI_CHIP_M58_7284, CHIP_FAMILY_M58 },
+    { PCI_CHIP_M64_7188, CHIP_FAMILY_M64 },
     { PCI_CHIP_RS690_791E, CHIP_FAMILY_RS690 },
     { PCI_CHIP_RS690M_791F, CHIP_FAMILY_RS690M },
     { PCI_CHIP_R580_7288, CHIP_FAMILY_R580 },
